@@ -1,4 +1,4 @@
-param([string]$Version = '0.2.3')
+param([string]$Version = '0.2.4')
 $ErrorActionPreference = 'Stop'
 $workspace = Split-Path -Parent $PSScriptRoot
 $output = Join-Path $workspace "dist/releases/v$Version"
@@ -44,13 +44,17 @@ if ($LASTEXITCODE -ne 0) { throw 'Falha ao criar save anterior de teste.' }
 $saveBytes = [IO.File]::ReadAllBytes($database)
 $updateZip = Join-Path $output "PokemonSimulator-v$Version-update-win-x64.zip"
 $checksum = ([IO.File]::ReadAllText("$updateZip.sha256") -split '\s+')[0]
+$downloadCache = Join-Path $env:LOCALAPPDATA ('PokemonSimulator/updates/test-' + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $downloadCache -Force | Out-Null
+$cachedZip = Join-Path $downloadCache "PokemonSimulator-v$Version-update-win-x64.zip"
+Copy-Item -LiteralPath $updateZip -Destination $cachedZip
 $helper = Join-Path $build.compactDirectory 'PokemonSimulatorUpdater.exe'
-$arguments = "--apply `"$target`" `"$updateZip`" $checksum $Version 0 --no-restart"
+$arguments = "--apply `"$target`" `"$cachedZip`" $checksum $Version 0 --no-restart"
 $installer = Start-Process -FilePath $helper -ArgumentList $arguments -WindowStyle Hidden -PassThru
 if (-not $installer.WaitForExit(60000) -or $installer.ExitCode -ne 0) { throw 'O pacote real de atualização não foi instalado.' }
 if ([Convert]::ToBase64String([IO.File]::ReadAllBytes($database)) -ne [Convert]::ToBase64String($saveBytes)) { throw 'Banco alterado pelo instalador.' }
 if ((Get-Content (Join-Path $target 'package.json') -Raw | ConvertFrom-Json).version -ne $Version) { throw 'Versão instalada incorreta.' }
-Write-Host 'PASS: atualização real aplica todos os arquivos e preserva o banco anterior byte a byte.'
+Write-Host 'PASS: atualização real a partir de AppData instala sem exceder o limite de caminhos e preserva o banco anterior byte a byte.'
 $launcher = Start-Process -FilePath (Join-Path $target 'PokemonSimulator.exe') -ArgumentList '--check --skip-update' -WindowStyle Hidden -PassThru
 if (-not $launcher.WaitForExit(60000) -or $launcher.ExitCode -ne 0) { throw "Inicialização do jogo empacotado falhou. Log: $(Join-Path $target 'launcher/latest.log')" }
 $verify = Join-Path $case 'verify-save.mjs'

@@ -2,9 +2,9 @@ Esta versão corrige a instalação automática das atualizações e adiciona IV
 
 ## Escolha seu download
 
-- **PokemonSimulator-v0.2.3-compact-win-x64.zip**: jogo com runtime e inicializador, sem sprites Pokémon. Baixa e verifica as sprites no primeiro início (aproximadamente 938 MB); depois funciona offline.
-- **PokemonSimulator-v0.2.3-complete-win-x64.zip**: inclui todas as 13.932 sprites e funciona offline desde a primeira abertura.
-- **PokemonSimulator-v0.2.3-update-win-x64.zip**: pacote utilizado pelo atualizador automático; reaproveita as sprites e preserva os saves e a configuração local.
+- **PokemonSimulator-v0.2.4-compact-win-x64.zip**: jogo com runtime e inicializador, sem sprites Pokémon. Baixa e verifica as sprites no primeiro início (aproximadamente 938 MB); depois funciona offline.
+- **PokemonSimulator-v0.2.4-complete-win-x64.zip**: inclui todas as 13.932 sprites e funciona offline desde a primeira abertura.
+- **PokemonSimulator-v0.2.4-update-win-x64.zip**: pacote utilizado pelo atualizador automático; reaproveita as sprites e preserva os saves e a configuração local.
 
 Extraia todos os arquivos e abra **PokemonSimulator.exe**. Não é necessário Node.js instalado, CMD ou login.
 
@@ -12,7 +12,7 @@ Extraia todos os arquivos e abra **PokemonSimulator.exe**. Não é necessário N
 
 ## Atualizações automáticas
 
-Corrigido o argumento do caminho do jogo no Windows: a barra final da pasta podia invalidar a passagem para o instalador depois do download. O novo launcher usa o instalador incluído no pacote verificado e só encerra após receber a confirmação de início. Uma janela mostra a descompactação e a instalação antes de reabrir o jogo. Falhas mantêm a versão anterior disponível e ficam registradas em `launcher/update.log`.
+Corrigido o argumento do caminho do jogo no Windows: a barra final da pasta podia invalidar a passagem para o instalador depois do download. A descompactação também usa uma pasta temporária curta para evitar o limite de caminhos do Windows ao instalar as dependências. O novo launcher usa o instalador incluído no pacote verificado e só encerra após receber a confirmação de início. Uma janela mostra a descompactação e a instalação antes de reabrir o jogo. Falhas mantêm a versão anterior disponível e ficam registradas em `launcher/update.log`.
 
 ## IVs
 

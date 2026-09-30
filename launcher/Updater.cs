@@ -85,7 +85,9 @@ internal static class Updater
         using (SHA256 hash = SHA256.Create())
         using (FileStream stream = File.OpenRead(archive)) actual = BitConverter.ToString(hash.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
         if (!string.Equals(actual, checksum, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Checksum do pacote não confere.");
-        string temporary = Path.Combine(Path.GetDirectoryName(archive), "installation-" + Guid.NewGuid().ToString("N"));
+        // The downloaded ZIP lives in a deep AppData directory. Keep extraction
+        // and rollback paths short enough for .NET Framework's Windows limit.
+        string temporary = Path.Combine(Path.GetTempPath(), "PSU-" + Guid.NewGuid().ToString("N").Substring(0, 12));
         string stage = Path.Combine(temporary, "new");
         string backup = Path.Combine(temporary, "backup");
         Directory.CreateDirectory(stage);
