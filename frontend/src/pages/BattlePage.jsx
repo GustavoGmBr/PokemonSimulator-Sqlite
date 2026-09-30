@@ -9,6 +9,7 @@ import { PageTitle, Loading, Failure, TypeBadge, typeNames } from '../components
 import { SpriteControls, VariantImage } from '../components/PokemonViewer';
 import { Button } from '../components/ui/button';
 import { BattleSetup } from '../components/BattleSetup';
+import { IvStars } from '../components/IvSummary';
 import { effectiveness, effectivenessLabel } from '../lib/effectiveness';
 
 const ballNames = { 'poke-ball': 'Poké Bola', 'great-ball': 'Super Bola', 'ultra-ball': 'Ultra Bola', 'master-ball': 'Master Bola' };
@@ -120,5 +121,5 @@ export function BattlePage({ area = 'batalhas' }) {
     </div> : <BattleSetup area={area} catalog={catalog.data} challenges={challenges.data} choice={choice} setChoice={setChoice} start={start} busy={busy} collectionCount={collection.data.length} hasShinyCharm={hasShinyCharm} coins={save.data.moedas} />}
   </>;
 }
-import { IvStars } from '../components/IvSummary';
+
 import { IV_ITEMS } from '../lib/ivs';

@@ -1,29 +1,21 @@
-Esta versão corrige a instalação automática das atualizações e adiciona IVs aos Pokémon.
+Esta versão simplifica a apresentação dos IVs na coleção e nos encontros selvagens.
+
+## Mudanças
+
+- Na lista **Meus Pokémon**, a qualidade dos IVs aparece apenas em estrelas. Clique em um Pokémon para consultar os seis valores individuais, a soma, a porcentagem e o bônus de valor na aba **Atributos**.
+- Pokémon selvagens mostram **⭐**, **⭐⭐**, **⭐⭐⭐** ou **⭐⭐⭐⭐**. A classificação de zero estrelas permanece como **0☆**.
+- Os filtros por estrelas e porcentagem continuam disponíveis. Os valores numéricos não aparecem ao passar o mouse sobre as estrelas da lista ou do encontro.
 
 ## Escolha seu download
 
-- **PokemonSimulator-v0.2.4-compact-win-x64.zip**: jogo com runtime e inicializador, sem sprites Pokémon. Baixa e verifica as sprites no primeiro início (aproximadamente 938 MB); depois funciona offline.
-- **PokemonSimulator-v0.2.4-complete-win-x64.zip**: inclui todas as 13.932 sprites e funciona offline desde a primeira abertura.
-- **PokemonSimulator-v0.2.4-update-win-x64.zip**: pacote utilizado pelo atualizador automático; reaproveita as sprites e preserva os saves e a configuração local.
+- **PokemonSimulator-v0.2.5-compact-win-x64.zip**: sem sprites Pokémon; baixa e verifica o pacote de imagens no primeiro início (aproximadamente 938 MB). Depois funciona offline.
+- **PokemonSimulator-v0.2.5-complete-win-x64.zip**: inclui todas as 13.932 sprites e funciona offline desde a primeira abertura.
+- **PokemonSimulator-v0.2.5-update-win-x64.zip**: usado pelo atualizador automático; reaproveita as sprites e preserva os saves e a configuração local.
 
-Extraia todos os arquivos e abra **PokemonSimulator.exe**. Não é necessário Node.js instalado, CMD ou login.
+Extraia todos os arquivos e abra **PokemonSimulator.exe**. Não é necessário instalar Node.js, abrir CMD ou fazer login.
 
-**Se o inicializador anterior fica baixando a atualização repetidamente:** feche o jogo, faça uma cópia de segurança de `backend/pokemon.db` e extraia a edição compacta desta versão sobre a pasta existente, substituindo os arquivos. Não apague a pasta nem seu banco. O pacote não contém saves pessoais ou `.env`; as sprites existentes são reaproveitadas. O inicializador corrigido passa a instalar as próximas atualizações automaticamente.
+Quem já usa a v0.2.4 recebe esta versão pelo inicializador na próxima abertura. Se um inicializador antigo fica repetindo o download, feche o jogo, faça uma cópia de segurança de `backend/pokemon.db` e extraia a edição compacta sobre a pasta existente, substituindo os arquivos. Não apague a pasta nem seu banco.
 
-## Atualizações automáticas
-
-Corrigido o argumento do caminho do jogo no Windows: a barra final da pasta podia invalidar a passagem para o instalador depois do download. A descompactação também usa uma pasta temporária curta para evitar o limite de caminhos do Windows ao instalar as dependências. O novo launcher usa o instalador incluído no pacote verificado e só encerra após receber a confirmação de início. Uma janela mostra a descompactação e a instalação antes de reabrir o jogo. Falhas mantêm a versão anterior disponível e ficam registradas em `launcher/update.log`.
-
-## IVs
-
-- Seis IVs de **0 a 31**, total máximo **186**, sorteados em novos encontros e preservados ao capturar, evoluir, transformar e subir de nível. Os IVs influenciam os atributos de combate. **Iniciais sempre perfeitos (100%)**.
-- Estrelas no encontro; valores como **HP: 31 | 31**, soma, porcentagem e estrelas na coleção e nos detalhes.
-- **0☆:** 0–90; **1★:** 91–120; **2★★:** 121–150; **3★★★:** 151–185; **4★★★★ 🔴:** 186, potencial perfeito.
-- Filtros na coleção por estrelas e porcentagem mínima/máxima de IVs.
-- Bônus no valor do Pokémon: **+50% para 3 estrelas** e **+100% para 4 estrelas**, inclusive no valor usado em apostas do cassino.
-- Seis **Essências de IV**, uma por atributo: +1 IV permanente, limitado a 31. Disponíveis na loja (5.000 ₽), loja do cassino (1.000 fichas), missões e torneios. Use na aba **Atributos** dos detalhes, fora de batalha; atributos no máximo não consomem itens.
-- Migração automática do SQLite. Pokémon antigos recebem 15 IVs por atributo, conservando o cálculo anterior; o inicial antigo identificável recebe IVs perfeitos, inclusive quando já evoluído. Saves e Pokémon existentes são preservados.
-
-Os intervalos de nível dos encontros conforme desafios e última geração liberada continuam disponíveis.
+Validação: build de produção e testes de interface em desktop e celular, cobrindo estrelas, detalhes ao clicar, filtros e uso de Essências de IV.
 
 Projeto de fã sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Veja os avisos de terceiros no pacote.

@@ -2,13 +2,13 @@
 
 Remake single-player em JavaScript com ES Modules. Frontend React 18 em `frontend/` e API Express/Prisma/SQLite em `backend/`. Os saves ficam em `backend/pokemon.db`; não é preciso criar conta nem conectar à internet para jogar.
 
-Versão pública atual: **v0.2.4**. O repositório inclui o código-fonte e o inicializador Windows `PokemonSimulator.exe`. As sprites são baixadas automaticamente na primeira execução e depois são servidas localmente, sem consultar a PokéAPI durante as partidas. Este é um projeto de fã, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Os dados e sprites Pokémon pertencem aos respectivos titulares; os dados de referência foram obtidos via [PokéAPI](https://pokeapi.co/).
+Versão pública atual: **v0.2.5**. O repositório inclui o código-fonte e o inicializador Windows `PokemonSimulator.exe`. As sprites são baixadas automaticamente na primeira execução e depois são servidas localmente, sem consultar a PokéAPI durante as partidas. Este é um projeto de fã, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Os dados e sprites Pokémon pertencem aos respectivos titulares; os dados de referência foram obtidos via [PokéAPI](https://pokeapi.co/).
 
 Os saves são locais e podem ser criados, escolhidos e excluídos na tela inicial. A configuração local fica em `backend/.env`, ignorado pelo Git.
 
 ## Executar localmente
 
-Para jogar no Windows x64, escolha uma edição na [release](https://github.com/GustavoGmBr/PokemonSimulator-Sqlite/releases/latest): **PokemonSimulator-v0.2.4-compact-win-x64.zip** (sem sprites; baixa as imagens no primeiro início) ou **PokemonSimulator-v0.2.4-complete-win-x64.zip** (inclui todas as sprites; funciona offline desde a primeira abertura). Extraia todos os arquivos e abra **PokemonSimulator.exe**. O runtime já está incluído: não é necessário instalar Node.js nem abrir CMD. Na edição compacta, conecte-se à internet na primeira execução para baixar o pacote de sprites (aproximadamente 938 MB). O progresso aparece no inicializador, que verifica a integridade do download antes de instalar as imagens. Depois disso, o jogo funciona offline. O banco SQLite é criado automaticamente.
+Para jogar no Windows x64, escolha uma edição na [release](https://github.com/GustavoGmBr/PokemonSimulator-Sqlite/releases/latest): **PokemonSimulator-v0.2.5-compact-win-x64.zip** (sem sprites; baixa as imagens no primeiro início) ou **PokemonSimulator-v0.2.5-complete-win-x64.zip** (inclui todas as sprites; funciona offline desde a primeira abertura). Extraia todos os arquivos e abra **PokemonSimulator.exe**. O runtime já está incluído: não é necessário instalar Node.js nem abrir CMD. Na edição compacta, conecte-se à internet na primeira execução para baixar o pacote de sprites (aproximadamente 938 MB). O progresso aparece no inicializador, que verifica a integridade do download antes de instalar as imagens. Depois disso, o jogo funciona offline. O banco SQLite é criado automaticamente.
 
 Na abertura, o inicializador consulta a última release e instala atualizações antes de executar o jogo. Os downloads são verificados por SHA-256. Após o download, uma janela própria confirma a instalação antes de reiniciar, com recuperação dos arquivos anteriores em caso de falha. Os saves e o `.env` são preservados. Sem conexão, a versão instalada continua disponível quando as sprites já foram preparadas. Imagens existentes e íntegras são aproveitadas; imagens ausentes são recuperadas automaticamente quando houver internet.
 
@@ -67,12 +67,12 @@ Cada Pokémon tem seis IVs de 0 a 31: HP, Ataque, Defesa, Ataque Especial, Defes
 | Estrelas | Soma dos IVs | Qualidade | Bônus de valor |
 | --- | --- | --- | --- |
 | 0☆ | 0–90 | Decente / Ruim | — |
-| 1★ | 91–120 | Acima da média | — |
-| 2★★ | 121–150 | Muito bom | — |
-| 3★★★ | 151–185 | Fantástico / Excelente | +50% |
-| 4★★★★ 🔴 | 186 | Potencial Perfeito | +100% |
+| ⭐ | 91–120 | Acima da média | — |
+| ⭐⭐ | 121–150 | Muito bom | — |
+| ⭐⭐⭐ | 151–185 | Fantástico / Excelente | +50% |
+| ⭐⭐⭐⭐ | 186 | Potencial Perfeito | +100% |
 
-A coleção e os detalhes mostram os seis valores, total, porcentagem e estrelas; encontros mostram as estrelas. Filtre a coleção por estrelas e intervalo de porcentagem. As seis **Essências de IV** aumentam +1 no atributo correspondente (limite 31), custam 5.000 ₽ ou 1.000 fichas cada e são obtidas em missões e torneios. Use na aba Atributos dos detalhes do Pokémon, fora de batalha. Um IV já máximo não consome o item.
+Na lista Meus Pokémon aparecem apenas as estrelas dos IVs. Ao clicar em um Pokémon, os detalhes mostram os seis valores, total, porcentagem e qualidade. Encontros selvagens usam ⭐, ⭐⭐, ⭐⭐⭐ ou ⭐⭐⭐⭐; a classificação sem estrelas continua como 0☆. Filtre a coleção por estrelas e intervalo de porcentagem. As seis **Essências de IV** aumentam +1 no atributo correspondente (limite 31), custam 5.000 ₽ ou 1.000 fichas cada e são obtidas em missões e torneios. Use na aba Atributos dos detalhes do Pokémon, fora de batalha. Um IV já máximo não consome o item.
 
 ## Disponível
 

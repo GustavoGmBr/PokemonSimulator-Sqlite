@@ -13,6 +13,12 @@ import { statsFor } from '../../backend/src/services/battleRules.js';
 const requireBackend = createRequire(new URL('../../backend/package.json', import.meta.url));
 const { PrismaClient } = requireBackend('@prisma/client');
 let temporary, db, server, origin, save;
+function ivsWithTotal(total) {
+  let remainder = total;
+  return Object.fromEntries(Object.keys(perfectIvs()).map(stat => {
+    const value = Math.min(31, remainder); remainder -= value; return [stat, value];
+  }));
+}
 test.beforeAll(async () => {
   temporary = mkdtempSync(path.join(tmpdir(), 'pokemon-iv-ui-'));
   const database = path.join(temporary, 'test.db'); writeFileSync(database, '');
@@ -33,8 +39,7 @@ test.beforeAll(async () => {
   save = await post('/jogador/saves', { nomeTreinador: 'IVs UI' });
   await post('/jogador/inicial', { saveId: save.id, especieId: 1 }, { 'X-Save-Id': save.id });
   for (const [index, total] of [90, 120, 150, 151].entries()) {
-    let remainder = total;
-    const ivs = Object.fromEntries(Object.keys(perfectIvs()).map(stat => { const value = Math.min(31, remainder); remainder -= value; return [stat, value]; }));
+    const ivs = ivsWithTotal(total);
     const species = getEspecie(index + 2), stats = statsFor(species, 20, false, ivs);
     await db.pokemonCapturado.create({ data: { saveId: save.id, especieId: species.id, apelido: `Exemplar ${total}`, nivel: 20, ivs, atributos: stats, hpAtual: stats.hp, bolaCaptura: 'poke-ball', experiencia: species.experienciaPorNivel.find(entry => entry.nivel === 20).experiencia } });
   }
@@ -52,10 +57,16 @@ test('mostra IVs, filtra estrelas e porcentagens e melhora de duas para três es
   await page.goto(`${origin}/menu`);
   await expect(page.locator('.party-entry')).toHaveCount(5);
   const perfect = page.locator('.party-entry').filter({ has: page.getByRole('button', { name: 'Ver informações de Bulbasaur', exact: true }) });
-  await expect(perfect.locator('.iv-total')).toContainText('186 | 186');
-  await expect(perfect.locator('.iv-total')).toContainText('100,0%');
+  await expect(perfect.locator('.iv-stars')).toHaveText('⭐⭐⭐⭐');
+  await expect(page.locator('.party-entry .iv-summary, .party-entry .iv-grid, .party-entry .iv-total')).toHaveCount(0);
+  await expect(perfect.locator('.iv-stars')).not.toHaveAttribute('title');
   await expect(perfect.locator('.iv-perfect')).toHaveCount(1);
-  await expect(perfect.locator('.iv-grid')).toContainText('HP: 31 | 31');
+  await perfect.getByRole('button', { name: 'Ver informações de Bulbasaur', exact: true }).click();
+  const starterDetails = page.getByRole('dialog');
+  await expect(starterDetails.locator('.iv-total')).toContainText('186 | 186');
+  await expect(starterDetails.locator('.iv-total')).toContainText('100,0%');
+  await expect(starterDetails.locator('.iv-grid')).toContainText('HP: 31 | 31');
+  await starterDetails.getByRole('button', { name: 'Fechar detalhes' }).click();
   await page.getByLabel('Filtrar meus Pokémon por estrelas IV').selectOption('4');
   await expect(page.locator('.party-entry')).toHaveCount(1);
   await page.getByLabel('Filtrar meus Pokémon por estrelas IV').selectOption('1');
@@ -86,5 +97,17 @@ test('mostra IVs, filtra estrelas e porcentagens e melhora de duas para três es
   await page.goto(`${origin}/selvagens`);
   await page.getByRole('button', { name: 'Procurar Pokémon', exact: true }).click();
   await expect(page.locator('.battle-foe .iv-stars')).toBeVisible();
+  const encounter = await db.batalha.findUniqueOrThrow({ where: { saveId: save.id } });
+  for (const [stars, total] of [90, 120, 150, 151, 186].entries()) {
+    const state = structuredClone(encounter.estado);
+    state.oponente.ivs = ivsWithTotal(total);
+    await db.batalha.update({ where: { saveId: save.id }, data: { estado: state } });
+    await page.reload();
+    const wildStars = page.locator('.battle-foe .iv-stars');
+    await expect(wildStars).toHaveText(stars === 0 ? '0☆' : '⭐'.repeat(stars));
+    await expect(wildStars).not.toHaveAttribute('title');
+    await expect(page.locator('.battle-foe .iv-summary')).toHaveCount(0);
+  }
+  await page.screenshot({ path: testInfo.outputPath('ivs-wild-stars.png'), fullPage: true });
   expect(errors).toEqual([]);
 });

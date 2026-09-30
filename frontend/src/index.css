@@ -193,7 +193,7 @@ label > input, label > div { margin-top: 9px; }
 .iv-stars.iv-perfect { color: #e55c68; }
 .iv-summary small { font-size: 11px; }
 .iv-value-bonus { color: #82b986; }
-.iv-compact { margin: 0 10px; }
+.party-info > .iv-stars { display: block; margin: 4px 0; }
 .party-entry { border: 1px solid #344737; border-radius: 10px; overflow: hidden; background: #19251d; }
 .iv-training { margin: 14px 0 22px; padding: 15px; background: #1c2923; border-radius: 10px; }
 .iv-training p { font-size: 12px; margin: 8px 0; }
