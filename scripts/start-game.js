@@ -1,26 +1,32 @@
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync, copyFileSync, constants } from 'node:fs';
-import { connect } from 'node:net';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { workspaceId, gameVersion } from './game-identity.js';
+import { API_PORT, FRONTEND_PORT, availablePort } from './game-ports.js';
+import { ensureSprites } from './download-sprites.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const backend = path.join(root, 'backend');
 const frontend = path.join(root, 'frontend');
 const backendEnv = path.join(backend, '.env');
 const portable = existsSync(path.join(root, 'distribution.json'));
-let frontendPort = 5185;
+let frontendPort = FRONTEND_PORT;
 let frontendOrigin = `http://127.0.0.1:${frontendPort}`;
 const noBrowser = process.argv.includes('--no-browser') || process.env.POKEMON_SIMULATOR_NO_BROWSER === '1';
 const children = new Map();
 const setupProcesses = new Set();
 let stopping = false;
 let childFailure = null;
+const startup = new AbortController();
 
 function envValue(source, name) {
   const match = source.match(new RegExp(`^\\s*${name}\\s*=\\s*(.*)$`, 'm'));
   return match?.[1]?.trim().replace(/^(?:"(.*)"|'(.*)')$/, '$1$2') ?? '';
+}
+
+function schemaText(source) {
+  return source.replace(/"(?:\\.|[^"\\])*"|\/\/[^\r\n]*|\s+/g, part => part.startsWith('"') ? part : '');
 }
 
 function finishIfStopped() {
@@ -48,7 +54,8 @@ function loadConfig() {
     writeFileSync(backendEnv, source);
     console.log('Atualizei DATABASE_URL para usar backend/pokemon.db.');
   }
-  const port = Number(process.env.PORT || envValue(source, 'PORT') || 3435);
+  const configuredPort = Number(process.env.POKEMON_SIMULATOR_API_PORT || envValue(source, 'PORT') || API_PORT);
+  const port = [3001, 3334, 3435, 5173, 5184, 5185].includes(configuredPort) ? API_PORT : configuredPort;
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error('PORT em backend/.env deve estar entre 1 e 65535.');
   }
@@ -91,16 +98,6 @@ function runNode(label, cwd, script, env = {}) {
 async function ensureDependencies(directory) {
   if (existsSync(path.join(directory, 'node_modules'))) return;
   await run(`Instalando dependências de ${path.basename(directory)}`, directory, ['ci']);
-}
-
-async function isPortOpen(port) {
-  return new Promise((resolve) => {
-    const socket = connect({ host: '127.0.0.1', port });
-    socket.setTimeout(1000);
-    socket.once('connect', () => { socket.destroy(); resolve(true); });
-    socket.once('error', () => resolve(false));
-    socket.once('timeout', () => { socket.destroy(); resolve(false); });
-  });
 }
 
 async function isApiReady(url) {
@@ -165,34 +162,15 @@ function startService(name, cwd, script, args = [], env = {}) {
 }
 
 async function chooseApiPort(config) {
-  let port = config.port;
-  while (port < 65536) {
-    checkStopping();
-    const url = `http://127.0.0.1:${port}/api/health/ready`;
-    if (await isApiReady(url)) {
-      config.port = port;
-      config.apiUrl = url;
-      return true;
-    }
-    if (!await isPortOpen(port)) {
-      config.port = port;
-      config.apiUrl = url;
-      return false;
-    }
-    port = port === config.port ? Math.max(port + 1, 3435) : port + 1;
-  }
-  throw new Error('Não há uma porta livre para iniciar a API local.');
+  config.port = await availablePort(config.port, { signal: startup.signal });
+  config.apiUrl = `http://127.0.0.1:${config.port}/api/health/ready`;
+  return false;
 }
 
 async function chooseFrontendPort() {
-  while (frontendPort < 65536) {
-    checkStopping();
-    frontendOrigin = `http://127.0.0.1:${frontendPort}`;
-    if (await isFrontendReady()) return true;
-    if (!await isPortOpen(frontendPort)) return false;
-    frontendPort++;
-  }
-  throw new Error('Não há uma porta livre para iniciar a interface.');
+  frontendPort = await availablePort(FRONTEND_PORT, { signal: startup.signal });
+  frontendOrigin = `http://127.0.0.1:${frontendPort}`;
+  return false;
 }
 
 function stopProcess(child) {
@@ -205,6 +183,7 @@ function stopProcess(child) {
 function stop() {
   if (stopping) return;
   stopping = true;
+  startup.abort();
   for (const child of children.values()) stopProcess(child);
   for (const child of setupProcesses) stopProcess(child);
   finishIfStopped();
@@ -233,6 +212,8 @@ function openBrowser() {
 async function main() {
   checkNode();
   const config = loadConfig();
+  await ensureSprites({ root, signal: startup.signal });
+  checkStopping();
   const apiReady = await chooseApiPort(config);
   const webReady = portable ? false : await chooseFrontendPort();
   checkStopping();
@@ -247,7 +228,11 @@ async function main() {
     } else {
       await ensureDependencies(backend);
       checkStopping();
-      await run('Gerando Prisma Client', backend, ['run', 'prisma:generate']);
+      const generatedSchema = path.join(backend, 'node_modules/.prisma/client/schema.prisma');
+      const currentSchema = schemaText(readFileSync(path.join(backend, 'prisma/schema.prisma'), 'utf8'));
+      if (!existsSync(generatedSchema) || schemaText(readFileSync(generatedSchema, 'utf8')) !== currentSchema) {
+        await run('Gerando Prisma Client', backend, ['run', 'prisma:generate']);
+      }
       checkStopping();
       await run('Preparando banco SQLite', backend, ['run', 'db:setup']);
       checkStopping();
@@ -259,6 +244,8 @@ async function main() {
     console.log('\nIniciando API...');
     startService('API', backend, 'src/server.js', [], {
       PORT: String(config.port),
+      HOST: '127.0.0.1',
+      CORS_ORIGIN: frontendOrigin,
       ...(portable ? { POKEMON_SIMULATOR_PORTABLE: '1', DATABASE_URL: config.databaseUrl } : {}),
     });
     await waitUntil(() => isApiReady(config.apiUrl), 'API');
@@ -275,6 +262,7 @@ async function main() {
     console.log('\nIniciando interface...');
     startService('Interface', frontend, 'node_modules/vite/bin/vite.js', ['--host', '127.0.0.1', '--port', String(frontendPort)], {
       API_PROXY_TARGET: `http://127.0.0.1:${config.port}`,
+      VITE_API_ORIGIN: '',
     });
     await waitUntil(isFrontendReady, 'Interface');
   } else {

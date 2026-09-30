@@ -7,9 +7,9 @@ dotenv.config({ path: fileURLToPath(new URL('../../.env', import.meta.url)), qui
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   HOST: z.string().default('127.0.0.1'),
-  PORT: z.coerce.number().int().min(1).max(65535).default(3435),
+  PORT: z.coerce.number().int().min(1).max(65535).default(34435),
   DATABASE_URL: z.string().startsWith('file:').default('file:../pokemon.db'),
-  CORS_ORIGIN: z.string().url().default('http://localhost:5185'),
+  CORS_ORIGIN: z.string().url().default('http://127.0.0.1:35185'),
 });
 
 export function parseEnv(values) {

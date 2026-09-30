@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Abra http://127.0.0.1:5185/saves. O backend deve estar ativo em 127.0.0.1:3435. Para alterar seu destino, copie `.env.example` para `.env` e configure `API_PROXY_TARGET`. A porta 5185 é fixa; o Vite informa se já estiver em uso.
+Prefira `PokemonSimulator.exe` ou `npm start` na raiz: o inicializador baixa as sprites, escolhe portas livres e configura o proxy da API desta instância. No início manual, abra http://127.0.0.1:35185/saves com o backend em 127.0.0.1:34435. Para alterar o destino manual, configure `API_PROXY_TARGET` no `.env` do frontend. A porta manual 35185 é fixa; o inicializador escolhe outra quando necessário.
 
 ## Fluxo
 
@@ -34,7 +34,7 @@ O save selecionado é lembrado em localStorage pelo Zustand. As imagens e o cat�
 npm run build
 ```
 
-Os arquivos ficam em `dist`. Em produção, configure fallback das rotas do frontend para `index.html` e encaminhe `/api` e `/assets/pokemon` para o Express. Alternativamente, defina `VITE_API_ORIGIN` antes do build para um backend separado e permita a origem do frontend no `CORS_ORIGIN` do backend. O proxy Vite é apenas de desenvolvimento. Não houve publicação em hospedagem nesta entrega.
+Os arquivos ficam em `dist`. O pacote para Windows serve essa pasta pelo Express junto da API e dos assets. A interface usa sempre a própria origem para API e imagens; `VITE_API_ORIGIN` antigo é ignorado, evitando chamadas a outros sistemas no mesmo computador. O proxy Vite é usado somente em desenvolvimento.
 
 ## Teste no navegador
 

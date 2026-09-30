@@ -238,6 +238,7 @@ internal sealed class LauncherForm : Form
 
     private void OnOutput(string line)
     {
+        if (line.StartsWith("Baixando sprites:") || line.StartsWith("Instalando sprites:") || line.StartsWith("Primeiro início:") || line.StartsWith("Verificando sprites locais")) SetStatus(line);
         const string readyPrefix = "Jogo pronto:";
         int readyIndex = line.IndexOf(readyPrefix, StringComparison.OrdinalIgnoreCase);
         if (readyIndex >= 0)

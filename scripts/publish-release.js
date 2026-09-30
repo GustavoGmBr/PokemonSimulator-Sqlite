@@ -10,7 +10,10 @@ const config = JSON.parse(fs.readFileSync(path.join(root, 'release-config.json')
 const { version } = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const tag = `v${version}`;
 const output = path.join(root, 'dist/releases', tag);
+const build = JSON.parse(fs.readFileSync(path.join(output, 'build-info.json'), 'utf8').replace(/^\uFEFF/, ''));
 const names = [`PokemonSimulator-${tag}-win-x64.zip`, `PokemonSimulator-${tag}-update-win-x64.zip`];
+const spritePack = JSON.parse(fs.readFileSync(path.join(root, 'backend/data/sprite-download.json'), 'utf8'));
+if (spritePack.tag === tag) names.push(spritePack.asset);
 const assets = names.flatMap(name => [name, `${name}.sha256`]);
 for (const name of assets) if (!fs.existsSync(path.join(output, name))) throw new Error(`Gere os pacotes antes de publicar: ${name}`);
 const client = await githubClient();
@@ -32,8 +35,11 @@ if (remote) {
 } else git(source, ['init', '--initial-branch=main']);
 const files = git(root, ['ls-files', '--cached', '--others', '--exclude-standard']).split('\n').filter(Boolean);
 for (const relative of files) {
-  if (relative.startsWith('backend/public/pokemon/') || /(^|\/)(node_modules|dist|\.git|runtime)\//.test(relative) || /\.(exe|db|log)(-|$)/i.test(relative) || /(^|\/)\.env(?!\.example$)/.test(relative)) continue;
-  const original = path.join(root, relative);
+  const launcher = ['PokemonSimulator.exe', 'PokemonSimulatorUpdater.exe', 'PokemonSimulator-Saves.exe'].includes(relative);
+  if (relative.startsWith('backend/public/pokemon/') || /(^|\/)(node_modules|dist|\.git|runtime)\//.test(relative) || (!launcher && /\.(exe|db|log)(-|$)/i.test(relative)) || /(^|\/)\.env(?!\.example$)/.test(relative)) continue;
+  const compiledLauncher = path.join(build.fullDirectory, relative === 'PokemonSimulator-Saves.exe' ? 'PokemonSimulator.exe' : relative);
+  const original = launcher ? compiledLauncher : path.join(root, relative);
+  if (launcher && !fs.existsSync(original)) throw new Error(`Inicializador compilado ausente: ${relative}`);
   if (!fs.existsSync(original) || !fs.statSync(original).isFile()) continue;
   if (fs.statSync(original).size > 95 * 1024 * 1024) throw new Error(`Arquivo de código-fonte grande demais: ${relative}`);
   const destination = path.join(source, relative);
@@ -70,7 +76,7 @@ for (const name of assets) {
   let last = Date.now();
   stream.on('data', chunk => { sent += chunk.length; if (Date.now() - last > 20_000) { console.log(`${name}: ${Math.floor(sent * 100 / size)}%`); last = Date.now(); } });
   const uploaded = await new Promise((resolve, reject) => {
-    const request = https.request(`${release.upload_url.split('{')[0]}?name=${encodeURIComponent(name)}`, { method: 'POST', headers: { ...client.headers, 'Content-Type': name.endsWith('.zip') ? 'application/zip' : 'text/plain', 'Content-Length': String(size) } }, response => {
+    const request = https.request(`${release.upload_url.split('{')[0]}?name=${encodeURIComponent(name)}`, { method: 'POST', headers: { ...client.headers, 'Content-Type': name.endsWith('.zip') ? 'application/zip' : name.endsWith('.gz') ? 'application/gzip' : 'text/plain', 'Content-Length': String(size) } }, response => {
       response.setEncoding('utf8'); let body = '';
       response.on('data', chunk => { body += chunk; });
       response.on('end', () => { try { const data = JSON.parse(body); if (response.statusCode >= 300) reject(new Error(`Falha no envio de ${name}: HTTP ${response.statusCode} ${data.message}`)); else resolve(data); } catch (error) { reject(error); } });
@@ -78,7 +84,7 @@ for (const name of assets) {
     request.setTimeout(15 * 60_000, () => request.destroy(new Error(`Tempo limite no envio de ${name}.`)));
     request.on('error', reject); stream.on('error', reject); stream.pipe(request);
   });
-  if (name.endsWith('.zip') && uploaded.digest) {
+  if (!name.endsWith('.sha256') && uploaded.digest) {
     const expected = fs.readFileSync(`${file}.sha256`, 'ascii').split(/\s/)[0];
     if (uploaded.digest !== `sha256:${expected}`) throw new Error(`Checksum divergente no GitHub: ${name}`);
   }

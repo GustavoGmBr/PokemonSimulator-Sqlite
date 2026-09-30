@@ -1,6 +1,6 @@
 {
   "name": "pokemon-simulator",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,6 +9,8 @@
   "scripts": {
     "start": "node scripts/start-game.js",
     "release:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1",
-    "release:publish": "node scripts/publish-release.js"
+    "release:publish": "node scripts/publish-release.js",
+    "sprites:download": "node scripts/download-sprites.js",
+    "test": "node --test scripts/test/*.test.js"
   }
 }

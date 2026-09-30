@@ -12,7 +12,7 @@ npm install
 npm run prisma:generate
 ```
 
-Copie `.env.example` para `.env` se iniciar manualmente. A configuração padrão `DATABASE_URL="file:../pokemon.db"` cria o arquivo no diretório `backend/`. `CORS_ORIGIN` e `PORT` usam `http://localhost:5185` e `3435` por padrão.
+Copie `.env.example` para `.env` se iniciar manualmente. A configuração padrão `DATABASE_URL="file:../pokemon.db"` cria o arquivo no diretório `backend/`. `CORS_ORIGIN` e `PORT` usam `http://127.0.0.1:35185` e `34435` por padrão. O inicializador da raiz escolhe outra porta se necessário, configura o frontend e baixa as sprites na primeira execução.
 
 ```powershell
 npm run db:setup

@@ -20,4 +20,7 @@ launcher/publish/
 runtime/
 distribution.json
 PokemonSimulator*.exe
+!PokemonSimulator.exe
+!PokemonSimulatorUpdater.exe
+!PokemonSimulator-Saves.exe
 backend/public/pokemon/

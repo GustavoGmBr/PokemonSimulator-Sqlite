@@ -14,7 +14,7 @@ New-Item -ItemType Directory -Path $releaseFull,$releaseUpdate -Force | Out-Null
 
 function Copy-ReleaseTree([string]$Source, [string]$Destination) {
   New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-  & robocopy.exe $Source $Destination /E /NFL /NDL /NJH /NJS /NP /XD .git /XF .env '.env.local' '*.log' '*.db' '*.db-wal' '*.db-shm' '*.db-journal' | Out-Null
+  & robocopy.exe $Source $Destination /E /NFL /NDL /NJH /NJS /NP /XD .git (Join-Path $releaseRoot 'backend/public/pokemon') /XF .env '.env.local' '*.log' '*.db' '*.db-wal' '*.db-shm' '*.db-journal' '*.tmp*' | Out-Null
   if ($LASTEXITCODE -gt 7) { throw "Falha ao copiar $Source" }
 }
 function Run-ReleaseNode([string[]]$Arguments) {
@@ -23,10 +23,9 @@ function Run-ReleaseNode([string[]]$Arguments) {
 }
 Write-Host "Preparando versão $releaseVersion para Windows x64…"
 if (-not (Test-Path (Join-Path $releaseRoot 'backend/public/pokemon/1-front.png'))) {
-  throw 'Copie backend/public/pokemon do pacote completo da última release para esta pasta antes de gerar uma nova versão.'
+  throw 'Execute npm run sprites:download na raiz antes de gerar uma nova versão.'
 }
-$releaseChangedSprites = @((& $NodePath (Join-Path $releaseRoot 'scripts/sprite-manifest.js')) | ConvertFrom-Json)
-if ($LASTEXITCODE -ne 0) { throw 'Falha ao calcular a lista de sprites de atualização.' }
+Run-ReleaseNode @((Join-Path $releaseRoot 'scripts/build-sprites.js'))
 $releaseNpm = Join-Path (Split-Path $NodePath -Parent) 'node_modules/npm/bin/npm-cli.js'
 if (-not $SkipFrontendBuild) {
   $releasePreviousOrigin = $env:VITE_API_ORIGIN
@@ -37,7 +36,7 @@ foreach ($directory in @('backend/src','backend/data','backend/public','backend/
   Write-Host "Copiando $directory…"
   Copy-ReleaseTree (Join-Path $releaseRoot $directory) (Join-Path $releaseFull $directory)
 }
-foreach ($file in @('package.json','release-config.json','README.md','THIRD_PARTY_NOTICES.txt','iniciar-jogo.cmd','backend/package.json','backend/package-lock.json','backend/.env.example','backend/prisma/schema.prisma','backend/scripts/migrate-local.js','scripts/start-game.js','scripts/game-identity.js')) {
+foreach ($file in @('package.json','release-config.json','README.md','THIRD_PARTY_NOTICES.txt','iniciar-jogo.cmd','backend/package.json','backend/package-lock.json','backend/.env.example','backend/prisma/schema.prisma','backend/scripts/migrate-local.js','scripts/start-game.js','scripts/game-identity.js','scripts/game-ports.js','scripts/download-sprites.js','scripts/sprite-archive.js')) {
   $destination = Join-Path $releaseFull $file
   New-Item -ItemType Directory -Path (Split-Path $destination -Parent) -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $releaseRoot $file) -Destination $destination
@@ -85,29 +84,24 @@ foreach ($license in Get-ChildItem (Join-Path $releaseRoot 'frontend/node_module
 }
 
 Copy-ReleaseTree $releaseFull $releaseUpdate
-# Os sprites já estão na instalação completa. Não entram no download de atualização.
+# As sprites são baixadas separadamente no primeiro início.
 $releaseUpdateSprites = [IO.Path]::GetFullPath((Join-Path $releaseUpdate 'backend/public/pokemon'))
 $releaseStagePrefix = [IO.Path]::GetFullPath($releaseStage).TrimEnd('\') + '\'
 if (-not $releaseUpdateSprites.StartsWith($releaseStagePrefix,[StringComparison]::OrdinalIgnoreCase)) { throw 'Pasta de atualização fora da área de montagem.' }
 if (Test-Path -LiteralPath $releaseUpdateSprites) { Remove-Item -LiteralPath $releaseUpdateSprites -Recurse -Force }
 # O banco de referência é copiado explicitamente, nunca o banco do jogador.
 Copy-Item -LiteralPath $releaseTemplate -Destination (Join-Path $releaseUpdate 'backend/templates/pokemon.db')
-foreach ($sprite in $releaseChangedSprites) {
-  $destination = Join-Path $releaseUpdate $sprite
-  New-Item -ItemType Directory -Path (Split-Path $destination -Parent) -Force | Out-Null
-  Copy-Item -LiteralPath (Join-Path $releaseFull $sprite) -Destination $destination
-}
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 foreach ($kind in @('full','update')) {
   $directory = if ($kind -eq 'full') { $releaseFull } else { $releaseUpdate }
   foreach ($privateFile in Get-ChildItem -LiteralPath $directory -File -Recurse -Force) {
     $relative = $privateFile.FullName.Substring($directory.Length + 1).Replace('\','/')
-    if (($privateFile.Name -like '.env*' -and $privateFile.Name -ne '.env.example') -or $privateFile.Name -like '*.log' -or ($privateFile.Name -match '\.db($|-)' -and $relative -ne 'backend/templates/pokemon.db')) {
+    if (($privateFile.Name -like '.env*' -and $privateFile.Name -ne '.env.example') -or $privateFile.Name -like '*.log' -or $privateFile.Name -like '*.tmp*' -or ($privateFile.Name -match '\.db($|-)' -and $relative -ne 'backend/templates/pokemon.db')) {
       Remove-Item -LiteralPath $privateFile.FullName
     }
   }
-  $files = @(Get-ChildItem -LiteralPath $directory -File -Recurse -Force | ForEach-Object { $_.FullName.Substring($directory.Length + 1).Replace('\','/') }) + 'distribution.json'
+  $files = @(Get-ChildItem -LiteralPath $directory -File -Recurse -Force | Where-Object { $_.Name -ne 'distribution.json' } | ForEach-Object { $_.FullName.Substring($directory.Length + 1).Replace('\','/') }) + 'distribution.json'
   @{ version=$releaseVersion; platform='win-x64'; kind=$kind; nodeVersion=$releaseNodeVersion; files=$files } | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $directory 'distribution.json') -Encoding utf8
   $name = if ($kind -eq 'full') { "PokemonSimulator-v$releaseVersion-win-x64.zip" } else { "PokemonSimulator-v$releaseVersion-update-win-x64.zip" }
   $archive = Join-Path $releaseOutput $name

@@ -2,26 +2,28 @@
 
 Remake single-player em JavaScript com ES Modules. Frontend React 18 em `frontend/` e API Express/Prisma/SQLite em `backend/`. Os saves ficam em `backend/pokemon.db`; não é preciso criar conta nem conectar à internet para jogar.
 
-Versão pública atual: **v0.2.0**. O pacote completo inclui o catálogo e os sprites locais, para que o jogo funcione sem consultar a PokéAPI durante as partidas. O repositório contém o código-fonte; os sprites Pokémon são distribuídos na release para manter o Git leve. Este é um projeto de fã, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Os dados e sprites Pokémon pertencem aos respectivos titulares; os dados de referência foram obtidos via [PokéAPI](https://pokeapi.co/).
+Versão pública atual: **v0.2.1**. O repositório inclui o código-fonte e o inicializador Windows `PokemonSimulator.exe`. As sprites são baixadas automaticamente na primeira execução e depois são servidas localmente, sem consultar a PokéAPI durante as partidas. Este é um projeto de fã, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Os dados e sprites Pokémon pertencem aos respectivos titulares; os dados de referência foram obtidos via [PokéAPI](https://pokeapi.co/).
 
 Os saves são locais e podem ser criados, escolhidos e excluídos na tela inicial. A configuração local fica em `backend/.env`, ignorado pelo Git.
 
 ## Executar localmente
 
-Para jogar no Windows x64, baixe o arquivo **PokemonSimulator-v0.2.0-win-x64.zip** na [release](https://github.com/GustavoGmBr/PokemonSimulator-Sqlite/releases/latest), extraia todos os arquivos e abra **PokemonSimulator.exe**. O runtime já está incluído: não é necessário instalar Node.js nem abrir CMD. O banco SQLite é criado automaticamente na primeira execução.
+Para jogar no Windows x64, baixe **PokemonSimulator-v0.2.1-win-x64.zip** na [release](https://github.com/GustavoGmBr/PokemonSimulator-Sqlite/releases/latest), extraia todos os arquivos e abra **PokemonSimulator.exe**. O runtime já está incluído: não é necessário instalar Node.js nem abrir CMD. Na primeira execução, conecte-se à internet para baixar o pacote de sprites (aproximadamente 938 MB). O progresso aparece no inicializador, que verifica a integridade do download antes de instalar as imagens. Depois disso, o jogo funciona offline. O banco SQLite é criado automaticamente.
 
-Na abertura, o inicializador consulta a última release e instala atualizações antes de executar o jogo. Os downloads são verificados por SHA-256, com recuperação dos arquivos anteriores em caso de falha. Os saves e o `.env` são preservados. Sem conexão, ou se o download falhar, a versão instalada continua disponível. O pacote de atualização inclui apenas o programa e sprites novos ou alterados desde a versão inicial.
+Na abertura, o inicializador consulta a última release e instala atualizações antes de executar o jogo. Os downloads são verificados por SHA-256, com recuperação dos arquivos anteriores em caso de falha. Os saves e o `.env` são preservados. Sem conexão, a versão instalada continua disponível quando as sprites já foram preparadas. Imagens existentes e íntegras são aproveitadas; imagens ausentes são recuperadas automaticamente quando houver internet.
 
-Para trabalhar no código-fonte, instale Node.js 22.12+, clone o repositório e copie `backend/public/pokemon` do pacote completo para a mesma pasta no clone:
+Para trabalhar no código-fonte, instale Node.js 22.12+ e clone o repositório:
 
 ```powershell
 git clone https://github.com/GustavoGmBr/PokemonSimulator-Sqlite.git
 cd PokemonSimulator-Sqlite
 ```
 
+Abra `PokemonSimulator.exe` na raiz do clone. Ele prepara as dependências, o SQLite e as sprites automaticamente. No clone, Node.js precisa estar instalado; no ZIP para Windows, já vem incluído. Também é possível executar `npm start`. Para baixar somente as imagens, use `npm run sprites:download` na raiz.
+
 No pacote para Windows, a janela do launcher mostra o progresso, abre o navegador na tela de saves quando o jogo estiver pronto e encerra os serviços ao fechar. Apenas um inicializador desta pasta pode ficar aberto. `iniciar-jogo.cmd` continua disponível como alternativa. Ao executar o código-fonte, o inicializador instala dependências quando necessário.
 
-Em macOS ou Linux, ou se preferir usar um único terminal, execute `npm start` na pasta raiz. A interface começa em http://127.0.0.1:5185/saves. O inicializador escolhe outra porta quando necessário e exibe o endereço usado em `Jogo pronto:`. O proxy de `/api` e `/assets` é configurado automaticamente para a API desta pasta, sem reutilizar os serviços de outra cópia do jogo.
+Em macOS ou Linux, ou se preferir usar um único terminal, execute `npm start` na pasta raiz. A API começa na porta 34435 e a interface de desenvolvimento em http://127.0.0.1:35185/saves. O inicializador escolhe outra porta livre quando necessário e exibe o endereço em `Jogo pronto:`. No ZIP para Windows, API e interface compartilham uma única porta. O jogo escuta apenas em 127.0.0.1, ignora configurações antigas de `VITE_API_ORIGIN` e configura o proxy de `/api` e `/assets` para a API desta instância. Não encerra nem consulta serviços que já ocupam essas portas.
 
 Os detalhes da última execução pelo Windows ficam em `launcher/latest.log`. Para verificar a preparação do banco, a API, a listagem de saves e os sprites sem abrir o navegador, execute `./PokemonSimulator.exe --check` em PowerShell. Esse modo encerra os serviços ao concluir a verificação. O código de saída é `0` quando a verificação passa e `1` quando há falha ou outro inicializador desta pasta já está aberto.
 
@@ -29,7 +31,7 @@ Os detalhes da instalação de atualizações ficam em `launcher/update.log`. Us
 
 ### Publicar uma nova versão
 
-Atualize a versão em `package.json` e as notas em `RELEASE_NOTES.md`. Execute `npm run release:build` no Windows para gerar o pacote completo e o pacote de atualização com seus checksums em `dist/releases/vVERSAO`. O banco inicial é gerado sem dados pessoais. Em seguida, com o Git autenticado no GitHub, execute `npm run release:publish`. A release fica em rascunho até todos os arquivos serem enviados e verificados; os jogadores recebem a atualização na próxima abertura. O script não publica saves, `.env`, credenciais, `node_modules` ou os sprites no Git.
+Atualize a versão em `package.json` e as notas em `RELEASE_NOTES.md`. Execute `npm run release:build` no Windows para gerar os pacotes do jogo e da atualização com seus checksums em `dist/releases/vVERSAO`. As sprites são compactadas em um `.tar.gz` separado; se não mudarem, o manifesto continua usando o pacote já publicado. O banco inicial é gerado sem dados pessoais. Os executáveis compilados para esta versão também entram no clone. Em seguida, com o Git autenticado no GitHub, execute `npm run release:publish`. A release fica em rascunho até todos os arquivos serem enviados e verificados; os jogadores recebem a atualização na próxima abertura. O script publica os executáveis pequenos no Git, mas não publica saves, `.env`, credenciais, `node_modules` ou sprites no repositório.
 
 ### Início manual para desenvolvimento
 
@@ -54,7 +56,7 @@ npm install
 npm run dev
 ```
 
-Abra http://127.0.0.1:5185/saves. Ao iniciar os serviços manualmente, configure `API_PROXY_TARGET` em `frontend/.env` se a API usar uma porta diferente de 3435.
+Antes de iniciar manualmente, execute `npm run sprites:download` na raiz. Abra http://127.0.0.1:35185/saves. Se a API usar uma porta diferente de 34435, configure `API_PROXY_TARGET` em `frontend/.env`. Para selecionar portas livres automaticamente e evitar configurações antigas, prefira o inicializador.
 
 ## Disponível
 

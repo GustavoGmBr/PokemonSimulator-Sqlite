@@ -1,6 +1,7 @@
 import { useSession } from '../stores/session';
 
-const origin = (import.meta.env.VITE_API_ORIGIN ?? '').replace(/\/$/, '');
+// O jogo usa a API e as imagens da própria instância, inclusive com .env antigo.
+const origin = '';
 export const assetUrl = (path) => `${origin}${path}`;
 export class ApiError extends Error {
   constructor(message, status) { super(message); this.status = status; }
