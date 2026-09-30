@@ -245,6 +245,14 @@ export function wildLevelCap(completed, regionId = 'kanto') {
   return Math.min(100, 10 + gymCount * 6 + eliteCount * 12);
 }
 
+export function wildLevelSettings(completed, regionId = 'kanto') {
+  const region = regionId === 'todas'
+    ? REGIONS.filter(entry => regionUnlocked(entry.id, completed)).at(-1)
+    : REGIONS.find(entry => entry.id === regionId && regionUnlocked(entry.id, completed));
+  if (!region) return null;
+  return { regiao: region.id, nome: region.nome, geracao: region.geracao, minimo: 1, maximo: wildLevelCap(completed, region.id) };
+}
+
 function stageOf(node, id, depth = 0) {
   if (node.especieId === id) return depth;
   for (const child of node.evolucoes) {

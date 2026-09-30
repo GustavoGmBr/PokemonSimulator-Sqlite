@@ -2,13 +2,13 @@
 
 Remake single-player em JavaScript com ES Modules. Frontend React 18 em `frontend/` e API Express/Prisma/SQLite em `backend/`. Os saves ficam em `backend/pokemon.db`; não é preciso criar conta nem conectar à internet para jogar.
 
-Versão pública atual: **v0.2.1**. O repositório inclui o código-fonte e o inicializador Windows `PokemonSimulator.exe`. As sprites são baixadas automaticamente na primeira execução e depois são servidas localmente, sem consultar a PokéAPI durante as partidas. Este é um projeto de fã, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Os dados e sprites Pokémon pertencem aos respectivos titulares; os dados de referência foram obtidos via [PokéAPI](https://pokeapi.co/).
+Versão pública atual: **v0.2.2**. O repositório inclui o código-fonte e o inicializador Windows `PokemonSimulator.exe`. As sprites são baixadas automaticamente na primeira execução e depois são servidas localmente, sem consultar a PokéAPI durante as partidas. Este é um projeto de fã, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Os dados e sprites Pokémon pertencem aos respectivos titulares; os dados de referência foram obtidos via [PokéAPI](https://pokeapi.co/).
 
 Os saves são locais e podem ser criados, escolhidos e excluídos na tela inicial. A configuração local fica em `backend/.env`, ignorado pelo Git.
 
 ## Executar localmente
 
-Para jogar no Windows x64, baixe **PokemonSimulator-v0.2.1-win-x64.zip** na [release](https://github.com/GustavoGmBr/PokemonSimulator-Sqlite/releases/latest), extraia todos os arquivos e abra **PokemonSimulator.exe**. O runtime já está incluído: não é necessário instalar Node.js nem abrir CMD. Na primeira execução, conecte-se à internet para baixar o pacote de sprites (aproximadamente 938 MB). O progresso aparece no inicializador, que verifica a integridade do download antes de instalar as imagens. Depois disso, o jogo funciona offline. O banco SQLite é criado automaticamente.
+Para jogar no Windows x64, baixe **PokemonSimulator-v0.2.2-win-x64.zip** na [release](https://github.com/GustavoGmBr/PokemonSimulator-Sqlite/releases/latest), extraia todos os arquivos e abra **PokemonSimulator.exe**. O runtime já está incluído: não é necessário instalar Node.js nem abrir CMD. Na primeira execução, conecte-se à internet para baixar o pacote de sprites (aproximadamente 938 MB). O progresso aparece no inicializador, que verifica a integridade do download antes de instalar as imagens. Depois disso, o jogo funciona offline. O banco SQLite é criado automaticamente.
 
 Na abertura, o inicializador consulta a última release e instala atualizações antes de executar o jogo. Os downloads são verificados por SHA-256, com recuperação dos arquivos anteriores em caso de falha. Os saves e o `.env` são preservados. Sem conexão, a versão instalada continua disponível quando as sprites já foram preparadas. Imagens existentes e íntegras são aproveitadas; imagens ausentes são recuperadas automaticamente quando houver internet.
 
@@ -61,6 +61,7 @@ Antes de iniciar manualmente, execute `npm run sprites:download` na raiz. Abra h
 ## Disponível
 
 - Seleção de vários saves locais, criação de novas jornadas e exclusão de saves.
+- Encontros selvagens com nível mínimo e máximo escolhidos dentro do limite liberado pelos desafios da região. Em todas as gerações, o limite segue a última região disponível; o intervalo permanece ao procurar outro Pokémon.
 - Escolha de um inicial de qualquer geração de Kanto a Paldea no nível 5, persistida no arquivo SQLite. O novo save recebe 10 Poké Bolas e 5 Poções ao escolher o inicial.
 - Menu com coleção em destaque, favoritos persistentes, filtros por número, nome, tipo, geração, shiny, forma e nível, e ordenação por captura ou força. O mercado em `/mercado` permite vender vários Pokémon capturados de uma vez, mantendo pelo menos um. A bolsa é agrupada por categoria; a loja em `/loja` permite buscar itens pelo nome e comprar diferentes itens e quantidades em um carrinho.
 - Pokécassino em `/cassino`: cada ficha custa 5 ₽ e serve para jogar caça-níqueis, cartas, roleta e Voltorb Flip ou comprar Poké Bolas (incluindo Master Bola) e itens de cura. Na roleta, é possível filtrar os Pokémon da coleção por nome e valor, conferir a sprite e apostar um exemplar: ele sai da coleção em qualquer resultado, e uma vitória paga o valor de venda multiplicado em Pokédólares. Favoritos não podem ser vendidos nem apostados.

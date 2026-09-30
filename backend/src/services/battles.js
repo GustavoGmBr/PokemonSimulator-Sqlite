@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { HttpError } from '../lib/errors.js';
 import { getCatalogo, getEspecie } from './catalogo.js';
-import { REGIONS, regionUnlocked, legendaryUnlocked, catchCharmMultiplier, challengesWithStatus, charmMilestones, damage, effectiveness, formFor, levelMovesFor, makeCombatant, rollShiny, rollWild, rollTrainer, shinyRolls, statsFor, wildLevelCap } from './battleRules.js';
+import { REGIONS, regionUnlocked, legendaryUnlocked, catchCharmMultiplier, challengesWithStatus, charmMilestones, damage, effectiveness, formFor, levelMovesFor, makeCombatant, rollShiny, rollWild, rollTrainer, shinyRolls, statsFor, wildLevelCap, wildLevelSettings } from './battleRules.js';
 import { generationForSpecies, HEALING_ITEMS, healCombatant } from './itemRules.js';
 import { equippedMoves, naturalMoves, unlockedMoves } from './moveRules.js';
 import { TOURNAMENTS, rollTournament } from './tournaments.js';
@@ -10,6 +10,15 @@ const CAPTURE_MULTIPLIER = { 'poke-ball': 1, 'great-ball': 1.5, 'ultra-ball': 2,
 function displayName(name) { return name.replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
 
 export function createBattleService(db) {
+  function wildRange(completed, regionId, requested) {
+    const settings = wildLevelSettings(completed, regionId);
+    if (!settings) throw new HttpError(403, 'Região ainda bloqueada.');
+    const range = requested ?? { minimo: 2, maximo: settings.maximo };
+    if (!Number.isInteger(range.minimo) || !Number.isInteger(range.maximo) || range.minimo < settings.minimo || range.minimo > range.maximo || range.maximo > settings.maximo) {
+      throw new HttpError(403, `O intervalo disponível em ${settings.nome} é de ${settings.minimo} a ${settings.maximo}. Conclua os desafios desta região para liberar níveis maiores.`);
+    }
+    return { intervaloNivel: { minimo: range.minimo, maximo: range.maximo }, regiaoNiveis: settings.regiao };
+  }
   async function movesFor(tx, speciesId, level) {
     const names = levelMovesFor(getEspecie(speciesId), level).map((move) => move.nome);
     const rows = await tx.especieAtaque.findMany({ where: { especieId: speciesId, nivelAprendido: { lte: level } }, include: { golpe: true } });
@@ -124,7 +133,8 @@ export function createBattleService(db) {
       const beaten = await progress(db, save.id);
       return { lideres: challengesWithStatus(beaten), torneios: TOURNAMENTS,
         regioes: REGIONS.map((region) => ({ id: region.id, nome: region.nome, geracao: region.geracao, especieInicial: region.minSpecies, especieFinal: region.maxSpecies, campeaoId: region.champion.id, challengeLabel: region.challengeLabel ?? 'Ginásios', eliteLabel: region.eliteLabel ?? 'Elite dos 4',
-          desbloqueada: regionUnlocked(region.id, beaten), concluida: beaten.includes(region.champion.id), escolhaSelvagem: beaten.includes(region.champion.id), nivelMaximoSelvagem: wildLevelCap(beaten, region.id), marcosCharm: charmMilestones(beaten, region.geracao) })),
+          desbloqueada: regionUnlocked(region.id, beaten), concluida: beaten.includes(region.champion.id), escolhaSelvagem: beaten.includes(region.champion.id), nivelMaximoSelvagem: wildLevelCap(beaten, region.id), niveisSelvagens: wildLevelSettings(beaten, region.id), marcosCharm: charmMilestones(beaten, region.geracao) })),
+        niveisTodasGeracoes: wildLevelSettings(beaten, 'todas'),
         nivelMaximoSelvagem: wildLevelCap(beaten), marcosCharm: charmMilestones(beaten),
         geracoesDesbloqueadas: [...new Set(REGIONS.filter((region) => regionUnlocked(region.id, beaten)).map((region) => region.geracao))], geracoesImplementadas: [...new Set(REGIONS.map((region) => region.geracao))] };
     },
@@ -134,7 +144,7 @@ export function createBattleService(db) {
       const active = await db.batalha.findUnique({ where: { saveId: save.id } });
       return active ? { id: active.id, versao: active.versao, ...active.estado } : null;
     },
-    async start(usuarioId, { tipo, desafioId, dificuldade, torneioId, regiao, selvagem }) {
+    async start(usuarioId, { tipo, desafioId, dificuldade, torneioId, regiao, selvagem, intervaloNivel }) {
       return db.$transaction(async (tx) => {
         const save = await tx.save.findUnique({ where: { usuarioId } });
         if (!save?.inicialEspecieId) throw new HttpError(409, 'Escolha seu inicial antes de batalhar.');
@@ -150,6 +160,7 @@ export function createBattleService(db) {
         if (tipo === 'selvagem' && (requestedRegion !== 'todas' && (!wildRegion || !regionUnlocked(wildRegion.id, completed)) || requestedRegion === 'todas' && selvagem)) throw new HttpError(403, 'Região ainda bloqueada ou escolha personalizada indisponível para todas as gerações.');
         if (selvagem && !completed.includes(wildRegion.champion.id)) throw new HttpError(403, `Derrote o campeão de ${wildRegion.nome} para escolher espécie e nível selvagem.`);
         if (selvagem && (selvagem.regiao !== wildRegion.id || selvagem.especieId < wildRegion.minSpecies || selvagem.especieId > wildRegion.maxSpecies)) throw new HttpError(404, 'Espécie indisponível nesta região.');
+        const wildLevels = tipo === 'selvagem' && !selvagem ? wildRange(completed, requestedRegion, intervaloNivel) : null;
         const trainer = tipo === 'treinador' ? rollTrainer(dificuldade) : null;
         const tournament = tipo === 'torneio' ? rollTournament(torneioId) : null;
         if (tipo === 'torneio' && !tournament) throw new HttpError(404, 'Torneio não encontrado.');
@@ -157,7 +168,7 @@ export function createBattleService(db) {
         const wild = tipo === 'selvagem' ? (selvagem ? getEspecie(selvagem.especieId) : rollWild(getCatalogo(), randomInt, completed, requestedRegion)) : null;
         if (wild && !legendaryUnlocked(wild, completed)) throw new HttpError(403, 'Derrote a Elite dos 4 desta região para encontrar este Pokémon lendário ou mítico.');
         const encounterRegion = requestedRegion === 'todas' ? REGIONS.filter((entry) => wild.id >= entry.minSpecies && wild.id <= entry.maxSpecies && regionUnlocked(entry.id, completed)).at(-1) : wildRegion;
-        const lineup = leader ? leader.pokemon.map((id) => ({ id, nivel: leader.nivel })) : trainer ? trainer.pokemon : tournament ? tournament.treinadores[0].pokemon : [{ id: wild.id, nivel: selvagem?.nivel ?? randomInt(2, wildLevelCap(completed, encounterRegion.id) + 1) }];
+        const lineup = leader ? leader.pokemon.map((id) => ({ id, nivel: leader.nivel })) : trainer ? trainer.pokemon : tournament ? tournament.treinadores[0].pokemon : [{ id: wild.id, nivel: selvagem?.nivel ?? randomInt(wildLevels.intervaloNivel.minimo, wildLevels.intervaloNivel.maximo + 1) }];
         for (const { id, nivel: enemyLevel } of lineup) {
           opponents.push(makeCombatant(id, enemyLevel, tournament ? false : rollShiny(randomInt, shinyRolls(completed, generationForSpecies(id), owned.has('shiny-charm'))), await movesFor(tx, id, enemyLevel)));
         }
@@ -166,6 +177,7 @@ export function createBattleService(db) {
           if (paid.count !== 1) throw new HttpError(409, 'Pokédólares insuficientes para entrar no torneio.');
         }
         const state = { tipo, regiao: tipo === 'selvagem' ? requestedRegion : leader?.regiao ?? null, regiaoEncontro: tipo === 'selvagem' ? encounterRegion.id : null, desafioId: leader?.id ?? null, treinador: leader?.nome ?? trainer?.nome ?? tournament?.treinadores[0].nome ?? null, dificuldade: trainer?.dificuldade ?? null, recompensa: trainer?.recompensa ?? tournament?.recompensa ?? null, torneio: tournament ? { id: tournament.id, nome: tournament.nome, entrada: tournament.entrada, rodada: 1, treinadores: tournament.treinadores } : null, xpPorPokemon: {}, itensGanhos: [], limiteNivel: leader?.nivel ?? null, totalOponentes: opponents.length, jogador: null, reservas: [], oponente: opponents.shift(), fila: opponents, rodada: 1, xpGanho: 0, moedasGanhas: 0, resultado: null, aguardandoReviver: false, logs: [leader ? `${leader.nome} desafiou você!` : trainer ? `${trainer.nome} desafiou você!` : tournament ? `Torneio ${tournament.nome}: rodada 1 de 8 contra ${tournament.treinadores[0].nome}.` : 'Um Pokémon selvagem apareceu! Escolha quem vai enfrentá-lo.'] };
+        if (wildLevels) Object.assign(state, wildLevels);
         if (tipo === 'selvagem' && state.oponente.shiny) await tx.batalhaEvento.create({ data: { saveId: save.id, tipo: 'shiny_encontrado', especieId: wild.id, regiao: encounterRegion.id, shiny: true, descricao: `${state.oponente.nome} shiny encontrado` } });
         if (!save.kitEntregue) {
           await tx.save.update({ where: { id: save.id }, data: { kitEntregue: true } });
@@ -223,7 +235,9 @@ export function createBattleService(db) {
             wild = alternatives[randomInt(alternatives.length)];
           }
           const encounterRegion = REGIONS.find((region) => wild.id >= region.minSpecies && wild.id <= region.maxSpecies);
-          const level = randomInt(2, wildLevelCap(completed, encounterRegion.id) + 1);
+          const wildLevels = wildRange(completed, state.regiao, state.intervaloNivel);
+          const level = randomInt(wildLevels.intervaloNivel.minimo, wildLevels.intervaloNivel.maximo + 1);
+          Object.assign(state, wildLevels);
           state.oponente = makeCombatant(wild.id, level, rollShiny(randomInt, shinyRolls(completed, generationForSpecies(wild.id), owned.has('shiny-charm'))), await movesFor(tx, wild.id, level));
           state.regiaoEncontro = encounterRegion.id;
           state.logs = [`Outro Pokémon selvagem apareceu: ${state.oponente.nome}! Escolha quem vai enfrentá-lo ou continue procurando.`];

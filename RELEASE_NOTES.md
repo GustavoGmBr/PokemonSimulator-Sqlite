@@ -1,14 +1,14 @@
-Correção do primeiro início e dos conflitos com outros sistemas no mesmo computador.
+Agora você pode escolher o intervalo de níveis dos encontros selvagens conforme os desafios cumpridos.
 
-Baixe **PokemonSimulator-v0.2.1-win-x64.zip**, extraia todos os arquivos e abra **PokemonSimulator.exe**. Node.js já vem incluído no ZIP; não é necessário abrir CMD. Na primeira execução, mantenha a internet conectada para baixar aproximadamente 938 MB de sprites. O inicializador mostra o progresso e verifica a integridade antes de instalar. Depois disso, o jogo funciona offline.
+- Em **Selvagens → Encontro surpresa**, defina o nível mínimo e o máximo dentro do limite liberado pela região escolhida. Também é possível usar o mesmo mínimo e máximo para encontrar uma espécie aleatória em um nível exato.
+- Em **Todas as gerações liberadas**, os níveis seguem o progresso da última região disponível. Por exemplo: com Kanto concluída e Johto recém-liberada, as opções ficam entre 1 e 10, conforme Johto, inclusive para espécies de Kanto. Conforme você vence os desafios de Johto, esse limite aumenta.
+- O intervalo permanece ao procurar outro Pokémon, recarregar uma batalha ou iniciar outra busca pelo botão **Procurar novo Pokémon**.
+- A tela informa qual região determina os níveis. O backend rejeita intervalos acima do progresso do save.
+- A escolha de espécie após vencer o campeão, as regras de lendários e os bônus shiny continuam disponíveis.
+- Não há alteração na estrutura do SQLite; os saves e encontros já existentes são compatíveis.
 
-- O clone do repositório agora inclui `PokemonSimulator.exe` e o atualizador. No clone, Node.js 22.12+ precisa estar instalado; o inicializador prepara as dependências e as imagens.
-- As portas padrão são 34435 para a API e 35185 para a interface de desenvolvimento. Se estiverem ocupadas, o inicializador escolhe outras sem enviar requisições ao serviço existente.
-- A interface usa a API da própria instância. Configurações antigas de `VITE_API_ORIGIN` não direcionam mais o jogo para outros sistemas.
-- A primeira tela continua sendo o gerenciamento de saves locais, sem login.
-- Sprites existentes e íntegras são reaproveitadas. Arquivos ausentes são recuperados no início quando houver internet.
-- Atualizações preservam `backend/pokemon.db`, `.env` e os saves.
+Para instalar, baixe **PokemonSimulator-v0.2.2-win-x64.zip**, extraia tudo e abra **PokemonSimulator.exe**. Quem já utiliza o jogo recebe a atualização ao abrir o inicializador. As sprites já instaladas são reaproveitadas; não é necessário baixar novamente o pacote de imagens.
 
-O arquivo **update-win-x64.zip** é usado pelo atualizador. O `.tar.gz` de sprites é baixado automaticamente; não precisa ser extraído manualmente. Os arquivos `.sha256` permitem conferir a integridade dos downloads.
+Validação: 35 testes ativos do backend passaram, incluindo a progressão regional e a persistência dos intervalos. O novo fluxo também foi testado no navegador em desktop e mobile. Os 14 testes legados de MySQL permanecem desativados.
 
 Projeto de fã sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Veja os avisos de terceiros no pacote.
