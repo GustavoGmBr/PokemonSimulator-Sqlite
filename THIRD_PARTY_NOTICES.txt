@@ -1,0 +1,13 @@
+Pokémon Simulator SQLite
+
+Este é um projeto de fã, sem vínculo com Nintendo, Game Freak ou The Pokémon Company.
+Os nomes, personagens e sprites Pokémon pertencem aos respectivos titulares.
+O catálogo e os sprites de referência foram obtidos por meio da PokéAPI: https://pokeapi.co/
+
+A distribuição para Windows inclui o runtime Node.js. A licença e os avisos de seus
+componentes estão em runtime/LICENSE. Código-fonte: https://github.com/nodejs/node
+
+As bibliotecas JavaScript mantêm seus arquivos LICENSE e avisos nos respectivos
+diretórios em backend/node_modules. O frontend compilado usa React, React Router,
+TanStack Query, Zustand, Tailwind CSS, Radix UI, Framer Motion e Lucide conforme
+as licenças dos projetos originais, disponíveis nos manifests e lockfiles do repositório.

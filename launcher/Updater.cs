@@ -1,0 +1,150 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Security.Cryptography;
+using System.Text;
+using System.Web.Script.Serialization;
+using System.Windows.Forms;
+
+internal static class Updater
+{
+    [STAThread]
+    private static void Main(string[] args)
+    {
+        if (args.Length < 6 || args[0] != "--apply") { Environment.ExitCode = 1; return; }
+        string root = Path.GetFullPath(args[1]);
+        bool restart = Array.IndexOf(args, "--no-restart") < 0;
+        try
+        {
+            int parent = int.Parse(args[5]);
+            if (parent > 0)
+            {
+                try { using (Process launcher = Process.GetProcessById(parent)) if (!launcher.WaitForExit(30000)) throw new IOException("O inicializador ainda está aberto."); }
+                catch (ArgumentException) { }
+            }
+            Install(root, Path.GetFullPath(args[2]), args[3], args[4]);
+            Log(root, "Atualização " + args[4] + " concluída. Saves e configuração local preservados.");
+        }
+        catch (Exception error)
+        {
+            Environment.ExitCode = 1;
+            Log(root, "Falha na atualização: " + error.Message);
+            if (restart) MessageBox.Show("A atualização não foi aplicada. A versão anterior será iniciada.\n" + error.Message, "Pokémon Simulator");
+        }
+        if (restart)
+        {
+            try { Process.Start(new ProcessStartInfo(Path.Combine(root, "PokemonSimulator.exe"), "--skip-update") { UseShellExecute = true, WorkingDirectory = root }); }
+            catch (Exception error) { Log(root, "Não foi possível reiniciar: " + error.Message); Environment.ExitCode = 1; }
+        }
+    }
+
+    internal static void Install(string root, string archive, string checksum, string version)
+    {
+        string actual;
+        using (SHA256 hash = SHA256.Create())
+        using (FileStream stream = File.OpenRead(archive)) actual = BitConverter.ToString(hash.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+        if (!string.Equals(actual, checksum, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Checksum do pacote não confere.");
+        string temporary = Path.Combine(Path.GetDirectoryName(archive), "installation-" + Guid.NewGuid().ToString("N"));
+        string stage = Path.Combine(temporary, "new");
+        string backup = Path.Combine(temporary, "backup");
+        Directory.CreateDirectory(stage);
+        HashSet<string> extracted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        long size = 0;
+        using (ZipArchive zip = ZipFile.OpenRead(archive))
+        {
+            foreach (ZipArchiveEntry entry in zip.Entries)
+            {
+                string relative = entry.FullName.Replace('\\', '/');
+                string target = Within(stage, relative);
+                if (relative.EndsWith("/")) { Directory.CreateDirectory(target); continue; }
+                if (!Allowed(relative) || !extracted.Add(relative) || ((entry.ExternalAttributes >> 16) & 0xF000) == 0xA000) throw new InvalidDataException("Arquivo não permitido no pacote: " + relative);
+                size += entry.Length;
+                if (size > 4L * 1024 * 1024 * 1024) throw new InvalidDataException("Pacote descompactado grande demais.");
+                Directory.CreateDirectory(Path.GetDirectoryName(target));
+                entry.ExtractToFile(target);
+            }
+        }
+        Dictionary<string, object> manifest = new JavaScriptSerializer { MaxJsonLength = 16 * 1024 * 1024 }.Deserialize<Dictionary<string, object>>(File.ReadAllText(Path.Combine(stage, "distribution.json")));
+        if ((string)manifest["version"] != version || (string)manifest["kind"] != "update" || (string)manifest["platform"] != "win-x64") throw new InvalidDataException("Manifesto de atualização incompatível.");
+        List<string> files = new List<string>();
+        foreach (object item in (System.Collections.IEnumerable)manifest["files"])
+        {
+            string relative = (string)item;
+            if (!Allowed(relative) || !extracted.Contains(relative) || files.Contains(relative)) throw new InvalidDataException("Manifesto de arquivos inválido.");
+            if (relative != "distribution.json") files.Add(relative);
+        }
+        files.Add("distribution.json");
+        if (extracted.Count != files.Count) throw new InvalidDataException("O conteúdo do pacote difere do manifesto.");
+        List<string> attempted = new List<string>();
+        HashSet<string> originals = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            foreach (string relative in files)
+            {
+                string target = Within(root, relative);
+                string original = Within(backup, relative);
+                if (File.Exists(target))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(original));
+                    File.Copy(target, original);
+                    originals.Add(relative);
+                }
+                attempted.Add(relative);
+                Directory.CreateDirectory(Path.GetDirectoryName(target));
+                File.Copy(Within(stage, relative), target, true);
+            }
+        }
+        catch
+        {
+            attempted.Reverse();
+            foreach (string relative in attempted)
+            {
+                string target = Within(root, relative);
+                try
+                {
+                    if (originals.Contains(relative)) File.Copy(Within(backup, relative), target, true);
+                    else if (File.Exists(target)) File.Delete(target);
+                }
+                catch (Exception error) { Log(root, "Recuperação pendente de " + relative + ": " + error.Message + ". Backup em " + backup); }
+            }
+            throw;
+        }
+    }
+
+    private static string Within(string root, string relative)
+    {
+        if (Path.IsPathRooted(relative) || relative.Contains(":")) throw new InvalidDataException("Caminho absoluto no pacote.");
+        string prefix = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        string target = Path.GetFullPath(Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar)));
+        if (!target.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Caminho fora da pasta do jogo.");
+        if (File.Exists(target) && (File.GetAttributes(target) & FileAttributes.ReparsePoint) != 0) throw new InvalidDataException("Arquivo redirecionado não permitido na atualização.");
+        string directory = Path.GetDirectoryName(target);
+        while (directory != null && directory.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            if (Directory.Exists(directory) && (File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0) throw new InvalidDataException("Pasta redirecionada não permitida na atualização.");
+            directory = Path.GetDirectoryName(directory);
+        }
+        return target;
+    }
+
+    private static bool Allowed(string relative)
+    {
+        string normalized = relative.Replace('\\', '/');
+        string name = Path.GetFileName(normalized);
+        if (name.StartsWith(".env", StringComparison.OrdinalIgnoreCase) && name != ".env.example") return false;
+        if ((normalized.EndsWith(".db", StringComparison.OrdinalIgnoreCase) || normalized.EndsWith(".db-wal", StringComparison.OrdinalIgnoreCase) || normalized.EndsWith(".db-shm", StringComparison.OrdinalIgnoreCase) || normalized.EndsWith(".db-journal", StringComparison.OrdinalIgnoreCase)) && normalized != "backend/templates/pokemon.db") return false;
+        if (normalized.EndsWith(".log", StringComparison.OrdinalIgnoreCase) || normalized.Contains("/.git/")) return false;
+        foreach (string prefix in new string[] { "backend/src/", "backend/data/", "backend/public/", "backend/node_modules/", "backend/templates/", "backend/prisma/", "backend/scripts/", "frontend/dist/", "runtime/", "scripts/" }) if (normalized.StartsWith(prefix, StringComparison.Ordinal)) return true;
+        foreach (string file in new string[] { "PokemonSimulator.exe", "PokemonSimulatorUpdater.exe", "package.json", "release-config.json", "distribution.json", "README.md", "THIRD_PARTY_NOTICES.txt", "backend/package.json", "backend/package-lock.json", "backend/.env.example", "iniciar-jogo.cmd" }) if (normalized == file) return true;
+        return false;
+    }
+
+    private static void Log(string root, string message)
+    {
+        try { string directory = Path.Combine(root, "launcher"); Directory.CreateDirectory(directory); File.AppendAllText(Path.Combine(directory, "update.log"), DateTime.Now.ToString("s") + " " + message + Environment.NewLine, Encoding.UTF8); }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+    }
+}
