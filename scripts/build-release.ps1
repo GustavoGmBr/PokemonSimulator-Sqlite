@@ -1,4 +1,4 @@
-param([string]$NodePath = '', [switch]$SkipFrontendBuild, [string]$ResumeStage = '', [switch]$ReuseTemplate, [switch]$ReplaceArtifacts)
+param([string]$NodePath = '', [switch]$SkipFrontendBuild, [string]$ResumeStage = '', [switch]$ReuseTemplate, [switch]$ReplaceArtifacts, [switch]$PackageOnly)
 $ErrorActionPreference = 'Stop'
 $releaseRoot = Split-Path -Parent $PSScriptRoot
 $releasePackage = Get-Content (Join-Path $releaseRoot 'package.json') -Raw | ConvertFrom-Json
@@ -8,7 +8,8 @@ if (-not $NodePath) { $NodePath = (Get-Command node).Source }
 $releaseOutput = Join-Path $releaseRoot "dist/releases/v$releaseVersion"
 $releaseStage = if ($ResumeStage) { [IO.Path]::GetFullPath($ResumeStage) } else { Join-Path $releaseOutput ('staging-' + [guid]::NewGuid().ToString('N')) }
 if (-not $releaseStage.StartsWith([IO.Path]::GetFullPath($releaseOutput).TrimEnd('\') + '\',[StringComparison]::OrdinalIgnoreCase)) { throw 'Área de montagem fora da pasta de releases.' }
-$releaseFull = Join-Path $releaseStage 'full'
+$releaseFull = Join-Path $releaseStage 'compact'
+$releaseComplete = Join-Path $releaseStage 'complete'
 $releaseUpdate = Join-Path $releaseStage 'update'
 New-Item -ItemType Directory -Path $releaseFull,$releaseUpdate -Force | Out-Null
 
@@ -21,6 +22,7 @@ function Run-ReleaseNode([string[]]$Arguments) {
   & $NodePath @Arguments
   if ($LASTEXITCODE -ne 0) { throw "Comando de preparação falhou: $($Arguments -join ' ')" }
 }
+if (-not $PackageOnly) {
 Write-Host "Preparando versão $releaseVersion para Windows x64…"
 if (-not (Test-Path (Join-Path $releaseRoot 'backend/public/pokemon/1-front.png'))) {
   throw 'Execute npm run sprites:download na raiz antes de gerar uma nova versão.'
@@ -92,9 +94,31 @@ if (Test-Path -LiteralPath $releaseUpdateSprites) { Remove-Item -LiteralPath $re
 # O banco de referência é copiado explicitamente, nunca o banco do jogador.
 Copy-Item -LiteralPath $releaseTemplate -Destination (Join-Path $releaseUpdate 'backend/templates/pokemon.db')
 
+Write-Host 'Preparando a edição completa com as sprites locais…'
+Copy-ReleaseTree $releaseFull $releaseComplete
+Copy-Item -LiteralPath $releaseTemplate -Destination (Join-Path $releaseComplete 'backend/templates/pokemon.db')
+$releaseSpriteManifest = Get-Content (Join-Path $releaseRoot 'backend/data/sprite-download.json') -Raw | ConvertFrom-Json
+$releaseCompleteSprites = Join-Path $releaseComplete 'backend/public/pokemon'
+New-Item -ItemType Directory -Path $releaseCompleteSprites -Force | Out-Null
+foreach ($sprite in $releaseSpriteManifest.files.PSObject.Properties) {
+  if ($sprite.Name -notmatch '^[0-9][A-Za-z0-9._-]{0,98}\.(png|gif|webp)$') { throw 'Nome de sprite inválido.' }
+  $sourceSprite = Join-Path $releaseRoot "backend/public/pokemon/$($sprite.Name)"
+  if ((Get-Item -LiteralPath $sourceSprite).Length -ne $sprite.Value.size) { throw "Sprite incompleta: $($sprite.Name)" }
+  Copy-Item -LiteralPath $sourceSprite -Destination (Join-Path $releaseCompleteSprites $sprite.Name)
+}
+# All images were hashed by build-sprites.js before packaging.
+[IO.File]::WriteAllText((Join-Path $releaseCompleteSprites '.installed.json'), (@{sha256=$releaseSpriteManifest.sha256} | ConvertTo-Json -Compress))
+} else {
+  if (-not $ResumeStage) { throw 'PackageOnly exige ResumeStage com uma montagem concluída.' }
+  foreach ($directory in @($releaseFull,$releaseComplete,$releaseUpdate)) {
+    if (-not (Test-Path -LiteralPath (Join-Path $directory 'runtime/node.exe'))) { throw "Montagem incompleta: $directory" }
+  }
+  $releaseNodeVersion = (& (Join-Path $releaseFull 'runtime/node.exe') --version).Trim()
+}
+
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-foreach ($kind in @('full','update')) {
-  $directory = if ($kind -eq 'full') { $releaseFull } else { $releaseUpdate }
+foreach ($kind in @('compact','complete','update')) {
+  $directory = if ($kind -eq 'compact') { $releaseFull } elseif ($kind -eq 'complete') { $releaseComplete } else { $releaseUpdate }
   foreach ($privateFile in Get-ChildItem -LiteralPath $directory -File -Recurse -Force) {
     $relative = $privateFile.FullName.Substring($directory.Length + 1).Replace('\','/')
     if (($privateFile.Name -like '.env*' -and $privateFile.Name -ne '.env.example') -or $privateFile.Name -like '*.log' -or $privateFile.Name -like '*.tmp*' -or ($privateFile.Name -match '\.db($|-)' -and $relative -ne 'backend/templates/pokemon.db')) {
@@ -103,17 +127,32 @@ foreach ($kind in @('full','update')) {
   }
   $files = @(Get-ChildItem -LiteralPath $directory -File -Recurse -Force | Where-Object { $_.Name -ne 'distribution.json' } | ForEach-Object { $_.FullName.Substring($directory.Length + 1).Replace('\','/') }) + 'distribution.json'
   @{ version=$releaseVersion; platform='win-x64'; kind=$kind; nodeVersion=$releaseNodeVersion; files=$files } | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $directory 'distribution.json') -Encoding utf8
-  $name = if ($kind -eq 'full') { "PokemonSimulator-v$releaseVersion-win-x64.zip" } else { "PokemonSimulator-v$releaseVersion-update-win-x64.zip" }
+  $name = "PokemonSimulator-v$releaseVersion-$kind-win-x64.zip"
   $archive = Join-Path $releaseOutput $name
-  if (Test-Path -LiteralPath $archive) {
+  $reuseArchive = $PackageOnly -and (Test-Path -LiteralPath $archive)
+  if ($reuseArchive) {
+    $existingZip = [IO.Compression.ZipFile]::OpenRead($archive)
+    try {
+      $entries = @($existingZip.Entries | Where-Object { -not $_.FullName.Replace('\','/').EndsWith('/') })
+      if ($entries.Count -ne $files.Count) { throw 'O pacote existente difere da montagem.' }
+      foreach ($entry in $entries) {
+        if ($entry.FullName.Replace('\','/') -notin $files -or (Get-Item -LiteralPath (Join-Path $directory $entry.FullName)).Length -ne $entry.Length) { throw 'O pacote existente difere da montagem.' }
+      }
+    } finally { $existingZip.Dispose() }
+  } elseif (Test-Path -LiteralPath $archive) {
     if (-not $ReplaceArtifacts) { throw "O artefato já existe: $archive. Use outra versão ou mova o arquivo existente." }
     Remove-Item -LiteralPath $archive
   }
-  Write-Host "Compactando $name…"
-  [IO.Compression.ZipFile]::CreateFromDirectory($directory,$archive,[IO.Compression.CompressionLevel]::Optimal,$false)
-  $checksum = (Get-FileHash -Algorithm SHA256 -LiteralPath $archive).Hash.ToLowerInvariant()
+  if (-not $reuseArchive) {
+    Write-Host "Compactando $name…"
+    [IO.Compression.ZipFile]::CreateFromDirectory($directory,$archive,[IO.Compression.CompressionLevel]::Optimal,$false)
+  }
+  $hasher = [Security.Cryptography.SHA256]::Create()
+  $hashStream = [IO.File]::OpenRead($archive)
+  try { $checksum = [BitConverter]::ToString($hasher.ComputeHash($hashStream)).Replace('-','').ToLowerInvariant() }
+  finally { $hashStream.Dispose(); $hasher.Dispose() }
   "$checksum  $name" | Set-Content "$archive.sha256" -Encoding ascii
   Write-Host "$name criado: $([Math]::Round((Get-Item $archive).Length / 1MB, 1)) MB"
 }
-@{ version=$releaseVersion; fullDirectory=$releaseFull; updateDirectory=$releaseUpdate } | ConvertTo-Json | Set-Content (Join-Path $releaseOutput 'build-info.json') -Encoding utf8
+@{ version=$releaseVersion; fullDirectory=$releaseFull; compactDirectory=$releaseFull; completeDirectory=$releaseComplete; updateDirectory=$releaseUpdate } | ConvertTo-Json | Set-Content (Join-Path $releaseOutput 'build-info.json') -Encoding utf8
 Write-Host "Pacotes disponíveis em $releaseOutput"

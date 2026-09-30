@@ -47,7 +47,7 @@ export function rouletteMultiplier(result, bet) {
 
 function casinoItem(itemId) {
   const item = getCatalogo().itens.find((entry) => entry.nome === itemId);
-  if (!item || !['captura', 'cura'].includes(item.categoria)) return null;
+  if (!item || !['captura', 'cura', 'ivs'].includes(item.categoria)) return null;
   return { itemId, nome: item.nomeExibicao, preco: itemId === 'master-ball' ? CASINO_MASTER_BALL_PRICE : Math.ceil(item.precoLoja / CASINO_CHIP_COST), sprite: item.sprite };
 }
 
@@ -92,7 +92,7 @@ export function createCasinoService(db) {
     async overview(usuarioId) {
       const save = await saveFor(db, usuarioId);
       const round = await db.cassinoRodada.findUnique({ where: { saveId: save.id } });
-      return { fichas: save.fichas, moedas: save.moedas, custoFicha: CASINO_CHIP_COST, itens: getCatalogo().itens.filter((item) => ['captura', 'cura'].includes(item.categoria)).map((item) => casinoItem(item.nome)), voltorb: publicVoltorb(round) };
+      return { fichas: save.fichas, moedas: save.moedas, custoFicha: CASINO_CHIP_COST, itens: getCatalogo().itens.filter((item) => ['captura', 'cura', 'ivs'].includes(item.categoria)).map((item) => casinoItem(item.nome)), voltorb: publicVoltorb(round) };
     },
     async buyChips(usuarioId, quantidade) {
       return db.$transaction(async (tx) => {

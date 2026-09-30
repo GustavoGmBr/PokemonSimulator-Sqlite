@@ -9,6 +9,7 @@ import { Loading, Failure } from './common';
 const passiveItems = new Set(['lucky-egg', 'amulet-coin', 'shiny-charm', 'catching-charm']);
 const removedItems = new Set(['antidote', 'paralyze-heal', 'awakening', 'burn-heal', 'ice-heal', 'full-heal', 'ether', 'elixir']);
 const categories = [
+  { id: 'ivs', label: 'IVs' },
   { id: 'captura', label: 'Captura' },
   { id: 'cura', label: 'Cura' },
   { id: 'treino', label: 'Treino' },

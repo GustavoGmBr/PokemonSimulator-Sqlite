@@ -40,7 +40,7 @@ test('catalogo local tem os 1025 IDs de Kanto a Paldea, sprites e golpes resolvi
 });
 
 test('itens e Mega Pedras tem sprites locais e detalhes de golpes mantem poder', () => {
-  assert.equal(getCatalogo().itens.length, 145);
+  assert.equal(getCatalogo().itens.length, 151);
   assert.equal(getCatalogo().itens.find((item) => item.nome === 'ultra-burst-stone').precoLoja, 150000);
   for (const id of ['master-ball', 'rare-candy', 'exp-candy-p', 'exp-candy-m', 'exp-candy-g', 'exp-candy-gg']) assert.equal(getCatalogo().itens.find((item) => item.nome === id).precoLoja, null);
   assert.equal(getCatalogo().itens.find((item) => item.nome === 'gmax-stone').precoLoja, 75000);

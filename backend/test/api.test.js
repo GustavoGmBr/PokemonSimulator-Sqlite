@@ -86,7 +86,7 @@ test('excluir um save remove seus dados e preserva os outros', async () => {
 });
 
 test('catalogo publico retorna itens, especies e sprites locais', async () => {
-  assert.equal((await request(app).get('/api/catalogo/itens').expect(200)).body.data.length, 145);
+  assert.equal((await request(app).get('/api/catalogo/itens').expect(200)).body.data.length, 151);
   const species = await request(app).get('/api/catalogo/25').expect(200);
   assert.equal(species.body.data.nomeExibicao, 'Pikachu');
   assert.ok(species.body.data.sprites.animatedShiny);

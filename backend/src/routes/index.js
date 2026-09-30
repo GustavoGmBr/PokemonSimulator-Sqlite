@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { ivItemSchema } from '../validators/jogador.js';
 import { requireSaveContext } from '../middleware/save-context.js';
 import { validate } from '../middleware/validate.js';
 import { updateSaveSchema } from '../validators/auth.js';
@@ -58,6 +59,9 @@ export function createRouter(db, config) {
     try { res.json({ success: true, data: await market.sell(req.usuarioId, req.body.pokemonIds) }); } catch (error) { next(error); }
   });
   router.patch('/jogador/pokemon/:id/favorito', validate(favoriteSchema), jogador.favorito);
+  router.post('/jogador/pokemon/:id/iv', validate(ivItemSchema), async (req, res, next) => {
+    try { res.json({ success: true, data: await evolutions.improveIv(req.usuarioId, req.params.id, req.body.itemId) }); } catch (error) { next(error); }
+  });
   router.get('/jogador/pokemon/:id/golpes', async (req, res, next) => {
     try { res.json({ success: true, data: await moves.options(req.usuarioId, req.params.id) }); } catch (error) { next(error); }
   });

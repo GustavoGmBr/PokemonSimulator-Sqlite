@@ -3,6 +3,7 @@ import { getCatalogo, getEspecie } from './catalogo.js';
 import { formFor, statsFor } from './battleRules.js';
 import { EXP_CANDIES, PASSIVE_ITEMS, REWARD_ONLY_ITEMS } from './itemRules.js';
 import { naturalMoves, unlockedMoves } from './moveRules.js';
+import { IV_ITEMS, normalizeIvs } from './ivRules.js';
 
 function nodeFor(root, id) {
   if (root.especieId === id) return root;
@@ -93,6 +94,25 @@ function transferExperience(from, to, level, experience) {
 
 export function createEvolutionService(db) {
   return {
+    async improveIv(usuarioId, pokemonId, itemId) {
+      const item = IV_ITEMS.find(entry => entry.nome === itemId);
+      if (!item) throw new HttpError(400, 'Item de IV inválido.');
+      return db.$transaction(async tx => {
+        const member = await tx.pokemonCapturado.findFirst({ where: { id: pokemonId, save: { usuarioId } } });
+        if (!member) throw new HttpError(404, 'Pokémon não encontrado na sua coleção.');
+        if (await tx.batalha.findUnique({ where: { saveId: member.saveId }, select: { id: true } })) throw new HttpError(409, 'Termine a batalha atual para melhorar IVs.');
+        const ivs = normalizeIvs(member.ivs);
+        if (ivs[item.stat] >= 31) throw new HttpError(409, 'Este atributo já tem 31 IVs. Nenhum item foi consumido.');
+        const used = await tx.itemInventario.updateMany({ where: { saveId: member.saveId, itemId, quantidade: { gt: 0 } }, data: { quantidade: { decrement: 1 } } });
+        if (used.count !== 1) throw new HttpError(409, 'Essência de IV indisponível na mochila.');
+        await tx.itemInventario.deleteMany({ where: { saveId: member.saveId, itemId, quantidade: 0 } });
+        ivs[item.stat]++;
+        const stats = statsFor(formFor(getEspecie(member.especieId), member.megaForma, member.gmaxForma), member.nivel, member.shiny, ivs);
+        const oldMaxHp = member.atributos?.hp ?? stats.hp;
+        const hpAtual = member.hpAtual === 0 ? 0 : Math.max(1, Math.min(stats.hp, member.hpAtual + stats.hp - oldMaxHp));
+        return tx.pokemonCapturado.update({ where: { id: member.id }, data: { ivs, atributos: stats, hpAtual } });
+      }, { isolationLevel: 'Serializable', timeout: 20_000 });
+    },
     async options(usuarioId, pokemonId) {
       const member = await db.pokemonCapturado.findFirst({ where: { id: pokemonId, save: { usuarioId } } });
       if (!member) throw new HttpError(404, 'Pokémon não encontrado na sua coleção.');
@@ -123,8 +143,8 @@ export function createEvolutionService(db) {
         const nextSpecies = ['mega', 'primal', 'gmax', 'fusao'].includes(option.tipo) ? oldSpecies : getEspecie(option.alvo);
         const megaForma = ['mega', 'primal', 'fusao'].includes(option.tipo) ? option.alvo : null;
         const gmaxForma = option.tipo === 'gmax' ? option.alvo : null;
-        const stats = statsFor(formFor(nextSpecies, megaForma, gmaxForma), member.nivel, member.shiny);
-        const oldMaxHp = member.atributos?.hp ?? statsFor(oldSpecies, member.nivel, member.shiny).hp;
+        const stats = statsFor(formFor(nextSpecies, megaForma, gmaxForma), member.nivel, member.shiny, member.ivs);
+        const oldMaxHp = member.atributos?.hp ?? statsFor(oldSpecies, member.nivel, member.shiny, member.ivs).hp;
         const hpAtual = member.hpAtual === 0 ? 0 : Math.max(1, Math.min(stats.hp, Math.ceil(member.hpAtual / oldMaxHp * stats.hp)));
         const updated = await tx.pokemonCapturado.update({ where: { id: member.id }, data: {
           especieId: nextSpecies.id, megaForma, gmaxForma, atributos: stats, hpAtual,
@@ -185,8 +205,8 @@ export function createEvolutionService(db) {
         if (consumed.count !== 1) throw new HttpError(409, 'Doce Raro indisponível.');
         const species = getEspecie(member.especieId);
         const level = member.nivel + 1;
-        const stats = statsFor(formFor(species, member.megaForma, member.gmaxForma), level, member.shiny);
-        const oldMaxHp = member.atributos?.hp ?? statsFor(formFor(species, member.megaForma, member.gmaxForma), member.nivel, member.shiny).hp;
+        const stats = statsFor(formFor(species, member.megaForma, member.gmaxForma), level, member.shiny, member.ivs);
+        const oldMaxHp = member.atributos?.hp ?? statsFor(formFor(species, member.megaForma, member.gmaxForma), member.nivel, member.shiny, member.ivs).hp;
         const hpAtual = member.hpAtual === 0 ? 0 : Math.max(1, Math.min(stats.hp, Math.ceil(member.hpAtual / oldMaxHp * stats.hp)));
         return tx.pokemonCapturado.update({ where: { id: member.id }, data: {
           nivel: level, experiencia: species.experienciaPorNivel.find((entry) => entry.nivel === level).experiencia,
@@ -206,8 +226,8 @@ export function createEvolutionService(db) {
         const species = getEspecie(member.especieId);
         const experience = Math.min(species.experienciaPorNivel.at(-1).experiencia, member.experiencia + EXP_CANDIES[itemId]);
         const level = [...species.experienciaPorNivel].reverse().find((entry) => entry.experiencia <= experience)?.nivel ?? member.nivel;
-        const stats = statsFor(formFor(species, member.megaForma, member.gmaxForma), level, member.shiny);
-        const oldMaxHp = member.atributos?.hp ?? statsFor(formFor(species, member.megaForma, member.gmaxForma), member.nivel, member.shiny).hp;
+        const stats = statsFor(formFor(species, member.megaForma, member.gmaxForma), level, member.shiny, member.ivs);
+        const oldMaxHp = member.atributos?.hp ?? statsFor(formFor(species, member.megaForma, member.gmaxForma), member.nivel, member.shiny, member.ivs).hp;
         const hpAtual = member.hpAtual === 0 ? 0 : Math.max(1, Math.min(stats.hp, Math.ceil(member.hpAtual / oldMaxHp * stats.hp)));
         return tx.pokemonCapturado.update({ where: { id: member.id }, data: { nivel: level, experiencia: experience, atributos: stats, hpAtual, golpesDesbloqueados: [...new Set([...unlockedMoves(member, species), ...naturalMoves(species, level)])] } });
       }, { isolationLevel: 'Serializable', timeout: 20_000 });

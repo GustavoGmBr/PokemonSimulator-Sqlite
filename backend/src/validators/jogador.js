@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { IV_ITEMS } from '../services/ivRules.js';
+export const ivItemSchema = z.object({ itemId: z.enum(IV_ITEMS.map(item => item.nome)) }).strict();
 export const expCandySchema = z.object({ itemId: z.enum(['exp-candy-p', 'exp-candy-m', 'exp-candy-g', 'exp-candy-gg']) }).strict();
 import { nomeTreinador } from './auth.js';
 

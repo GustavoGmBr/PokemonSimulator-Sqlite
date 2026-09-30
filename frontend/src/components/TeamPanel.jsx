@@ -7,6 +7,8 @@ import { xpProgress, ownedForm } from '../lib/pokemon';
 import { Loading, Failure, PokemonImage, TypeBadge, typeNames } from './common';
 import { PokemonDetails } from './PokemonDetails';
 import { ConfirmDialog } from './ConfirmDialog';
+import { IvSummary } from './IvSummary';
+import { ivQuality } from '../lib/ivs';
 
 const GENERATION_ENDS = [151, 251, 386, 493, 649, 721, 809, 905, 1025];
 const generationOf = (id) => GENERATION_ENDS.findIndex((end) => id <= end) + 1;
@@ -55,6 +57,9 @@ export function TeamPanel({ save, catalogo, market = false }) {
   const [maxLevel, setMaxLevel] = useState('');
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [sort, setSort] = useState('capture-new');
+  const [ivStars, setIvStars] = useState('');
+  const [minIv, setMinIv] = useState('');
+  const [maxIv, setMaxIv] = useState('');
   const speciesById = useMemo(() => new Map(catalogo.pokemon.map((species) => [species.id, species])), [catalogo]);
   const selected = query.data?.find((member) => member.id === selectedId);
   const filtered = useMemo(() => (query.data ?? []).filter((member) => {
@@ -69,15 +74,19 @@ export function TeamPanel({ save, catalogo, market = false }) {
       && (!minLevel || member.nivel >= Number(minLevel))
       && (!maxLevel || member.nivel <= Number(maxLevel))
       && (!onlyFavorites || member.favorito)
+      && (ivStars === '' || ivQuality(member.ivs).stars === Number(ivStars))
+      && (minIv === '' || ivQuality(member.ivs).percentage >= Number(minIv))
+      && (maxIv === '' || ivQuality(member.ivs).percentage <= Number(maxIv))
       && (!text || species.nomeExibicao.toLowerCase().includes(text) || form.nomeExibicao.toLowerCase().includes(text) || member.apelido?.toLowerCase().includes(text) || String(species.id) === text.replace(/^#0*/, ''));
   }).sort((a, b) => {
     if (sort === 'strength-high') return strengthOf(b) - strengthOf(a) || a.id.localeCompare(b.id);
     if (sort === 'strength-low') return strengthOf(a) - strengthOf(b) || a.id.localeCompare(b.id);
     const delta = new Date(b.capturadoEm) - new Date(a.capturadoEm);
     return (sort === 'capture-old' ? -delta : delta) || a.id.localeCompare(b.id);
-  }), [query.data, speciesById, search, type, generation, shiny, formFilter, minLevel, maxLevel, onlyFavorites, sort]);
+  }), [query.data, speciesById, search, type, generation, shiny, formFilter, minLevel, maxLevel, onlyFavorites, sort, ivStars, minIv, maxIv]);
   function handleEvolved(updated) {
     client.setQueryData(queryKey, (members = []) => members.map((member) => member.id === updated.id ? updated : member));
+    client.invalidateQueries({ queryKey: ['sale-values'] });
   }
   function chooseMember(id) {
     if (!sellMode) { setSelectedId(id); return; }
@@ -101,6 +110,8 @@ export function TeamPanel({ save, catalogo, market = false }) {
       <select aria-label="Filtrar meus Pokémon por forma" value={formFilter} onChange={(event) => setFormFilter(event.target.value)}><option value="">Todas as formas</option><option value="normal">Forma normal</option><option value="mega">Mega</option><option value="primal">Primal</option><option value="gmax">G-Max</option><option value="fusao">Fusão</option></select>
       <div className="team-level-filter"><span>Nível</span><input type="number" min="1" max="100" aria-label="Nível mínimo" placeholder="Mín." value={minLevel} onChange={(event) => setMinLevel(event.target.value)} /><span>–</span><input type="number" min="1" max="100" aria-label="Nível máximo" placeholder="Máx." value={maxLevel} onChange={(event) => setMaxLevel(event.target.value)} /></div>
       <label className="team-favorites-filter"><input type="checkbox" checked={onlyFavorites} onChange={(event) => setOnlyFavorites(event.target.checked)} /><Star size={14} fill={onlyFavorites ? 'currentColor' : 'none'} /> Favoritos</label>
+      <select aria-label="Filtrar meus Pokémon por estrelas IV" value={ivStars} onChange={event => setIvStars(event.target.value)}><option value="">IVs: todas as estrelas</option>{[0, 1, 2, 3, 4].map(stars => <option key={stars} value={stars}>{stars === 0 ? '0☆' : '⭐'.repeat(stars)}{stars === 4 ? ' · Perfeito' : ''}</option>)}</select>
+      <div className="team-level-filter"><span>IVs %</span><input type="number" min="0" max="100" step="0.1" aria-label="Porcentagem mínima de IVs" placeholder="Mín." value={minIv} onChange={event => setMinIv(event.target.value)} /><span>–</span><input type="number" min="0" max="100" step="0.1" aria-label="Porcentagem máxima de IVs" placeholder="Máx." value={maxIv} onChange={event => setMaxIv(event.target.value)} /></div>
       <select aria-label="Ordenar meus Pokémon" value={sort} onChange={(event) => setSort(event.target.value)}><option value="capture-new">Captura recente</option><option value="capture-old">Captura antiga</option><option value="strength-high">Mais fortes</option><option value="strength-low">Menos fortes</option></select>
     </div>
     {(favorite.error || values.error) && <p role="alert" className="team-filter-error">{(favorite.error || values.error).message}</p>}
@@ -115,6 +126,7 @@ export function TeamPanel({ save, catalogo, market = false }) {
         return <div className={`party-entry ${sellSelection.has(member.id) ? 'marked-for-sale' : ''}`} key={member.id}>
           <button type="button" className={`party-slot ${member.hpAtual === 0 ? 'fainted' : ''}`} disabled={sellMode && member.favorito} onClick={() => chooseMember(member.id)} aria-label={`${sellMode ? member.favorito ? 'Favorito protegido' : 'Selecionar' : 'Ver informações de'} ${name}`} aria-pressed={sellMode && !member.favorito ? sellSelection.has(member.id) : undefined}><span className="party-number">#{String(species.id).padStart(3, '0')}</span><PokemonImage pokemon={form} variant={member.shiny ? 'frontShiny' : 'front'} /><div className="party-info"><div className="party-name"><strong>{name}{member.shiny ? ' ✨' : ''}</strong><span>Nv. {member.nivel}</span></div><div className="party-types">{form.tipos.map((entry) => <TypeBadge key={entry} type={entry} />)}</div><div className="party-meter"><small>HP</small><span className="hp-track"><span style={{ width: `${maxHp ? Math.max(0, Math.min(100, member.hpAtual / maxHp * 100)) : 0}%` }} /></span><span>{member.hpAtual}/{maxHp}</span></div><div className="party-meter"><small>XP</small><span className="xp-track"><span style={{ width: `${xp.progress}%` }} /></span><span>{xp.maximum ? 'MAX' : `${Math.floor(xp.progress)}%`}</span></div>{sellMode && <small>{member.favorito ? '★ Favorito protegido' : `Valor: ${((values.data ?? []).find((entry) => entry.pokemonId === member.id)?.valor ?? 0).toLocaleString('pt-BR')} ₽`}</small>}</div>{sellMode ? <span className="party-select-indicator">{sellSelection.has(member.id) && <Check size={15} />}</span> : <ChevronRight size={16} />}</button>
           <button type="button" className={`party-favorite ${member.favorito ? 'is-favorite' : ''}`} aria-label={`${member.favorito ? 'Remover' : 'Adicionar'} ${name} ${member.favorito ? 'dos' : 'aos'} favoritos`} aria-pressed={Boolean(member.favorito)} disabled={favorite.isPending && favorite.variables?.id === member.id} onClick={() => favorite.mutate({ id: member.id, favorito: !member.favorito })}><Star size={17} fill={member.favorito ? 'currentColor' : 'none'} /></button>
+          <IvSummary ivs={member.ivs} compact />
         </div>;
       })}{!filtered.length && <p className="collection-empty">{query.data.length ? 'Nenhum Pokémon corresponde aos filtros.' : 'Sua coleção está vazia.'}</p>}</div>
     </>}

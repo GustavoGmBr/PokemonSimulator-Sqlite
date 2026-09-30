@@ -1,5 +1,6 @@
 import { HttpError } from '../lib/errors.js';
 import { getCatalogo, getEspecie } from './catalogo.js';
+import { ivQuality } from './ivRules.js';
 
 const ballPrices = { 'poke-ball': 200, 'great-ball': 600, 'ultra-ball': 1200 };
 
@@ -10,7 +11,7 @@ export function pokemonSaleValue(member) {
   const investments = Math.max(0, member.investimentoItens ?? 0);
   const legendaryMultiplier = species.lendario || species.mitico ? 3 : 1;
   const shinyMultiplier = member.shiny ? 10 : 1;
-  return Math.floor((ballValue + investments) * legendaryMultiplier * shinyMultiplier);
+  return Math.floor((ballValue + investments) * legendaryMultiplier * shinyMultiplier * ivQuality(member.ivs).valueMultiplier);
 }
 
 export function createMarketService(db) {

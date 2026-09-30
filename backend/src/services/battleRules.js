@@ -316,9 +316,10 @@ export function rollShiny(rng = randomInt, rolls = 1) {
   return false;
 }
 
-export function statsFor(species, level, shiny = false) {
+export function statsFor(species, level, shiny = false, ivs = null) {
+  const values = normalizeIvs(ivs);
   const stats = Object.fromEntries(Object.entries(species.atributosBase).map(([name, base]) => [name,
-    Math.floor(((2 * base + 15) * level) / 100) + (name === 'hp' ? level + 10 : 5),
+    Math.floor(((2 * base + values[name]) * level) / 100) + (name === 'hp' ? level + 10 : 5),
   ]));
   if (shiny) for (const stat of Object.keys(stats)) stats[stat] = Math.floor(stats[stat] * 1.2);
   if (species.gmax) stats.hp = Math.floor(stats.hp * 1.5);
@@ -364,9 +365,11 @@ export function damage(attacker, defender, move, rng = randomInt) {
   return { dano, acerto: true, efetividade: effect, critico: crit > 1 };
 }
 
-export function makeCombatant(speciesId, level, shiny, moves, id = null, apelido = null, megaForma = null, gmaxForma = null) {
+export function makeCombatant(speciesId, level, shiny, moves, id = null, apelido = null, megaForma = null, gmaxForma = null, ivs = rollIvs(randomInt)) {
   const species = getEspecie(speciesId);
   const form = formFor(species, megaForma, gmaxForma);
-  const stats = statsFor(form, level, shiny);
-  return { pokemonId: id, especieId: speciesId, megaForma, gmaxForma, nome: apelido || form.nomeExibicao, nivel: level, shiny, tipos: form.tipos, stats, hp: stats.hp, maxHp: stats.hp, ataques: moves.map((entry) => ({ ...entry })) };
+  ivs = normalizeIvs(ivs);
+  const stats = statsFor(form, level, shiny, ivs);
+  return { pokemonId: id, especieId: speciesId, megaForma, gmaxForma, ivs, qualidadeIvs: ivQuality(ivs), nome: apelido || form.nomeExibicao, nivel: level, shiny, tipos: form.tipos, stats, hp: stats.hp, maxHp: stats.hp, ataques: moves.map((entry) => ({ ...entry })) };
 }
+import { normalizeIvs, rollIvs, ivQuality } from './ivRules.js';

@@ -184,3 +184,19 @@ label > input, label > div { margin-top: 9px; }
 @media (max-width: 580px) {
   .starter-picture img { width: 100%; }
 }
+.iv-summary { padding: 12px; border-top: 1px solid var(--border, #344137); display: grid; gap: 9px; text-align: left; }
+.iv-summary > strong { font-size: 12px; }
+.iv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 14px; font-size: 12px; }
+.iv-grid span { display: flex; justify-content: space-between; gap: 6px; }
+.iv-total { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 9px; font-size: 13px; }
+.iv-stars { color: #d4b251; font-weight: 800; white-space: nowrap; font-size: 15px; }
+.iv-stars.iv-perfect { color: #e55c68; }
+.iv-summary small { font-size: 11px; }
+.iv-value-bonus { color: #82b986; }
+.iv-compact { margin: 0 10px; }
+.party-entry { border: 1px solid #344737; border-radius: 10px; overflow: hidden; background: #19251d; }
+.iv-training { margin: 14px 0 22px; padding: 15px; background: #1c2923; border-radius: 10px; }
+.iv-training p { font-size: 12px; margin: 8px 0; }
+.iv-training > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.iv-training button { font-size: 12px; }
+.battle-life > .iv-stars { display: inline-block; margin: 5px 0; }

@@ -11,7 +11,7 @@ const { version } = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 
 const tag = `v${version}`;
 const output = path.join(root, 'dist/releases', tag);
 const build = JSON.parse(fs.readFileSync(path.join(output, 'build-info.json'), 'utf8').replace(/^\uFEFF/, ''));
-const names = [`PokemonSimulator-${tag}-win-x64.zip`, `PokemonSimulator-${tag}-update-win-x64.zip`];
+const names = ['compact', 'complete', 'update'].map(kind => `PokemonSimulator-${tag}-${kind}-win-x64.zip`);
 const spritePack = JSON.parse(fs.readFileSync(path.join(root, 'backend/data/sprite-download.json'), 'utf8'));
 if (spritePack.tag === tag) names.push(spritePack.asset);
 const assets = names.flatMap(name => [name, `${name}.sha256`]);

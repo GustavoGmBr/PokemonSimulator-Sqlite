@@ -9,6 +9,8 @@ import { PokemonViewer, SpriteControls, VariantImage } from './PokemonViewer';
 import { MoveManager } from './MoveManager';
 import { useSession } from '../stores/session';
 import { useCatalogo } from '../lib/queries';
+import { IvSummary } from './IvSummary';
+import { IV_ITEMS, normalizeIvs } from '../lib/ivs';
 
 const versionNames = { 'firered-leafgreen': 'FireRed / LeafGreen', 'heartgold-soulsilver': 'HeartGold / SoulSilver', 'omega-ruby-alpha-sapphire': 'Omega Ruby / Alpha Sapphire', platinum: 'Platinum', 'black-white': 'Black / White', 'x-y': 'X / Y', 'ultra-sun-ultra-moon': 'Ultra Sun / Ultra Moon', 'sword-shield': 'Sword / Shield', 'scarlet-violet': 'Scarlet / Violet' };
 
@@ -70,6 +72,14 @@ function DetailBody({ species, owned, members, initialMode, initialShiny, allowE
       onEvolved?.(updated);
     } catch (error) { setEvolutionError(error.message); } finally { setEvolving(false); }
   }
+  async function useIv(itemId) {
+    setEvolving(true); setEvolutionError('');
+    try {
+      const updated = await api(`/jogador/pokemon/${member.id}/iv`, { method: 'POST', body: { itemId } });
+      await Promise.all(['colecao', 'inventario', 'sale-values'].map(key => client.invalidateQueries({ queryKey: [key] })));
+      onEvolved?.(updated);
+    } catch (error) { setEvolutionError(error.message); } finally { setEvolving(false); }
+  }
   return <>
     <div className="detail-overview"><div><PokemonViewer key={form.nome} species={form} initialMode={initialMode} initialShiny={member?.shiny ?? initialShiny} /><div className="detail-types">{form.tipos.map((type) => <TypeBadge key={type} type={type} size="large" />)}</div></div>
       <section className="detail-summary">
@@ -87,6 +97,7 @@ function DetailBody({ species, owned, members, initialMode, initialShiny, allowE
     </div>
     <div className="detail-tabs" role="group" aria-label="Seção de informações">{[['stats', 'Atributos'], ['moves', 'Ataques'], ...(allowEvolution && owned ? [['tm', 'TMs']] : []), ['evolution', 'Evolução'], ['forms', 'Galeria de formas']].map(([value, label]) => <button key={value} type="button" aria-pressed={tab === value} onClick={() => setTab(value)}>{label}</button>)}</div>
     <div className="detail-section">
+      {tab === 'stats' && member && <><IvSummary ivs={member.ivs} />{allowEvolution && owned && <div className="iv-training"><strong>Melhorar IVs · +1 por essência</strong><p>Compre na loja ou no cassino, ou ganhe em missões e torneios. O limite é 31 por atributo.</p><div>{IV_ITEMS.map(item => { const count = inventoryQuery.data?.find(entry => entry.itemId === item.nome)?.quantidade ?? 0; return <button className="item-buy" type="button" key={item.nome} disabled={evolving || count === 0 || normalizeIvs(member.ivs)[item.stat] >= 31} onClick={() => useIv(item.nome)}>{item.nomeExibicao} ×{count}{normalizeIvs(member.ivs)[item.stat] === 31 ? ' · Máximo' : ' · +1 IV'}</button>; })}</div></div>}</>}
       {tab === 'stats' && <><div className="detail-section-title"><h3>Atributos de combate</h3><span>BASE / {member ? 'ATUAL' : 'ESTIMATIVA'}</span></div><div className="stat-grid">{Object.entries(statNames).map(([key, label]) => <div className="stat-row" key={key}><span>{label}</span><div className="stat-track"><span style={{ width: `${Math.min(100, form.atributosBase[key] / 255 * 100)}%` }} /></div><small>{form.atributosBase[key]}</small><strong>{stats[key]}</strong></div>)}</div>{(!member || !member.atributos) && <p className="detail-note"><Info size={14} />Estimativa com IVs 15, EVs zero e natureza neutra. Não altera seu save.</p>}<div className="ability-row"><strong>Habilidades da espécie</strong>{species.habilidades.map((ability) => <span key={ability.nome}>{displayName(ability.nome)}{ability.oculta ? ' (oculta)' : ''}</span>)}</div></>}
       {tab === 'moves' && <>
         <><div className="detail-section-title"><h3>Ataques equipados</h3><span>ATÉ 4</span></div><div className="equipped-moves">{equipped.map((data) => <div className="equipped-move" key={data.golpe}><div><strong>{displayName(data.golpe)}</strong><TypeBadge type={data.tipo} /></div><small>{({ physical: 'Físico', special: 'Especial' })[data.categoria]} · Poder {data.poder} · Precisão {data.precisao == null ? '—' : `${data.precisao}%`}</small></div>)}</div></>

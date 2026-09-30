@@ -2,11 +2,12 @@ import { readFileSync } from 'node:fs';
 import { HttpError } from '../lib/errors.js';
 import { levelMovesFor, statsFor } from './battleRules.js';
 import { naturalMoves } from './moveRules.js';
+import { IV_ITEMS, perfectIvs } from './ivRules.js';
 
 let cached;
 export function getCatalogo() {
   if (!cached) {
-    try { cached = JSON.parse(readFileSync(new URL('../../data/catalogo.json', import.meta.url), 'utf8')); }
+    try { cached = JSON.parse(readFileSync(new URL('../../data/catalogo.json', import.meta.url), 'utf8')); cached.itens.push(...IV_ITEMS); }
     catch { throw new HttpError(503, 'Catalogo indisponivel. Execute npm run catalog:import no backend.'); }
   }
   return cached;
@@ -38,10 +39,11 @@ export function getDetalhesEspecie(id) {
 export function criarDadosInicial(especieId) {
   const especie = getEspecie(especieId);
   const nivel = 5;
-  const atributos = statsFor(especie, nivel);
+  const ivs = perfectIvs();
+  const atributos = statsFor(especie, nivel, false, ivs);
   const golpes = levelMovesFor(especie, nivel).map((move) => ({ nome: move.nome }));
   return {
     especieId, nivel, experiencia: especie.experienciaPorNivel.find((entry) => entry.nivel === nivel).experiencia,
-    hpAtual: atributos.hp, atributos, golpes, golpesDesbloqueados: naturalMoves(especie, nivel),
+    hpAtual: atributos.hp, atributos, ivs, golpes, golpesDesbloqueados: naturalMoves(especie, nivel),
   };
 }

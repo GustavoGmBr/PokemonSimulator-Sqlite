@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { HttpError } from '../lib/errors.js';
 import { REGIONS, regionUnlocked } from './battleRules.js';
+import { IV_ITEMS } from './ivRules.js';
 
 export const MISSION_DURATION_MS = 2 * 60 * 60 * 1000;
 export const missionPeriod = (now = Date.now()) => Math.floor(now / MISSION_DURATION_MS);
@@ -33,6 +34,7 @@ export function generateMissions(save, completed, period = missionPeriod()) {
     const goal = index + 1;
     missions.push({ indice: missions.length, tipo: 'vencer_torneio', torneioId: tournament, titulo: `Vença ${goal} vez${goal > 1 ? 'es' : ''} o torneio ${tournament.replaceAll('-', ' ')}`, alvo: goal, recompensa: { moedas: 500 + tiers.indexOf(tournament) * 300 + index * 400, itens: [{ itemId: 'exp-candy-m', quantidade: 1 + index }] } });
   }
+  for (const mission of missions) mission.recompensa.itens.push({ itemId: IV_ITEMS[(bytes[12] + mission.indice) % IV_ITEMS.length].nome, quantidade: 1 });
   return missions;
 }
 

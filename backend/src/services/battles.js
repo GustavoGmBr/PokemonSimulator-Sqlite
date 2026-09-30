@@ -1,3 +1,4 @@
+import { normalizeIvs } from './ivRules.js';
 import { randomInt } from 'node:crypto';
 import { HttpError } from '../lib/errors.js';
 import { getCatalogo, getEspecie } from './catalogo.js';
@@ -101,7 +102,7 @@ export function createBattleService(db) {
     if (state.resultado === 'captura') {
       const foe = state.oponente;
       state.xpGanho += Math.max(1, Math.floor((getEspecie(foe.especieId).experienciaBase ?? 50) * foe.nivel / 7));
-      await tx.pokemonCapturado.create({ data: { saveId: save.id, especieId: foe.especieId, nivel: foe.nivel, experiencia: getEspecie(foe.especieId).experienciaPorNivel.find((entry) => entry.nivel === foe.nivel).experiencia, hpAtual: foe.maxHp, shiny: foe.shiny, bolaCaptura: action.itemId, atributos: foe.stats, golpes: foe.ataques.map((move) => ({ nome: move.nome })), golpesDesbloqueados: naturalMoves(getEspecie(foe.especieId), foe.nivel) } });
+      await tx.pokemonCapturado.create({ data: { saveId: save.id, especieId: foe.especieId, nivel: foe.nivel, experiencia: getEspecie(foe.especieId).experienciaPorNivel.find((entry) => entry.nivel === foe.nivel).experiencia, hpAtual: foe.maxHp, shiny: foe.shiny, bolaCaptura: action.itemId, ivs: normalizeIvs(foe.ivs), atributos: foe.stats, golpes: foe.ataques.map((move) => ({ nome: move.nome })), golpesDesbloqueados: naturalMoves(getEspecie(foe.especieId), foe.nivel) } });
       await tx.especieRegistrada.upsert({ where: { saveId_especieId: { saveId: save.id, especieId: foe.especieId } }, create: { saveId: save.id, especieId: foe.especieId }, update: {} });
       await tx.batalhaEvento.create({ data: { saveId: save.id, tipo: 'capturar', especieId: foe.especieId, regiao: state.regiaoEncontro, shiny: foe.shiny, descricao: `${foe.nome}${foe.shiny ? ' shiny' : ''} capturado` } });
     }
@@ -119,7 +120,7 @@ export function createBattleService(db) {
       const maxXp = species.experienciaPorNivel.at(-1).experiencia;
       const experience = Math.min(maxXp, member.experiencia + earnedXp);
       const level = [...species.experienciaPorNivel].reverse().find((entry) => entry.experiencia <= experience)?.nivel ?? member.nivel;
-      const stats = statsFor(formFor(species, member.megaForma, member.gmaxForma), level, member.shiny);
+      const stats = statsFor(formFor(species, member.megaForma, member.gmaxForma), level, member.shiny, member.ivs);
       await tx.pokemonCapturado.update({ where: { id: member.id }, data: { experiencia: experience, nivel: level, atributos: stats, hpAtual: stats.hp, golpesDesbloqueados: [...new Set([...unlockedMoves(member, species), ...naturalMoves(species, level)])] } });
       if (state.jogador?.pokemonId === member.id) state.novoNivel = level;
     }
@@ -208,7 +209,7 @@ export function createBattleService(db) {
           for (const id of ids) {
             const member = members.find((entry) => entry.id === id);
             const level = state.limiteNivel ? Math.min(member.nivel, state.limiteNivel) : member.nivel;
-            combatants.push(makeCombatant(member.especieId, level, member.shiny, await playerMovesFor(tx, member), member.id, member.apelido, member.megaForma, member.gmaxForma));
+            combatants.push(makeCombatant(member.especieId, level, member.shiny, await playerMovesFor(tx, member), member.id, member.apelido, member.megaForma, member.gmaxForma, member.ivs));
           }
           state.jogador = combatants.shift();
           state.reservas = combatants;

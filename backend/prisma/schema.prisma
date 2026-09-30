@@ -57,6 +57,7 @@ model PokemonCapturado {
   megaForma     String?
   gmaxForma     String?
   atributos     Json?
+  ivs           Json     @default("{\"hp\":15,\"attack\":15,\"defense\":15,\"special-attack\":15,\"special-defense\":15,\"speed\":15}")
   golpes        Json?
   golpesDesbloqueados Json?
   posicaoTime   Int?

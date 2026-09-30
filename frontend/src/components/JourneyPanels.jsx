@@ -3,8 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Clock3, Gift, History, Sparkles, Swords, Trophy } from 'lucide-react';
 import { api } from '../lib/api';
 import { Failure, Loading } from './common';
+import { IV_ITEMS } from '../lib/ivs';
 
 const itemNames = { 'poke-ball': 'Poké Bola', 'great-ball': 'Super Bola', 'exp-candy-p': 'Doce EXP P', 'exp-candy-m': 'Doce EXP M' };
+for (const item of IV_ITEMS) itemNames[item.nome] = item.nomeExibicao;
 
 export function MissionsPanel({ saveId }) {
   const client = useQueryClient();

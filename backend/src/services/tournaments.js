@@ -1,6 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { getCatalogo } from './catalogo.js';
 import { wildWeight } from './battleRules.js';
+import { IV_ITEMS } from './ivRules.js';
 
 export const TOURNAMENTS = [
   { id: 'muito-facil', nome: 'Muito fácil', entrada: 150, moedas: 120, minimo: 3, maximo: 3, nivelMinimo: 2, nivelMaximo: 10, premios: [['poke-ball', 2, 4], ['great-ball', 0, 2], ['exp-candy-p', 1, 3], ['exp-candy-m', 0, 1]] },
@@ -12,6 +13,7 @@ export const TOURNAMENTS = [
 ];
 
 const TRAINER_NAMES = ['Treinador da Copa', 'Ace Trainer', 'Veterana', 'Domador', 'Colecionador', 'Especialista', 'Mestre Pokémon', 'Finalista'];
+for (const [index, rule] of TOURNAMENTS.entries()) rule.premiosIvs = index < 2 ? 1 : index < 4 ? 2 : 3;
 
 export function rollTournament(tier, rng = randomInt) {
   const rule = TOURNAMENTS.find((entry) => entry.id === tier);
@@ -31,5 +33,6 @@ export function rollTournament(tier, rng = randomInt) {
     return { nome: `${TRAINER_NAMES[round]} ${round + 1}`, pokemon: Array.from({ length: count }, () => ({ id: pool.splice(rng(pool.length), 1)[0], nivel: rng(rule.nivelMinimo, rule.nivelMaximo + 1) })) };
   });
   const itens = rule.premios.map(([itemId, minimo, maximo]) => ({ itemId, quantidade: rng(minimo, maximo + 1) })).filter((entry) => entry.quantidade > 0);
+  itens.push({ itemId: IV_ITEMS[rng(IV_ITEMS.length)].nome, quantidade: rule.premiosIvs });
   return { id: rule.id, nome: rule.nome, entrada: rule.entrada, recompensa: { moedas: rule.moedas, itens }, treinadores };
 }

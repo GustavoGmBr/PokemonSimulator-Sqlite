@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -58,13 +59,35 @@ internal static class UpdateService
             if (actual != checksum) throw new InvalidDataException("O download não passou na verificação de integridade. A versão instalada será mantida.");
             if (cancelled()) return false;
             string helper = Path.Combine(temporary, "PokemonSimulatorUpdater.exe");
-            File.Copy(Path.Combine(root, "PokemonSimulatorUpdater.exe"), helper);
-            report("Aplicando " + tag + ". Seus saves serão preservados…");
+            // Use the installer shipped with the verified release, including its fixes.
+            using (ZipArchive zip = ZipFile.OpenRead(archive))
+            {
+                ZipArchiveEntry entry = zip.GetEntry("PokemonSimulatorUpdater.exe");
+                if (entry == null || entry.Length < 1024 || entry.Length > 2 * 1024 * 1024) throw new InvalidDataException("Instalador ausente ou inválido no pacote.");
+                entry.ExtractToFile(helper);
+            }
+            string ready = Path.Combine(temporary, "installer.ready");
+            report("Download concluído. Preparando a instalação de " + tag + "…");
             ProcessStartInfo start = new ProcessStartInfo(helper);
             start.UseShellExecute = false;
             start.CreateNoWindow = true;
-            start.Arguments = "--apply " + Quote(root) + " " + Quote(archive) + " " + checksum + " " + latest + " " + Process.GetCurrentProcess().Id;
-            Process.Start(start);
+            start.WorkingDirectory = temporary;
+            start.Arguments = "--apply " + Quote(root) + " " + Quote(archive) + " " + checksum + " " + latest + " " + Process.GetCurrentProcess().Id + " --ready-file " + Quote(ready);
+            using (Process installer = Process.Start(start))
+            {
+                DateTime deadline = DateTime.UtcNow.AddSeconds(20);
+                while (!File.Exists(ready))
+                {
+                    if (installer.HasExited) throw new IOException("O instalador não iniciou. Consulte launcher/update.log.");
+                    if (cancelled() || DateTime.UtcNow > deadline)
+                    {
+                        try { installer.Kill(); } catch (InvalidOperationException) { }
+                        throw new IOException("O instalador não confirmou a inicialização. A versão instalada foi mantida.");
+                    }
+                    System.Threading.Thread.Sleep(100);
+                }
+            }
+            report("Instalador iniciado. Aguarde a conclusão na janela de atualização; o jogo abrirá automaticamente.");
             return true;
         }
         catch (Exception error)
@@ -74,7 +97,23 @@ internal static class UpdateService
         }
     }
 
-    private static string Quote(string value) { return "\"" + value + "\""; }
+    internal static string Quote(string value)
+    {
+        // Windows doubles trailing backslashes before a closing quote.
+        // BaseDirectory ends in a slash; quoting it verbatim corrupts --apply args.
+        StringBuilder quoted = new StringBuilder("\"");
+        int slashes = 0;
+        foreach (char character in value)
+        {
+            if (character == '\\') { slashes++; continue; }
+            if (character == '"') { quoted.Append('\\', slashes * 2 + 1); quoted.Append('"'); }
+            else { quoted.Append('\\', slashes); quoted.Append(character); }
+            slashes = 0;
+        }
+        quoted.Append('\\', slashes * 2);
+        quoted.Append('"');
+        return quoted.ToString();
+    }
 
     private static HttpWebRequest Request(string url, int timeout)
     {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
@@ -14,34 +15,72 @@ internal static class Updater
     private static void Main(string[] args)
     {
         if (args.Length < 6 || args[0] != "--apply") { Environment.ExitCode = 1; return; }
+        if (Array.IndexOf(args, "--no-restart") >= 0) { Apply(args, null); return; }
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+        Application.Run(new UpdateForm(args));
+    }
+
+    internal static bool Apply(string[] args, Action<string, int> report)
+    {
         string root = Path.GetFullPath(args[1]);
-        bool restart = Array.IndexOf(args, "--no-restart") < 0;
         try
         {
+            if (report != null) report("Aguardando o inicializador encerrar…", 0);
             int parent = int.Parse(args[5]);
             if (parent > 0)
             {
                 try { using (Process launcher = Process.GetProcessById(parent)) if (!launcher.WaitForExit(30000)) throw new IOException("O inicializador ainda está aberto."); }
                 catch (ArgumentException) { }
             }
-            Install(root, Path.GetFullPath(args[2]), args[3], args[4]);
+            // Block a second launcher while files are being replaced.
+            string identity;
+            using (SHA256 hash = SHA256.Create())
+                identity = BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(root.TrimEnd('\\', '/') .ToLowerInvariant() + Path.DirectorySeparatorChar))).Replace("-", "");
+            using (System.Threading.Mutex mutex = new System.Threading.Mutex(false, "Local\\PokemonSimulator-" + identity))
+            {
+                bool acquired;
+                try { acquired = mutex.WaitOne(30000); }
+                catch (System.Threading.AbandonedMutexException) { acquired = true; }
+                if (!acquired) throw new IOException("Outra instância desta pasta está aberta. Feche o jogo e tente novamente.");
+                try { Install(root, Path.GetFullPath(args[2]), args[3], args[4], report); }
+                finally { mutex.ReleaseMutex(); }
+            }
             Log(root, "Atualização " + args[4] + " concluída. Saves e configuração local preservados.");
+            return true;
         }
         catch (Exception error)
         {
             Environment.ExitCode = 1;
-            Log(root, "Falha na atualização: " + error.Message);
-            if (restart) MessageBox.Show("A atualização não foi aplicada. A versão anterior será iniciada.\n" + error.Message, "Pokémon Simulator");
-        }
-        if (restart)
-        {
-            try { Process.Start(new ProcessStartInfo(Path.Combine(root, "PokemonSimulator.exe"), "--skip-update") { UseShellExecute = true, WorkingDirectory = root }); }
-            catch (Exception error) { Log(root, "Não foi possível reiniciar: " + error.Message); Environment.ExitCode = 1; }
+            Log(root, "Falha na atualização: " + error);
+            if (report != null) report("A atualização não foi aplicada. " + error.Message + "\nDetalhes em launcher/update.log. Você pode iniciar a versão anterior pelo botão abaixo.", 0);
+            return false;
         }
     }
 
-    internal static void Install(string root, string archive, string checksum, string version)
+    internal static void Restart(string root)
     {
+        Process child = Process.Start(new ProcessStartInfo(Path.Combine(root, "PokemonSimulator.exe"), "--skip-update") { UseShellExecute = true, WorkingDirectory = root });
+        Log(root, "Reiniciando o jogo (PID " + child.Id + ").");
+    }
+
+    internal static void SignalReady(string[] args)
+    {
+        string root = Path.GetFullPath(args[1]);
+        if (!Directory.Exists(root) || !File.Exists(args[2])) throw new IOException("Pasta do jogo ou pacote de atualização ausente.");
+        string logDirectory = Path.Combine(root, "launcher");
+        Directory.CreateDirectory(logDirectory);
+        string probe = Path.Combine(logDirectory, Guid.NewGuid().ToString("N") + ".tmp");
+        File.WriteAllText(probe, "ready");
+        File.Delete(probe);
+        int ready = Array.IndexOf(args, "--ready-file");
+        if (ready >= 0 && ready + 1 < args.Length) File.WriteAllText(args[ready + 1], "ready");
+        Log(root, "Instalador iniciado para " + args[4] + ".");
+    }
+
+    internal static void Install(string root, string archive, string checksum, string version, Action<string, int> report = null)
+    {
+        if (report != null) report("Verificando a integridade do pacote…", 0);
         string actual;
         using (SHA256 hash = SHA256.Create())
         using (FileStream stream = File.OpenRead(archive)) actual = BitConverter.ToString(hash.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
@@ -54,6 +93,7 @@ internal static class Updater
         long size = 0;
         using (ZipArchive zip = ZipFile.OpenRead(archive))
         {
+            int index = 0;
             foreach (ZipArchiveEntry entry in zip.Entries)
             {
                 string relative = entry.FullName.Replace('\\', '/');
@@ -64,6 +104,7 @@ internal static class Updater
                 if (size > 4L * 1024 * 1024 * 1024) throw new InvalidDataException("Pacote descompactado grande demais.");
                 Directory.CreateDirectory(Path.GetDirectoryName(target));
                 entry.ExtractToFile(target);
+                if (report != null && ++index % 100 == 0) report("Descompactando os arquivos…", index * 60 / zip.Entries.Count);
             }
         }
         Dictionary<string, object> manifest = new JavaScriptSerializer { MaxJsonLength = 16 * 1024 * 1024 }.Deserialize<Dictionary<string, object>>(File.ReadAllText(Path.Combine(stage, "distribution.json")));
@@ -77,6 +118,11 @@ internal static class Updater
         }
         files.Add("distribution.json");
         if (extracted.Count != files.Count) throw new InvalidDataException("O conteúdo do pacote difere do manifesto.");
+        if (extracted.Contains("package.json"))
+        {
+            Dictionary<string, object> package = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(File.ReadAllText(Path.Combine(stage, "package.json")));
+            if ((string)package["version"] != version) throw new InvalidDataException("A versão do jogo difere do manifesto.");
+        }
         List<string> attempted = new List<string>();
         HashSet<string> originals = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         try
@@ -94,7 +140,9 @@ internal static class Updater
                 attempted.Add(relative);
                 Directory.CreateDirectory(Path.GetDirectoryName(target));
                 File.Copy(Within(stage, relative), target, true);
+                if (report != null && attempted.Count % 100 == 0) report("Instalando a versão " + version + "…", 60 + attempted.Count * 39 / files.Count);
             }
+            if (report != null) report("Atualização " + version + " instalada. Iniciando o jogo…", 100);
         }
         catch
         {
@@ -141,10 +189,74 @@ internal static class Updater
         return false;
     }
 
-    private static void Log(string root, string message)
+    internal static void Log(string root, string message)
     {
         try { string directory = Path.Combine(root, "launcher"); Directory.CreateDirectory(directory); File.AppendAllText(Path.Combine(directory, "update.log"), DateTime.Now.ToString("s") + " " + message + Environment.NewLine, Encoding.UTF8); }
         catch (IOException) { }
         catch (UnauthorizedAccessException) { }
+    }
+}
+
+internal sealed class UpdateForm : Form
+{
+    private readonly Label status = new Label();
+    private readonly ProgressBar progress = new ProgressBar();
+    private readonly Button launch = new Button();
+    private bool finished;
+    private readonly string[] args;
+
+    internal UpdateForm(string[] args)
+    {
+        this.args = args;
+        Text = "Pokémon Simulator — Atualização " + args[4];
+        ClientSize = new Size(580, 235);
+        StartPosition = FormStartPosition.CenterScreen;
+        FormBorderStyle = FormBorderStyle.FixedSingle;
+        MaximizeBox = false;
+        Font = new Font("Segoe UI", 10F);
+        status.SetBounds(24, 24, 532, 110);
+        status.Text = "Preparando a instalação. Seus saves e sprites serão preservados…";
+        progress.SetBounds(24, 142, 532, 24);
+        launch.SetBounds(316, 183, 240, 32);
+        launch.Text = "Iniciar a versão instalada";
+        launch.Visible = false;
+        launch.Click += delegate { Restart(); };
+        Controls.AddRange(new Control[] { status, progress, launch });
+        FormClosing += delegate(object sender, FormClosingEventArgs e) { if (!finished) e.Cancel = true; };
+        Shown += delegate
+        {
+            try { Updater.SignalReady(args); }
+            catch (Exception error)
+            {
+                Updater.Log(args[1], "Instalador não pôde iniciar: " + error);
+                finished = true; Environment.ExitCode = 1; Close(); return;
+            }
+            System.Threading.ThreadPool.QueueUserWorkItem(delegate
+            {
+                bool success = Updater.Apply(args, Report);
+                BeginInvoke((Action)delegate
+                {
+                    finished = true;
+                    if (success) Restart();
+                    else launch.Visible = true;
+                });
+            });
+        };
+    }
+
+    private void Report(string message, int percent)
+    {
+        BeginInvoke((Action)delegate { status.Text = message; progress.Value = Math.Max(0, Math.Min(100, percent)); });
+    }
+
+    private void Restart()
+    {
+        try { Updater.Restart(Path.GetFullPath(args[1])); Close(); }
+        catch (Exception error)
+        {
+            Updater.Log(args[1], "Não foi possível reiniciar: " + error);
+            status.Text = "A instalação terminou, mas o jogo não pôde abrir: " + error.Message;
+            launch.Visible = true;
+        }
     }
 }

@@ -2,15 +2,15 @@
 
 Remake single-player em JavaScript com ES Modules. Frontend React 18 em `frontend/` e API Express/Prisma/SQLite em `backend/`. Os saves ficam em `backend/pokemon.db`; não é preciso criar conta nem conectar à internet para jogar.
 
-Versão pública atual: **v0.2.2**. O repositório inclui o código-fonte e o inicializador Windows `PokemonSimulator.exe`. As sprites são baixadas automaticamente na primeira execução e depois são servidas localmente, sem consultar a PokéAPI durante as partidas. Este é um projeto de fã, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Os dados e sprites Pokémon pertencem aos respectivos titulares; os dados de referência foram obtidos via [PokéAPI](https://pokeapi.co/).
+Versão pública atual: **v0.2.3**. O repositório inclui o código-fonte e o inicializador Windows `PokemonSimulator.exe`. As sprites são baixadas automaticamente na primeira execução e depois são servidas localmente, sem consultar a PokéAPI durante as partidas. Este é um projeto de fã, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Os dados e sprites Pokémon pertencem aos respectivos titulares; os dados de referência foram obtidos via [PokéAPI](https://pokeapi.co/).
 
 Os saves são locais e podem ser criados, escolhidos e excluídos na tela inicial. A configuração local fica em `backend/.env`, ignorado pelo Git.
 
 ## Executar localmente
 
-Para jogar no Windows x64, baixe **PokemonSimulator-v0.2.2-win-x64.zip** na [release](https://github.com/GustavoGmBr/PokemonSimulator-Sqlite/releases/latest), extraia todos os arquivos e abra **PokemonSimulator.exe**. O runtime já está incluído: não é necessário instalar Node.js nem abrir CMD. Na primeira execução, conecte-se à internet para baixar o pacote de sprites (aproximadamente 938 MB). O progresso aparece no inicializador, que verifica a integridade do download antes de instalar as imagens. Depois disso, o jogo funciona offline. O banco SQLite é criado automaticamente.
+Para jogar no Windows x64, escolha uma edição na [release](https://github.com/GustavoGmBr/PokemonSimulator-Sqlite/releases/latest): **PokemonSimulator-v0.2.3-compact-win-x64.zip** (sem sprites; baixa as imagens no primeiro início) ou **PokemonSimulator-v0.2.3-complete-win-x64.zip** (inclui todas as sprites; funciona offline desde a primeira abertura). Extraia todos os arquivos e abra **PokemonSimulator.exe**. O runtime já está incluído: não é necessário instalar Node.js nem abrir CMD. Na edição compacta, conecte-se à internet na primeira execução para baixar o pacote de sprites (aproximadamente 938 MB). O progresso aparece no inicializador, que verifica a integridade do download antes de instalar as imagens. Depois disso, o jogo funciona offline. O banco SQLite é criado automaticamente.
 
-Na abertura, o inicializador consulta a última release e instala atualizações antes de executar o jogo. Os downloads são verificados por SHA-256, com recuperação dos arquivos anteriores em caso de falha. Os saves e o `.env` são preservados. Sem conexão, a versão instalada continua disponível quando as sprites já foram preparadas. Imagens existentes e íntegras são aproveitadas; imagens ausentes são recuperadas automaticamente quando houver internet.
+Na abertura, o inicializador consulta a última release e instala atualizações antes de executar o jogo. Os downloads são verificados por SHA-256. Após o download, uma janela própria confirma a instalação antes de reiniciar, com recuperação dos arquivos anteriores em caso de falha. Os saves e o `.env` são preservados. Sem conexão, a versão instalada continua disponível quando as sprites já foram preparadas. Imagens existentes e íntegras são aproveitadas; imagens ausentes são recuperadas automaticamente quando houver internet.
 
 Para trabalhar no código-fonte, instale Node.js 22.12+ e clone o repositório:
 
@@ -29,9 +29,11 @@ Os detalhes da última execução pelo Windows ficam em `launcher/latest.log`. P
 
 Os detalhes da instalação de atualizações ficam em `launcher/update.log`. Use `--skip-update` para iniciar sem consultar o GitHub naquela execução. Não é necessário fazer login no GitHub para jogar ou atualizar.
 
+Se uma versão anterior ficou presa no ciclo de download, feche o jogo e extraia o ZIP compacto desta versão sobre a pasta instalada, substituindo os arquivos. Faça uma cópia de segurança de `backend/pokemon.db` antes; não apague a pasta. O ZIP não contém seu banco pessoal nem `.env`. O novo inicializador corrige os argumentos Windows da passagem para o instalador.
+
 ### Publicar uma nova versão
 
-Atualize a versão em `package.json` e as notas em `RELEASE_NOTES.md`. Execute `npm run release:build` no Windows para gerar os pacotes do jogo e da atualização com seus checksums em `dist/releases/vVERSAO`. As sprites são compactadas em um `.tar.gz` separado; se não mudarem, o manifesto continua usando o pacote já publicado. O banco inicial é gerado sem dados pessoais. Os executáveis compilados para esta versão também entram no clone. Em seguida, com o Git autenticado no GitHub, execute `npm run release:publish`. A release fica em rascunho até todos os arquivos serem enviados e verificados; os jogadores recebem a atualização na próxima abertura. O script publica os executáveis pequenos no Git, mas não publica saves, `.env`, credenciais, `node_modules` ou sprites no repositório.
+Atualize a versão em `package.json` e as notas em `RELEASE_NOTES.md`. Execute `npm run release:build` no Windows para gerar as edições compacta, completa e o pacote de atualização com seus checksums em `dist/releases/vVERSAO`. As sprites são compactadas em um `.tar.gz` separado; se não mudarem, o manifesto continua usando o pacote já publicado. O banco inicial é gerado sem dados pessoais. Os executáveis compilados para esta versão também entram no clone. Em seguida, com o Git autenticado no GitHub, execute `npm run release:publish`. A release fica em rascunho até todos os arquivos serem enviados e verificados; os jogadores recebem a atualização na próxima abertura. O script publica os executáveis pequenos no Git, mas não publica saves, `.env`, credenciais, `node_modules` ou sprites no repositório.
 
 ### Início manual para desenvolvimento
 
@@ -57,6 +59,20 @@ npm run dev
 ```
 
 Antes de iniciar manualmente, execute `npm run sprites:download` na raiz. Abra http://127.0.0.1:35185/saves. Se a API usar uma porta diferente de 34435, configure `API_PROXY_TARGET` em `frontend/.env`. Para selecionar portas livres automaticamente e evitar configurações antigas, prefira o inicializador.
+
+## IVs
+
+Cada Pokémon tem seis IVs de 0 a 31: HP, Ataque, Defesa, Ataque Especial, Defesa Especial e Velocidade (total máximo 186). Os IVs influenciam os atributos e são preservados ao capturar, evoluir, transformar e subir de nível. Iniciais recebem 31 em tudo; Pokémon já capturados em saves anteriores recebem 15 por atributo, mantendo o cálculo antigo. O inicial antigo, quando ainda identificável como o primeiro exemplar sem bola de captura, também é promovido a perfeito.
+
+| Estrelas | Soma dos IVs | Qualidade | Bônus de valor |
+| --- | --- | --- | --- |
+| 0☆ | 0–90 | Decente / Ruim | — |
+| 1★ | 91–120 | Acima da média | — |
+| 2★★ | 121–150 | Muito bom | — |
+| 3★★★ | 151–185 | Fantástico / Excelente | +50% |
+| 4★★★★ 🔴 | 186 | Potencial Perfeito | +100% |
+
+A coleção e os detalhes mostram os seis valores, total, porcentagem e estrelas; encontros mostram as estrelas. Filtre a coleção por estrelas e intervalo de porcentagem. As seis **Essências de IV** aumentam +1 no atributo correspondente (limite 31), custam 5.000 ₽ ou 1.000 fichas cada e são obtidas em missões e torneios. Use na aba Atributos dos detalhes do Pokémon, fora de batalha. Um IV já máximo não consome o item.
 
 ## Disponível
 
