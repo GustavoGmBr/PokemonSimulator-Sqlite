@@ -36,15 +36,15 @@ test('oito linhas horizontais, verticais e diagonais são avaliadas', () => {
   assert.equal(result.premio, 8 * 50 * 10);
 });
 
-test('o símbolo vazio tem peso de 35% e a tabela de prêmios soma 100%', () => {
+test('o símbolo vazio tem peso de 25% e a tabela de prêmios soma 100%', () => {
   assert.deepEqual(SLOT_SYMBOLS.filter((symbol) => symbol !== 'blank').sort(), Object.keys(SLOT_MULTIPLIERS).sort());
   assert.equal(SLOT_SYMBOLS.includes('ditto'), true);
   assert.equal(SLOT_SYMBOLS.includes('magikarp'), false);
   assert.equal(SLOT_SYMBOLS.includes('bar'), false);
   assert.equal(SLOT_WEIGHTS.length, SLOT_SYMBOLS.length);
   assert.equal(SLOT_WEIGHTS.reduce((sum, weight) => sum + weight, 0), 100);
-  assert.equal(SLOT_WEIGHTS[SLOT_SYMBOLS.indexOf('blank')], 35);
-  assert.equal(Array.from({length:100},(_,ticket)=>SLOT_SYMBOLS[weightedIndex(SLOT_WEIGHTS,()=>ticket)]).filter(symbol=>symbol==='blank').length,35);
+  assert.equal(SLOT_WEIGHTS[SLOT_SYMBOLS.indexOf('blank')], 25);
+  assert.equal(Array.from({length:100},(_,ticket)=>SLOT_SYMBOLS[weightedIndex(SLOT_WEIGHTS,()=>ticket)]).filter(symbol=>symbol==='blank').length,25);
   for (const [symbol, multiplier] of Object.entries(SLOT_MULTIPLIERS)) {
     const result = slotPayout(Array(9).fill(symbol), 100);
     assert.equal(result.linhas[0].multiplicador, multiplier, symbol);

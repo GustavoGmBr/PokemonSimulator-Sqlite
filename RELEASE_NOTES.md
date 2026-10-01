@@ -1,7 +1,7 @@
-## Pokémon Simulator SQLite v0.5.7
+## Pokémon Simulator SQLite v0.5.8
 
-- A chance de cada espaço vazio no caça-níquel foi reduzida de 46% para 35%.
-- O peso restante foi redistribuído entre os demais símbolos; os símbolos lendários mantêm suas chances anteriores.
+- A chance de cada espaço vazio no caça-níquel foi reduzida de 35% para 25%.
+- Símbolos comuns e Ditto ficaram mais frequentes; os símbolos lendários mantêm suas chances anteriores.
 
 ## Downloads para Windows x64
 
