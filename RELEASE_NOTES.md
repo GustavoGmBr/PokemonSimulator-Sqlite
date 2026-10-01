@@ -1,3 +1,8 @@
+## Pokémon Simulator SQLite v0.5.15
+
+- Espaços vazios retornaram ao caça-níquel, com 15% de chance por posição. Eles ficam visualmente vazios, sem pontos, e não completam trincas.
+- Os símbolos atuais dividem os outros 85%, preservando suas chances relativas e os multiplicadores existentes. Duas figuras Ditto continuam devolvendo a aposta da linha e três pagam 4×.
+
 ## Pokémon Simulator SQLite v0.5.14
 
 - Corrigida a prioridade do CSS que mantinha os filtros da batalha e dos encontros selvagens em uma única linha no jogo instalado.
