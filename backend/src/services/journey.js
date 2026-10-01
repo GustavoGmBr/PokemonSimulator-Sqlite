@@ -34,7 +34,10 @@ export function generateMissions(save, completed, period = missionPeriod()) {
     const goal = index + 1;
     missions.push({ indice: missions.length, tipo: 'vencer_torneio', torneioId: tournament, titulo: `Vença ${goal} vez${goal > 1 ? 'es' : ''} o torneio ${tournament.replaceAll('-', ' ')}`, alvo: goal, recompensa: { moedas: 500 + tiers.indexOf(tournament) * 300 + index * 400, itens: [{ itemId: 'exp-candy-m', quantidade: 1 + index }] } });
   }
-  for (const mission of missions) mission.recompensa.itens.push({ itemId: IV_ITEMS[(bytes[12] + mission.indice) % IV_ITEMS.length].nome, quantidade: 1 });
+  for (const mission of missions) {
+    mission.recompensa.fichas = 10 + mission.indice * 5;
+    mission.recompensa.itens.push({ itemId: IV_ITEMS[(bytes[12] + mission.indice) % IV_ITEMS.length].nome, quantidade: 1 });
+  }
   return missions;
 }
 
@@ -78,7 +81,7 @@ export function createJourneyService(db) {
           const progress = mission.tipo === 'capturar' ? new Set((await tx.batalhaEvento.findMany({ where: eventWhere(current.save.id, mission, current.startedAt), select: { especieId: true } })).map((event) => event.especieId)).size : await tx.batalhaEvento.count({ where: eventWhere(current.save.id, mission, current.startedAt) });
           if (progress < mission.alvo) throw new HttpError(409, 'Missão ainda não concluída.');
           await tx.missaoResgatada.create({ data: { saveId: current.save.id, periodo: period, indice: index } });
-          await tx.save.update({ where: { id: current.save.id }, data: { moedas: { increment: mission.recompensa.moedas } } });
+          await tx.save.update({ where: { id: current.save.id }, data: { moedas: { increment: mission.recompensa.moedas }, fichas: { increment: mission.recompensa.fichas } } });
           for (const item of mission.recompensa.itens) await tx.itemInventario.upsert({ where: { saveId_itemId: { saveId: current.save.id, itemId: item.itemId } }, create: { saveId: current.save.id, ...item }, update: { quantidade: { increment: item.quantidade } } });
           return { recompensa: mission.recompensa };
         }, { isolationLevel: 'Serializable' });

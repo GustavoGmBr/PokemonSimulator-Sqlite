@@ -119,10 +119,12 @@ test('recompensa de missão entrega essência uma única vez', async () => {
   const mission = list.missoes[0];
   const essence = mission.recompensa.itens.find(item => item.itemId.startsWith('iv-'));
   const before = (await db.itemInventario.findUnique({ where: { saveId_itemId: { saveId: save.id, itemId: essence.itemId } } }))?.quantidade ?? 0;
+  const beforeTokens = (await db.save.findUnique({ where: { id: save.id } })).fichas;
   await db.batalhaEvento.createMany({ data: Array.from({ length: mission.alvo }, (_, index) => ({ saveId: save.id, tipo: 'capturar', especieId: index + 1, regiao: mission.regiao, descricao: 'Missão IV QA' })) });
   await request(app).post('/api/jogador/missoes/0/resgatar').set(headers()).send({ periodo: list.periodo }).expect(200);
   await request(app).post('/api/jogador/missoes/0/resgatar').set(headers()).send({ periodo: list.periodo }).expect(409);
   assert.equal((await db.itemInventario.findUnique({ where: { saveId_itemId: { saveId: save.id, itemId: essence.itemId } } })).quantidade, before + 1);
+  assert.equal((await db.save.findUnique({ where: { id: save.id } })).fichas, beforeTokens + mission.recompensa.fichas);
 });
 
 test('evolução e doces conservam IVs e os recalculam nos atributos', async () => {

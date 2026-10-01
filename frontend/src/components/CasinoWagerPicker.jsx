@@ -23,7 +23,7 @@ export function PokemonWagerPicker({ members, market, catalog, selectedId, onSel
   const selected = members.find((member) => member.id === selectedId);
   return <div className="casino-pokemon-wager">
     <h3>Apostar um Pokémon da coleção</h3>
-    <p>O Pokémon sai da coleção ao girar, mesmo se você perder. Favoritos são protegidos contra apostas. Em caso de acerto, você recebe o valor multiplicado pelo palpite em Pokédólares e também em fichas (5 ₽ equivalem a 1 ficha).</p>
+    <p>O Pokémon sai da coleção quando a rodada começa, mesmo se você perder. Favoritos são protegidos. Em caso de acerto, você recebe o valor multiplicado pelo resultado em Pokédólares e também em fichas (5 ₽ equivalem a 1 ficha). Se apostar um Pokémon, pode jogar sem fichas.</p>
     <div className="casino-wager-filters">
       <label>Buscar por nome ou Nº Dex<input type="search" value={search} onChange={(event) => { setSearch(event.target.value); setVisibleCount(48); }} placeholder="Nome ou número" /></label>
       <NumberInput label="Valor mínimo (₽)" value={minValue} onChange={(value) => { setMinValue(value); setVisibleCount(48); }} min={0} />
@@ -38,7 +38,7 @@ export function PokemonWagerPicker({ members, market, catalog, selectedId, onSel
     })}</div>
     {!filtered.length && <p>Nenhum Pokémon corresponde aos filtros.</p>}
     {visibleCount < filtered.length && <button type="button" className="casino-more" onClick={() => setVisibleCount((count) => count + 48)}>Mostrar mais Pokémon</button>}
-    {selected && !selected.favorito && <p className="casino-selected-wager">Selecionado: {selected.apelido || ownedForm(speciesById.get(selected.especieId), selected).nomeExibicao} · valor base {money(market.get(selected.id))} ₽ · palpite: {betLabel(selection)}</p>}
+    {selected && !selected.favorito && <p className="casino-selected-wager">Selecionado: {selected.apelido || ownedForm(speciesById.get(selected.especieId), selected).nomeExibicao} · valor base {money(market.get(selected.id))} ₽{selection ? ` · palpite: ${betLabel(selection)}` : ''}</p>}
   </div>;
 }
 

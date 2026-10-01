@@ -9,7 +9,9 @@ import { generateMissions, missionPeriod } from '../src/services/journey.js';
 
 test('missões são estáveis no período de duas horas e mudam no próximo', () => {
   const save = { id: 'fixed-save' };
-  assert.deepEqual(generateMissions(save, [], 100), generateMissions(save, [], 100));
+  const missions = generateMissions(save, [], 100);
+  assert.deepEqual(missions, generateMissions(save, [], 100));
+  assert.ok(missions.every((mission) => Number.isInteger(mission.recompensa.fichas) && mission.recompensa.fichas > 0));
   assert.notDeepEqual(generateMissions(save, [], 100), generateMissions(save, [], 101));
   assert.equal(missionPeriod(2 * 60 * 60 * 1000 - 1), 0);
   assert.equal(missionPeriod(2 * 60 * 60 * 1000), 1);
@@ -52,6 +54,7 @@ test('MySQL: vende um ou vários, preserva o último, contabiliza missões e reg
     assert.equal((await request(app).get('/api/jogador/missoes').set(auth).expect(200)).body.data.missoes[capture.indice].progresso, capture.alvo);
     const claimed = (await request(app).post(`/api/jogador/missoes/${capture.indice}/resgatar`).set(auth).send({ periodo: missions.periodo }).expect(200)).body.data;
     assert.deepEqual(claimed.recompensa, capture.recompensa);
+    assert.equal(claimed.recompensa.fichas, capture.recompensa.fichas);
     await request(app).post(`/api/jogador/missoes/${capture.indice}/resgatar`).set(auth).send({ periodo: missions.periodo }).expect(409);
     assert.equal((await db.save.findUnique({ where: { id: save.id } })).moedas, capture.recompensa.moedas + 300);
     const history = (await request(app).get('/api/jogador/historico').set(auth).expect(200)).body.data;

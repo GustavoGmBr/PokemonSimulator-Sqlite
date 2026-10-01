@@ -1,10 +1,9 @@
-## Pokémon Simulator SQLite v0.5.3
+## Pokémon Simulator SQLite v0.5.4
 
-- O caça-níqueis agora tem oito linhas ativas: três horizontais, três verticais e duas diagonais. Trincas verticais também pagam.
-- Tabela de prêmios atualizada: Poké Bola 0,5×, Grande Bola 1,5×, Ultra Bola 3×, Pikachu 5×, iniciais 10× cada, aves lendárias 20× cada, Mewtwo 30×, Mew 50× e Master Bola 100×.
-- Moltres, Zapdos e Articuno aparecem em símbolos separados. A descrição dos ganhos foi organizada por símbolo e multiplicador, e os pontos foram removidos dos espaços vazios durante a rolagem.
-- É possível jogar nos jogos do cassino apostando somente um Pokémon, sem fichas. Quando houver aposta em fichas, os ganhos continuam sendo somados ao prêmio do Pokémon.
-- Encontros selvagens explicam as estrelas de IV. Pokémon com 0 estrelas não exibem o indicador.
+- As missões agora também entregam fichas de cassino, além de Pokédólares e itens.
+- Ditto voltou ao caça-níquel como coringa: completa uma trinca ao acompanhar dois símbolos iguais; três Ditto pagam 5×.
+- A aposta de Pokémon usa o seletor visual com busca, filtros de valor, ordenação e proteção de favoritos em todos os jogos, seguindo o padrão da roleta.
+- Os resultados de rodadas e compras do Pokécassino agora aparecem em uma janela popup com prêmios, apostas e saldo atualizado.
 
 ## Downloads para Windows x64
 

@@ -4,12 +4,12 @@ import { PokemonWagerPicker } from './CasinoWagerPicker';
 import { CasinoWheel, segmentAngles, winningRotation } from './CasinoWheel';
 import { BetInput, BetList, FlipCard, NumberInput, PokemonToken, RoundResult, factor, money, pause, pokemonNames, pokemonStake, roundToken, validBet } from './casinoShared';
 
-const SYMBOLS=['mew','mewtwo','master-ball','articuno','zapdos','moltres','pikachu','charmander','bulbasaur','squirtle','ultra-ball','great-ball','poke-ball','blank'];
+const SYMBOLS=['mew','mewtwo','master-ball','articuno','zapdos','moltres','pikachu','charmander','bulbasaur','squirtle','ultra-ball','great-ball','poke-ball','ditto','blank'];
 const lineNames=['horizontal superior','horizontal central','horizontal inferior','vertical esquerda','vertical central','vertical direita','diagonal ↘','diagonal ↗'];
 function SlotSymbol({ name }) {
   const items = ['poke-ball','great-ball','ultra-ball','master-ball'];
   if(items.includes(name)) return <span className={`slot-token slot-item slot-${name}`}><img src={assetUrl(`/assets/items/${name}.png`)} alt="" /></span>;
-  const names = { pikachu:'Pikachu',charmander:'Charmander',bulbasaur:'Bulbasaur',squirtle:'Squirtle',mew:'Mew',mewtwo:'Mewtwo',articuno:'Articuno',zapdos:'Zapdos',moltres:'Moltres' };
+  const names = { pikachu:'Pikachu',charmander:'Charmander',bulbasaur:'Bulbasaur',squirtle:'Squirtle',mew:'Mew',mewtwo:'Mewtwo',articuno:'Articuno',zapdos:'Zapdos',moltres:'Moltres',ditto:'Ditto' };
   if(names[name]) return <PokemonToken name={names[name]} />;
   return <span className="slot-token slot-blank" aria-hidden="true" />;
 }
@@ -33,7 +33,7 @@ export function SlotGame({ wallet, bet, setBet, busy, play, result, pokemonWager
     <div className="casino-controls"><BetInput bet={bet} setBet={setBet} allowZero={!!pokemonWagerId} /><button disabled={busy || !!wallet.rodada || !validBet(bet,!!pokemonWagerId) || Number(bet)>wallet.fichas} onClick={spin}>{busy ? 'Rolos girando…' : 'Girar'}</button></div>
     <RoundResult result={result}>{result?.linhas?.length ? `${result.linhas.length} ${result.linhas.length === 1 ? 'linha premiada' : 'linhas premiadas'}!` : 'Sem combinação nesta rodada'}</RoundResult>
     {result?.linhas?.length > 0 && <ul className="slot-win-list">{result.linhas.map(line => <li key={line.linha}>Linha {line.linha} · {lineNames[line.linha-1]} · {factor(line.multiplicador)} = {money(line.premio)} fichas{line.coringas ? ` · ${line.coringas} coringa(s)` : ''}</li>)}</ul>}
-    <details className="casino-rules" open><summary>Tabela de prêmios</summary><p>Faça uma trinca igual em qualquer uma das oito linhas para receber o multiplicador indicado. Cada linha usa a aposta inteira e os prêmios das linhas vencedoras se somam. Exemplo: duas trincas de Pikachu pagam 10× a aposta no total. Apostando só um Pokémon, o prêmio em fichas é opcional.</p><div className="slot-paytable">{[['poke-ball','Poké Bola','0,5×'],['great-ball','Grande Bola','1,5×'],['ultra-ball','Ultra Bola','3×'],['pikachu','Pikachu','5×'],['charmander','Charmander','10×'],['bulbasaur','Bulbasaur','10×'],['squirtle','Squirtle','10×'],['moltres','Moltres','20×'],['zapdos','Zapdos','20×'],['articuno','Articuno','20×'],['mewtwo','Mewtwo','30×'],['mew','Mew','50×'],['master-ball','Master Bola','100×']].map(([symbol,label,mult]) => <div key={symbol}><SlotSymbol name={symbol} /><span>{label}</span><b>{mult}</b></div>)}</div><p>Os pagamentos são arredondados para baixo por linha. As três aves lendárias aparecem como símbolos separados.</p></details>
+    <details className="casino-rules" open><summary>Tabela de prêmios</summary><p>Faça uma trinca em qualquer uma das oito linhas. Ditto é coringa: duas figuras iguais junto com um Ditto formam a trinca, que paga o multiplicador da figura repetida. Três Ditto pagam 5×. Cada linha usa a aposta inteira e os prêmios são somados; duas trincas de Pikachu, por exemplo, pagam 10× a aposta no total. Apostando só um Pokémon, fichas são opcionais.</p><div className="slot-paytable">{[['poke-ball','Poké Bola','0,5×'],['great-ball','Grande Bola','1,5×'],['ultra-ball','Ultra Bola','3×'],['pikachu','Pikachu','5×'],['ditto','Ditto coringa','5× se formar trinca sozinho'],['charmander','Charmander','10×'],['bulbasaur','Bulbasaur','10×'],['squirtle','Squirtle','10×'],['moltres','Moltres','20×'],['zapdos','Zapdos','20×'],['articuno','Articuno','20×'],['mewtwo','Mewtwo','30×'],['mew','Mew','50×'],['master-ball','Master Bola','100×']].map(([symbol,label,mult]) => <div key={symbol}><SlotSymbol name={symbol} /><span>{label}</span><b>{mult}</b></div>)}</div><p>Os pagamentos são arredondados para baixo por linha. Moltres, Zapdos e Articuno aparecem em símbolos separados.</p></details>
   </section>;
 }
 

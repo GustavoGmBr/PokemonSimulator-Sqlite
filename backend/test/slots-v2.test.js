@@ -10,6 +10,17 @@ test('caça-níqueis paga trincas nas três colunas verticais', () => {
   assert.equal(result.linhas[0].premio, 500);
 });
 
+test('Ditto substitui um símbolo para completar trincas e trinca de Ditto paga 5×', () => {
+  const grid = ['poke-ball', 'ditto', 'poke-ball', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+  const result = slotPayout(grid, 100);
+  assert.deepEqual(result.linhas.map(({ linha }) => linha), [1]);
+  assert.equal(result.linhas[0].simbolo, 'poke-ball');
+  assert.equal(result.linhas[0].coringas, 1);
+  assert.equal(result.linhas[0].premio, 50);
+  assert.equal(slotPayout(Array(9).fill('ditto'), 100).linhas[0].premio, 500);
+  assert.equal(slotPayout(['ditto','poke-ball','great-ball',...Array(6).fill('blank')], 100).linhas.length, 0);
+});
+
 test('APIs aceitam aposta sem fichas quando existe um Pokémon em jogo', () => {
   const stake = { pokemonId: 'pokemon-123' };
   assert.equal(casinoWagerSchema.safeParse({ aposta: 0, pokemonAposta: stake }).success, true);
@@ -27,7 +38,7 @@ test('oito linhas horizontais, verticais e diagonais são avaliadas', () => {
 
 test('símbolos e multiplicadores seguem a tabela nova sem pontos nem coringa', () => {
   assert.deepEqual(SLOT_SYMBOLS.filter((symbol) => symbol !== 'blank').sort(), Object.keys(SLOT_MULTIPLIERS).sort());
-  assert.equal(SLOT_SYMBOLS.includes('ditto'), false);
+  assert.equal(SLOT_SYMBOLS.includes('ditto'), true);
   assert.equal(SLOT_SYMBOLS.includes('magikarp'), false);
   assert.equal(SLOT_SYMBOLS.includes('bar'), false);
   assert.equal(SLOT_WEIGHTS.length, SLOT_SYMBOLS.length);
