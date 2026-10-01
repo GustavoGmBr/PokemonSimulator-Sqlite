@@ -95,6 +95,8 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await snapshot(page,info,'roulette');
 
   await page.getByRole('tab',{name:'Voltorb Flip'}).click();
+  await expect(page.getByText('Linha completa · 2×',{exact:true})).toBeVisible();
+  await expect(page.locator('.casino-muted')).toContainText('O 5× é o valor de uma carta');
   await page.getByRole('button',{name:'Iniciar rodada',exact:true}).click();
   await expect(page.locator('.casino-active-round')).toBeVisible();
   const old=(await db.cassinoRodada.findUniqueOrThrow({where:{saveId:save.id}})).estado;

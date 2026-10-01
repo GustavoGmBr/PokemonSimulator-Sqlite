@@ -1,7 +1,7 @@
-## Pokémon Simulator SQLite v0.5.8
+## Pokémon Simulator SQLite v0.5.9
 
-- A chance de cada espaço vazio no caça-níquel foi reduzida de 35% para 25%.
-- Símbolos comuns e Ditto ficaram mais frequentes; os símbolos lendários mantêm suas chances anteriores.
+- A tela do Voltorb Flip agora destaca que completar uma linha dobra o prêmio em 2×.
+- A explicação deixa claro que 5× é o valor de uma carta, e não o bônus de linha.
 
 ## Downloads para Windows x64
 
