@@ -1,3 +1,8 @@
+## Pokémon Simulator SQLite v0.5.14
+
+- Corrigida a prioridade do CSS que mantinha os filtros da batalha e dos encontros selvagens em uma única linha no jogo instalado.
+- Primeira linha: nome ou número da Pokédex e tipo. Segunda linha: estrelas, nível e Normal/Shiny. O layout mantém as duas linhas no desktop e no celular.
+
 ## Pokémon Simulator SQLite v0.5.13
 
 - Filtros da batalha organizados em duas linhas: nome ou número da Pokédex e tipo na primeira; estrelas, nível e Shiny na segunda. O nível agora filtra faixas de 20 níveis, e a ordenação por Pokédex foi removida.

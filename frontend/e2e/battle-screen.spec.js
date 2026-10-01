@@ -19,6 +19,19 @@ async function enter(page, route) {
   await page.addInitScript(id=>localStorage.setItem('pokemon-simulator-local-save',JSON.stringify({state:{saveId:id,usuario:{login:'Batalha UI'}},version:0})),save.id);
   await page.goto(origin+route);
 }
+async function expectFilterRows(page) {
+  const controls = ['name', 'type', 'stars', 'level', 'shiny'].map(name => page.locator(`.battle-filter-${name}`));
+  for (const control of controls) await expect(control).toBeVisible();
+  const [name, type, stars, level, shiny] = await Promise.all(controls.map(control => control.boundingBox()));
+  expect(Math.abs(name.y - type.y)).toBeLessThan(1);
+  expect(stars.y).toBeGreaterThanOrEqual(name.y + name.height);
+  expect(Math.abs(stars.y - level.y)).toBeLessThan(1);
+  expect(Math.abs(stars.y - shiny.y)).toBeLessThan(1);
+  expect(name.x + name.width).toBeLessThanOrEqual(type.x);
+  expect(stars.x + stars.width).toBeLessThanOrEqual(level.x);
+  expect(level.x + level.width).toBeLessThanOrEqual(shiny.x);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+}
 test.beforeAll(async()=>{
   temporary=mkdtempSync(path.join(tmpdir(),'battle-screen-'));
   const file=path.join(temporary,'test.db'),url=`file:${file.replaceAll('\\','/')}`;writeFileSync(file,'');
@@ -54,6 +67,8 @@ test('sprites de frente alinhadas, filtros, cura e captura com bolsa',async({pag
   await db.itemInventario.create({data:{saveId:save.id,itemId:'master-ball',quantidade:1}});
   await post('/batalhas/iniciar',{tipo:'selvagem',regiao:'kanto',intervaloNivel:{minimo:1,maximo:1}});
   await enter(page,'/selvagens');
+  await expectFilterRows(page);
+  await page.screenshot({path:info.outputPath('wild-filter-rows.png'),fullPage:true});
   await page.getByLabel('Filtrar Pokémon para batalha por brilho').selectOption('shiny');
   await page.getByLabel('Filtrar Pokémon para batalha por estrelas').selectOption('4');
   await expect(page.locator('.battle-collection .battle-member')).toHaveCount(1);
@@ -96,6 +111,8 @@ test('ordem da equipe, reviver e troca por reserva preservam a batalha',async({p
   await db.itemInventario.create({data:{saveId:save.id,itemId:'revive',quantidade:1}});
   await post('/batalhas/iniciar',{tipo:'treinador',dificuldade:'facil'});
   await enter(page,'/batalha');
+  await expectFilterRows(page);
+  await page.screenshot({path:info.outputPath('battle-filter-rows.png'),fullPage:true});
   await page.locator('.battle-member').filter({hasText:'Bulbasaur'}).click();
   await page.locator('.battle-member').filter({hasText:'Charmander'}).click();
   await page.getByRole('button',{name:'Enviar Charmander primeiro'}).click();
