@@ -36,38 +36,63 @@ before(async () => {
 beforeEach(async () => { await db.cassinoRodada.deleteMany({ where: { saveId: save.id } }); await db.save.update({ where: { id: save.id }, data: { fichas: 10000, moedas: 100000 } }); });
 after(async () => { await db.$disconnect(); rmSync(temp, { recursive: true, force: true }); });
 
-test('coringa completa combinações e as cinco linhas pagam separadamente', () => {
-  const grid = ['master-ball','wild','master-ball', ...Array(6).fill('blank')];
+test('Ditto completa trincas e as oito linhas pagam separadamente', () => {
+  const grid = ['master-ball','ditto','master-ball', 'pikachu','ultra-ball','mew', 'great-ball','mewtwo','poke-ball'];
   assert.equal(slotPayout(grid, 10).premio, 1000);
   assert.equal(slotPayout(grid, 10).linhas[0].coringas, 1);
-  assert.equal(slotPayout(Array(9).fill('wild'), 10).premio, 250);
-  assert.equal(slotPayout(Array(9).fill('master-ball'), 10).premio, 5000);
-  assert.equal(slotPayout(['wild','blank','bar', ...Array(6).fill('blank')], 10).premio, 0);
+  assert.equal(slotPayout(Array(9).fill('ditto'), 10).premio, 320);
+  assert.equal(slotPayout(Array(9).fill('master-ball'), 10).premio, 8000);
 });
-test('Voltorb soma cinco cartas e dobra só linhas horizontais ou verticais', () => {
+
+test('Voltorb soma seis cartas e aplica 1,5× só nas linhas horizontais ou verticais', () => {
   const board = makeVoltorbBoard(() => 0);
-  assert.equal(board.length, 25);
-  for (const [value,count] of [[0,3],[0.5,8],[1,9],[2,3],[3,1],[5,1]]) assert.equal(board.filter(cell => cell === value).length, count);
-  const horizontal = [1,1,2,0.5,3, ...Array(20).fill(1)];
-  assert.deepEqual(voltorbPayout(horizontal,[0,1,2,3,4],10), { soma:7.5, bonusLinha:2, multiplicador:15, premio:150 });
+  assert.equal(board.length, 36);
+  for (const [value,count] of [[0,6],[0.25,10],[0.5,9],[1.2,5],[1.5,3],[2,2],[5,1]]) assert.equal(board.filter(cell => cell === value).length, count);
+  const horizontal = [0.25,0.5,1.2,1.5,2,5, ...Array(30).fill(0.5)];
+  assert.deepEqual(voltorbPayout(horizontal,[0,1,2,3,4,5],100), { soma:10.45, bonusLinha:1.5, multiplicador:15.675, premio:1567 });
+  assert.equal(voltorbPayout(Array(36).fill(1.2),[0,6,12,18,24,30],10).premio,108);
+  assert.equal(voltorbPayout(Array(36).fill(1.2),[0,7,14,21,28,35],10).premio,72);
+  assert.equal(voltorbPayout(Array(36).fill(0.25),[0,7,14,21,28,35],5).premio,7);
   assert.equal(voltorbPayout(Array(25).fill(1),[0,5,10,15,20],10).premio,100);
-  assert.equal(voltorbPayout(Array(25).fill(1),[0,6,12,18,24],10).premio,50);
-  assert.equal(voltorbPayout(Array(25).fill(0.5),[0,6,12,18,24],5).premio,12);
 });
-test('Voltorb oculta cartas, persiste, não encerra com zero e paga só na quinta', async () => {
+
+test('Voltorb oculta cartas, persiste e paga apenas na sexta escolha', async () => {
   const casino = service(() => 0);
   let round = (await casino.startVoltorb(user(),100)).rodada;
+  assert.equal(round.casas.length,36); assert.equal(round.restantes,6);
   assert.equal(round.casas.every(cell => cell === null),true); assert.equal(await balance(),9900);
-  await setState({ tabuleiro: [0,1,2,0.5,3,...Array(20).fill(1)] });
-  const first = await casino.flipVoltorb(user(), { ...token(round), indice:0 }); round = first.rodada;
-  assert.ok(round); assert.equal(round.casas[0],0);
-  await assert.rejects(casino.flipVoltorb(user(), { rodadaId:round.id, versao:0, indice:1 }), /rodada mudou/);
-  await assert.rejects(casino.flipVoltorb(user(), { ...token(round), indice:0 }), /já foi aberta/);
-  assert.equal((await casino.overview(user())).rodada.casas.filter(cell => cell === null).length,24);
-  for (const indice of [1,2,3]) { round = (await casino.flipVoltorb(user(), { ...token(round), indice })).rodada; assert.equal(await balance(),9900); }
-  const end = await casino.flipVoltorb(user(), { ...token(round), indice:4 });
-  assert.equal(end.premio,1300); assert.equal(end.bonusLinha,2); assert.equal(await balance(),11200);
-  await assert.rejects(casino.flipVoltorb(user(), { ...token(round), indice:4 }), /rodada mudou/);
+  await setState({ tabuleiro:[0.25,0.5,1.2,1.5,2,5,...Array(30).fill(0.5)] });
+  round = (await casino.flipVoltorb(user(), { ...token(round),indice:0 })).rodada;
+  assert.equal(round.casas[0],0.25);
+  await assert.rejects(casino.flipVoltorb(user(), { rodadaId:round.id,versao:0,indice:1 }), /rodada mudou/);
+  await assert.rejects(casino.flipVoltorb(user(), { ...token(round),indice:0 }), /já foi aberta/);
+  assert.equal((await casino.overview(user())).rodada.casas.filter(cell=>cell===null).length,35);
+  for (const indice of [1,2,3,4]) { round=(await casino.flipVoltorb(user(),{...token(round),indice})).rodada; assert.equal(await balance(),9900); }
+  const end=await casino.flipVoltorb(user(),{...token(round),indice:5});
+  assert.equal(end.premio,1567); assert.equal(end.bonusLinha,1.5); assert.equal(await balance(),11467);
+  await assert.rejects(casino.flipVoltorb(user(),{...token(round),indice:5}), /rodada mudou/);
+});
+
+test('Voltorb encerra imediatamente com 0× e permite abrir a última coluna', async () => {
+  const casino=service(max=>max-1);
+  let round=(await casino.startVoltorb(user(),100)).rodada;
+  round=(await casino.flipVoltorb(user(),{...token(round),indice:35})).rodada;
+  assert.equal(round.casas[35],5); assert.equal(round.restantes,5);
+  const end=await casino.flipVoltorb(user(),{...token(round),indice:0});
+  assert.equal(end.resultado,'voltorb'); assert.equal(end.premio,0); assert.equal(end.multiplicador,0); assert.equal(await balance(),9900);
+  assert.equal((await casino.overview(user())).rodada,null);
+});
+
+test('rodada 5×5 em andamento mantém cinco escolhas e bônus de 2×', async () => {
+  const casino=service(()=>0);
+  let round=(await casino.startVoltorb(user(),100)).rodada;
+  await setState({tabuleiro:Array(25).fill(1)});
+  round=(await casino.overview(user())).rodada;
+  assert.equal(round.tamanho,5);assert.equal(round.restantes,5);
+  await assert.rejects(casino.flipVoltorb(user(),{...token(round),indice:25}), /dentro do tabuleiro/);
+  for (const indice of [0,5,10,15]) round=(await casino.flipVoltorb(user(),{...token(round),indice})).rodada;
+  const end=await casino.flipVoltorb(user(),{...token(round),indice:20});
+  assert.equal(end.bonusLinha,2);assert.equal(end.premio,1000);assert.equal(await balance(),10900);
 });
 test('roleta europeia tem 37 números, 18 vermelhos, 18 pretos e zero verde', () => {
   assert.equal(new Set(ROULETTE_ORDER).size,37);
@@ -161,7 +186,7 @@ test('API rejeita adulteração, índice inválido, rodada de outro save e resul
   await request(app).post('/api/cassino/fortune').set(headers).send({ apostas:[{ valor:5,multiplicador:100 }] }).expect(400);
   await request(app).post('/api/cassino/slots').set(headers).send({ aposta:5,premio:100000 }).expect(400);
   const started=(await request(app).post('/api/cassino/voltorb').set(headers).send({ aposta:5 }).expect(200)).body.data;
-  await request(app).post('/api/cassino/voltorb/virar').set(headers).send({ ...token(started.rodada),indice:25 }).expect(400);
+  await request(app).post('/api/cassino/voltorb/virar').set(headers).send({ ...token(started.rodada),indice:36 }).expect(400);
   const other=(await request(app).post('/api/jogador/saves').send({ nomeTreinador:'Outro' }).expect(201)).body.data;
   await request(app).post('/api/jogador/inicial').set('X-Save-Id',other.id).send({ saveId:other.id,especieId:4 }).expect(201);
   await request(app).post('/api/cassino/voltorb/virar').set('X-Save-Id',other.id).send({ ...token(started.rodada),indice:0 }).expect(409);

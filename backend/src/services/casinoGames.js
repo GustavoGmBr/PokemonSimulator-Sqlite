@@ -7,8 +7,9 @@ export function publicCasinoRound(state, finished = false) {
   const base = { id: state.id, versao: state.versao, jogo: state.jogo, aposta: state.aposta, pokemonAposta: state.pokemonAposta ? { pokemonId: state.pokemonAposta.pokemonId, especieId: state.pokemonAposta.especieId, nome: state.pokemonAposta.nome, valorBase: state.pokemonAposta.valorBase } : null };
   if (state.jogo === 'voltorb') {
     const rawPayout = voltorbPayout(state.tabuleiro, state.abertas, state.aposta);
-    const payout = state.perdeu ? { ...rawPayout, multiplicador: 0, premio: 0 } : rawPayout;
-    return { ...base, casas: state.tabuleiro.map((value, i) => finished || state.abertas.includes(i) ? value : null), abertas: state.abertas, restantes: 5 - state.abertas.length, acumulado: payout.premio, ...payout };
+    const payout = state.perdeu ? { ...rawPayout, bonusLinha: 1, multiplicador: 0, premio: 0 } : rawPayout;
+    const tamanho = Math.sqrt(state.tabuleiro.length);
+    return { ...base, tamanho, limiteEscolhas: tamanho, casas: state.tabuleiro.map((value, i) => finished || state.abertas.includes(i) ? value : null), abertas: state.abertas, restantes: tamanho - state.abertas.length, acumulado: payout.premio, ...payout };
   }
   if (state.jogo === 'pokejack') return { ...base, jogador: state.jogador, banca: finished ? state.banca : [state.banca[0], null], totalJogador: handScore(state.jogador), totalBanca: finished ? handScore(state.banca) : null, podeDobrar: !finished && state.jogador.length === 2 };
   return { ...base, passos: state.passos, multiplicador: state.passos ? PIPLUP_MULTIPLIERS[state.passos - 1] : 0, proximaChance: PIPLUP_CHANCES[state.passos] ?? null, acumulado: state.passos ? Math.floor(state.aposta * PIPLUP_MULTIPLIERS[state.passos - 1]) : 0 };
@@ -52,7 +53,7 @@ export function createCasinoGames(db, { saveFor, checkBet, checkBalance, ensureR
   return {
     async startVoltorb(usuarioId, aposta, pokemonId) {
       return transaction(async tx => {
-        const save = await saveFor(tx, usuarioId); await assertNoRound(tx, save); checkBet(save, aposta); ensureRoom(save, aposta, 28);
+        const save = await saveFor(tx, usuarioId); await assertNoRound(tx, save); checkBet(save, aposta); ensureRoom(save, aposta, 20.25);
         const wager = await preparePokemonWager(tx, save, pokemonId);
         return begin(tx, save, initial('voltorb', aposta, { tabuleiro: makeVoltorbBoard(rng), abertas: [] }), wager);
       });
@@ -60,13 +61,14 @@ export function createCasinoGames(db, { saveFor, checkBet, checkBalance, ensureR
     async flipVoltorb(usuarioId, request) {
       return transaction(async tx => {
         const save = await saveFor(tx, usuarioId), state = await current(tx, save, 'voltorb', request);
+        if (request.indice < 0 || request.indice >= state.tabuleiro.length) throw new HttpError(400, 'Escolha uma carta dentro do tabuleiro.');
         if (state.abertas.includes(request.indice)) throw new HttpError(409, 'Esta carta já foi aberta.');
         state.abertas.push(request.indice);
         if (state.tabuleiro[request.indice] === 0) {
           state.perdeu = true;
-          return finish(tx, save, state, { ...voltorbPayout(state.tabuleiro, state.abertas, state.aposta), resultado: 'voltorb', premio: 0 }, 0);
+          return finish(tx, save, state, { ...voltorbPayout(state.tabuleiro, state.abertas, state.aposta), resultado: 'voltorb', bonusLinha: 1, multiplicador: 0, premio: 0 }, 0);
         }
-        if (state.abertas.length === 5) {
+        if (state.abertas.length === Math.sqrt(state.tabuleiro.length)) {
           const payout = voltorbPayout(state.tabuleiro, state.abertas, state.aposta);
           return finish(tx, save, state, { resultado: 'concluida', ...payout }, payout.multiplicador);
         }

@@ -63,12 +63,16 @@ export function rouletteMultiplier(result, bet) {
   return bet.cor === result.cor ? (bet.cor === 'verde' ? 36 : 2) : 0;
 }
 export function makeVoltorbBoard(rng = randomInt) {
-  return shuffle([...Array(6).fill(0), ...Array(8).fill(0.5), ...Array(6).fill(1), ...Array(3).fill(2), 3, 5], rng);
+  return shuffle([...Array(6).fill(0), ...Array(10).fill(0.25), ...Array(9).fill(0.5), ...Array(5).fill(1.2), ...Array(3).fill(1.5), 2, 2, 5], rng);
 }
 export function voltorbPayout(board, opened, bet) {
-  const sum = opened.reduce((total, index) => total + board[index], 0);
-  const line = opened.length === 5 && (opened.every(index => Math.floor(index / 5) === Math.floor(opened[0] / 5)) || opened.every(index => index % 5 === opened[0] % 5));
-  return { soma: sum, bonusLinha: line ? 2 : 1, multiplicador: sum * (line ? 2 : 1), premio: Math.floor(bet * sum * (line ? 2 : 1)) };
+  const size = Math.sqrt(board.length);
+  const sumUnits = opened.reduce((total, index) => total + Math.round(board[index] * 100), 0);
+  const line = new Set(opened).size === size && opened.length === size && (opened.every(index => Math.floor(index / size) === Math.floor(opened[0] / size)) || opened.every(index => index % size === opened[0] % size));
+  // Preserve the payout of 5×5 rounds started before this update.
+  const bonusLinha = line ? size === 5 ? 2 : 1.5 : 1;
+  const multiplicador = sumUnits * bonusLinha / 100;
+  return { soma: sumUnits / 100, bonusLinha, multiplicador, premio: Math.floor(bet * sumUnits * bonusLinha / 100) };
 }
 export function blackjackDeck(rng = randomInt) {
   return shuffle(['♠', '♥', '♦', '♣'].flatMap(naipe => Array.from({ length: 13 }, (_, index) => ({ valor: index + 1, naipe }))), rng);

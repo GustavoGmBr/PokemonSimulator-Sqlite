@@ -60,6 +60,8 @@ test('jogar exige um save existente selecionado no cabecalho', async () => {
 });
 
 test('inicial, colecao, inventario e alteracoes permanecem isolados entre saves', async () => {
+  for (const especieId of [152, 252, 722, 906]) await request(app).post('/api/jogador/inicial').set('X-Save-Id', first.id).send({ saveId: first.id, especieId }).expect(400);
+  assert.equal((await db.save.findUnique({ where:{id:first.id} })).inicialEspecieId, null);
   await request(app).post('/api/jogador/inicial').set('X-Save-Id', first.id).send({ saveId: second.id, especieId: 1 }).expect(409);
   await request(app).post('/api/jogador/inicial').set('X-Save-Id', first.id).send({ saveId: first.id, especieId: 1 }).expect(201);
   await request(app).post('/api/jogador/inicial').set('X-Save-Id', first.id).send({ saveId: first.id, especieId: 4 }).expect(409);

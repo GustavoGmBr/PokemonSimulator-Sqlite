@@ -18,7 +18,7 @@ test('Necrozma mostra as fusões e ativa Ultra Necrozma pela coleção', async (
     const headers = { Authorization: `Bearer ${token}` };
     const oldSave = (await (await request.get('http://127.0.0.1:3435/api/jogador/save', { headers })).json()).data;
     const save = (await (await request.post('http://127.0.0.1:3435/api/jogador/save', { headers, data: { nomeTreinador: 'Fusion QA', substituirSaveId: oldSave.id } })).json()).data;
-    expect((await request.post('http://127.0.0.1:3435/api/jogador/inicial', { headers, data: { saveId: save.id, especieId: 722 } })).ok()).toBe(true);
+    expect((await request.post('http://127.0.0.1:3435/api/jogador/inicial', { headers, data: { saveId: save.id, especieId: 1 } })).ok()).toBe(true);
     for (const especieId of [800, 791, 792]) {
       const species = getEspecie(especieId);
       const stats = statsFor(species, 60);

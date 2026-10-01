@@ -29,7 +29,7 @@ export function createJogadorService(db) {
       return save;
     },
     async escolherInicial(usuarioId, { saveId, especieId }) {
-      if (![1, 4, 7, 152, 155, 158, 252, 255, 258, 387, 390, 393, 495, 498, 501, 650, 653, 656, 722, 725, 728, 810, 813, 816, 906, 909, 912].includes(especieId)) throw new HttpError(400, 'Escolha um inicial valido.');
+      if (![1, 4, 7].includes(especieId)) throw new HttpError(400, 'Escolha Bulbasaur, Charmander ou Squirtle como inicial.');
       const pokemon = criarDadosInicial(especieId);
       return db.$transaction(async (tx) => {
         // A atualizacao condicional bloqueia escolhas duplicadas e pedidos de saves antigos.

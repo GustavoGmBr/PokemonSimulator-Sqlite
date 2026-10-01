@@ -9,7 +9,7 @@ export const novoSaveSchema = z.object({
 }).strict();
 export const inicialSchema = z.object({
   saveId: z.string().min(1).max(30),
-  especieId: z.union([1, 4, 7, 152, 155, 158, 252, 255, 258, 387, 390, 393, 495, 498, 501, 650, 653, 656, 722, 725, 728, 810, 813, 816, 906, 909, 912].map((id) => z.literal(id))),
+  especieId: z.union([1, 4, 7].map((id) => z.literal(id))),
 }).strict();
 export const evolveSchema = z.object({ alvo: z.union([z.number().int().min(1).max(1025), z.string().min(1).max(60)]) }).strict();
 export const buyItemSchema = z.object({ itemId: z.string().min(1).max(60) }).strict();

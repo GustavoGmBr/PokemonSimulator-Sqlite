@@ -174,7 +174,7 @@
 .card-ball::after { content:''; position:absolute; left:7px; top:7px; width:9px; height:9px; background:#f4edd4; border:2px solid #32453a; border-radius:50%; }
 .card-number { font-size:23px; }
 .table-caption { display:block; text-align:center; margin-top:16px; color:#bdd1b8; font-size:12px; }
-.voltorb-card-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; max-width:580px; width:100%; justify-self:center; padding:14px; background:#13241a; border:2px solid #5d7653; border-radius:15px; }
+.voltorb-card-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; max-width:650px; width:100%; justify-self:center; padding:14px; background:#13241a; border:2px solid #5d7653; border-radius:15px; }
 .voltorb-card-grid .casino-flip-card { height:82px; }
 .voltorb-card-grid .flip-front { font-size:22px; }
 .voltorb-card-grid img { width:45px; height:45px; image-rendering:pixelated; }
@@ -261,7 +261,7 @@
   .casino-controls > button { flex:1; } .casino-controls .casino-number { flex:1; min-width:120px; } .casino-controls input { width:100%; }
   .slot-machine { --slot-height:84px; padding:8px; } .casino-reels { gap:4px; border-width:4px; } .slot-cell .casino-pokemon { font-size:9px; } .slot-cell img { width:48px; height:48px; }
   .casino-card-table { padding:11px; border-width:5px; } .casino-card-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; } .casino-card-grid .casino-flip-card { height:94px; } .casino-card-grid .casino-pokemon { font-size:9px; } .casino-card-grid img { width:40px; height:40px; } .card-number { font-size:19px; }
-  .voltorb-card-grid { gap:5px; padding:8px; } .voltorb-card-grid .casino-flip-card { height:65px; } .voltorb-card-grid .flip-front { font-size:17px; } .voltorb-card-grid img { width:34px; height:34px; }
+  .voltorb-card-grid { gap:4px; padding:7px; } .voltorb-card-grid .casino-flip-card { height:56px; } .voltorb-card-grid .flip-front { font-size:12px; } .voltorb-card-grid img { width:28px; height:28px; }
   .fortune-picks { grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; } .fortune-picks > div { padding:9px; } .fortune-picks strong { font-size:19px; }
   .blackjack-table { padding:12px; border-width:5px; } .playing-card { width:65px; height:96px; } .playing-card-row { gap:7px; min-height:99px; }
   .race-picks { gap:5px; } .race-picks img { width:45px; height:45px; } .casino-panel .race-picks button { font-size:9px; } .pokemon-race-track { padding:4px 6px; border-width:4px; }

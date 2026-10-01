@@ -102,24 +102,25 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await snapshot(page,info,'roulette');
 
   await page.getByRole('tab',{name:'Voltorb Flip'}).click();
-  await expect(page.getByText('Linha completa · 2×',{exact:true})).toBeVisible();
+  await expect(page.getByText('Linha completa · 1,5×',{exact:true})).toBeVisible();
   await expect(page.locator('.casino-muted')).toContainText('O 5× é o valor de uma carta');
   await page.getByRole('button',{name:'Iniciar rodada',exact:true}).click();
   await expect(page.locator('.casino-active-round')).toBeVisible();
   const old=(await db.cassinoRodada.findUniqueOrThrow({where:{saveId:save.id}})).estado;
-  await db.cassinoRodada.update({where:{saveId:save.id},data:{estado:{...old,tabuleiro:[1,1,2,0.5,3,...Array(20).fill(1)]}}});
+  await db.cassinoRodada.update({where:{saveId:save.id},data:{estado:{...old,tabuleiro:[0.25,0.5,1.2,1.5,2,5,...Array(30).fill(0.5)]}}});
   await page.reload();await expect(page.getByRole('heading',{name:'Voltorb Flip',exact:true})).toBeVisible();
   await page.getByRole('tab',{name:'Caça-níqueis'}).click();
   await expect(page.getByRole('button',{name:'Girar',exact:true})).toBeDisabled();
   await page.getByRole('button',{name:'Retomar rodada'}).click();
-  for(let i=1;i<=5;i++) {
+  await expect(page.locator('.voltorb-card-grid .casino-flip-card')).toHaveCount(36);
+  for(let i=1;i<=6;i++) {
     await page.getByRole('button',{name:`Carta Voltorb ${i}`,exact:true}).click();
-    await expect(page.locator('.voltorb-progress')).toContainText(`${i} de até 5`);
+    await expect(page.locator('.voltorb-progress')).toContainText(`${i} de até 6`);
   }
   await expect(page.locator('.casino-result-toast')).toBeVisible();
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-result')).toContainText('Linha completa');
-  await expect(page.locator('.casino-result')).toContainText('retorno: 75 fichas');
+  await expect(page.locator('.casino-result')).toContainText('retorno: 78 fichas');
   await snapshot(page,info,'voltorb');
 
   await page.getByRole('tab',{name:'Pokejack',exact:true}).click();

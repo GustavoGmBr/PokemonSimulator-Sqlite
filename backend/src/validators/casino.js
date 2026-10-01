@@ -31,7 +31,7 @@ const pokemonWager = z.discriminatedUnion('tipo', [
 export const rouletteSchema = z.object({ apostas: z.array(rouletteBet).max(24), pokemonAposta: pokemonWager.optional() }).strict().refine((body) => body.apostas.length > 0 || body.pokemonAposta, 'Escolha uma aposta.');
 const roundAction = { rodadaId: z.uuid(), versao: z.number().int().min(0) };
 export const roundActionSchema = z.object(roundAction).strict();
-export const voltorbFlipSchema = z.object({ ...roundAction, indice: z.number().int().min(0).max(24) }).strict();
+export const voltorbFlipSchema = z.object({ ...roundAction, indice: z.number().int().min(0).max(35) }).strict();
 export const pokejackActionSchema = z.object({ ...roundAction, acao: z.enum(['pedir', 'parar', 'dobrar']) }).strict();
 export const piplupActionSchema = z.object({ ...roundAction, acao: z.enum(['pular', 'sacar']) }).strict();
 export const raceSchema = z.object({ aposta: optionalTokenBet, pokemon: z.number().int().min(0).max(4), pokemonAposta: pokemonStake.optional() }).strict().refine((body) => body.aposta >= 5 || body.pokemonAposta, 'Aposte ao menos 5 fichas ou escolha um Pokémon.');

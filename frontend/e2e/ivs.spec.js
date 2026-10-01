@@ -96,7 +96,7 @@ test('mostra IVs, filtra estrelas e porcentagens e melhora de duas para três es
   for (const item of IV_ITEMS) await expect(page.getByRole('heading', { name: item.nomeExibicao, exact: true })).toBeVisible();
   await page.goto(`${origin}/selvagens`);
   await page.getByRole('button', { name: 'Procurar Pokémon', exact: true }).click();
-  await expect(page.locator('.battle-foe .iv-stars')).toBeVisible();
+  await expect(page.locator('.battle-foe .battle-life')).toBeVisible();
   const encounter = await db.batalha.findUniqueOrThrow({ where: { saveId: save.id } });
   for (const [stars, total] of [90, 120, 150, 151, 186].entries()) {
     const state = structuredClone(encounter.estado);
@@ -104,8 +104,8 @@ test('mostra IVs, filtra estrelas e porcentagens e melhora de duas para três es
     await db.batalha.update({ where: { saveId: save.id }, data: { estado: state } });
     await page.reload();
     const wildStars = page.locator('.battle-foe .iv-stars');
-    await expect(wildStars).toHaveText(stars === 0 ? '0☆' : '⭐'.repeat(stars));
-    await expect(wildStars).not.toHaveAttribute('title');
+    if (stars === 0) await expect(wildStars).toHaveCount(0);
+    else { await expect(wildStars).toHaveText('⭐'.repeat(stars)); await expect(wildStars).not.toHaveAttribute('title'); }
     await expect(page.locator('.battle-foe .iv-summary')).toHaveCount(0);
   }
   await page.screenshot({ path: testInfo.outputPath('ivs-wild-stars.png'), fullPage: true });
