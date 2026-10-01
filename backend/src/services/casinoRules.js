@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto';
 
 export const SLOT_SYMBOLS = ['mew', 'mewtwo', 'master-ball', 'articuno', 'zapdos', 'moltres', 'pikachu', 'charmander', 'bulbasaur', 'squirtle', 'ultra-ball', 'great-ball', 'poke-ball', 'ditto', 'blank'];
-export const SLOT_WEIGHTS = [1, 2, 1, 2, 2, 2, 4, 4, 4, 4, 6, 8, 12, 2, 46];
+export const SLOT_WEIGHTS = [1, 2, 1, 2, 2, 2, 5, 5, 5, 5, 8, 10, 14, 3, 35];
 export const SLOT_MULTIPLIERS = { 'poke-ball': 0.5, 'great-ball': 1.5, 'ultra-ball': 3, pikachu: 5, ditto: 5, charmander: 10, bulbasaur: 10, squirtle: 10, articuno: 20, zapdos: 20, moltres: 20, mewtwo: 30, mew: 50, 'master-ball': 100 };
 // Grid positions are read left-to-right, top-to-bottom. Every horizontal,
 // vertical, and diagonal trio is an active line.

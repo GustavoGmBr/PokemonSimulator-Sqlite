@@ -1,8 +1,7 @@
-## Pokémon Simulator SQLite v0.5.6
+## Pokémon Simulator SQLite v0.5.7
 
-- O caça-níquel ganhou a opção de rolagem automática com quantidade de giros configurável.
-- O limite de giros é calculado pelo saldo de fichas dividido pela aposta por giro, e é recalculado quando a aposta ou o saldo mudam.
-- A sequência pode ser interrompida; aposta e controles do cassino ficam bloqueados durante a execução.
+- A chance de cada espaço vazio no caça-níquel foi reduzida de 46% para 35%.
+- O peso restante foi redistribuído entre os demais símbolos; os símbolos lendários mantêm suas chances anteriores.
 
 ## Downloads para Windows x64
 
