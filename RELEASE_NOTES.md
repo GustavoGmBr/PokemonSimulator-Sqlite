@@ -1,3 +1,8 @@
+## Pokémon Simulator SQLite v0.5.13
+
+- Filtros da batalha organizados em duas linhas: nome ou número da Pokédex e tipo na primeira; estrelas, nível e Shiny na segunda. O nível agora filtra faixas de 20 níveis, e a ordenação por Pokédex foi removida.
+- Voltorb Flip agora tem 11 cartas bomba no tabuleiro 6×6. Para manter 36 cartas, cinco cartas de 0,25× foram substituídas por Voltorbs. Encontrar uma bomba encerra a rodada e perde a aposta.
+
 ## Pokémon Simulator SQLite v0.5.12
 
 - Voltorb Flip: tabuleiro 6×6 e seis escolhas, com bônus de linha horizontal ou vertical de 1,5×. As 36 cartas contêm 6 Voltorbs (0×), 10 de 0,25×, 9 de 0,5×, 5 de 1,2×, 3 de 1,5×, duas de 2× e uma de 5×. Voltorb encerra a rodada e perde toda a aposta. Rodadas 5×5 já iniciadas mantêm as regras anteriores até terminarem.

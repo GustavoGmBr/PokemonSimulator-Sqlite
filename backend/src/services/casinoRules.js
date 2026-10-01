@@ -63,7 +63,7 @@ export function rouletteMultiplier(result, bet) {
   return bet.cor === result.cor ? (bet.cor === 'verde' ? 36 : 2) : 0;
 }
 export function makeVoltorbBoard(rng = randomInt) {
-  return shuffle([...Array(6).fill(0), ...Array(10).fill(0.25), ...Array(9).fill(0.5), ...Array(5).fill(1.2), ...Array(3).fill(1.5), 2, 2, 5], rng);
+  return shuffle([...Array(11).fill(0), ...Array(5).fill(0.25), ...Array(9).fill(0.5), ...Array(5).fill(1.2), ...Array(3).fill(1.5), 2, 2, 5], rng);
 }
 export function voltorbPayout(board, opened, bet) {
   const size = Math.sqrt(board.length);
