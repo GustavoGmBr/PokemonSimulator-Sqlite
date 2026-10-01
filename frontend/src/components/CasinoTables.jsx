@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { assetUrl } from '../lib/api';
 import { PokemonWagerPicker } from './CasinoWagerPicker';
 import { CasinoWheel, segmentAngles, winningRotation } from './CasinoWheel';
-import { BetInput, BetList, FlipCard, NumberInput, PokemonToken, RoundResult, factor, money, pause, pokemonNames, roundToken, validBet } from './casinoShared';
+import { BetInput, BetList, FlipCard, NumberInput, PokemonToken, RoundResult, factor, money, pause, pokemonNames, pokemonStake, roundToken, validBet } from './casinoShared';
 
 const SYMBOLS=['mew','bar','pikachu','charmander','bulbasaur','squirtle','magikarp','poke-ball','ditto','blank'];
 const lineNames=['horizontal superior','horizontal central','horizontal inferior','diagonal ↘','diagonal ↗'];
@@ -12,12 +12,12 @@ function SlotSymbol({ name }) {
   if(name === 'pikachu' || name === 'charmander' || name === 'bulbasaur' || name === 'squirtle' || name === 'mew' || name === 'magikarp' || name === 'ditto') return <PokemonToken name={{ pikachu:'Pikachu',charmander:'Charmander',bulbasaur:'Bulbasaur',squirtle:'Squirtle',mew:'Mew',magikarp:'Magikarp',ditto:'Ditto' }[name]} />;
   return <span className={`slot-token slot-${name}`}>·</span>;
 }
-export function SlotGame({ wallet, bet, setBet, busy, play, result }) {
+export function SlotGame({ wallet, bet, setBet, busy, play, result, pokemonWagerId }) {
   const [symbols,setSymbols]=useState(Array(9).fill('blank')), [rolling,setRolling]=useState(false),[offset,setOffset]=useState(0);
   const winning=new Set(result?.linhas?.flatMap(line => line.posicoes) ?? []);
   async function spin() {
     setRolling(true); setOffset(0);
-    const data=await play('slots',{ aposta:Number(bet) },async next => {
+    const data=await play('slots',{ aposta:Number(bet),...pokemonStake(pokemonWagerId) },async next => {
       setSymbols(next.simbolos);
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       setOffset(SYMBOLS.length * 4); await pause(2250);
@@ -36,28 +36,28 @@ export function SlotGame({ wallet, bet, setBet, busy, play, result }) {
   </section>;
 }
 
-export function RouletteGame({ wallet, bet, setBet, busy, play, result, members, market, catalog }) {
-  const [type,setType]=useState('numero'),[number,setNumber]=useState(0),[color,setColor]=useState('vermelho'),[parity,setParity]=useState('par'),[range,setRange]=useState('baixa'),[dozen,setDozen]=useState(1),[pokemon,setPokemon]=useState('Pikachu'),[bets,setBets]=useState([]),[wagerId,setWagerId]=useState(''),[rotation,setRotation]=useState(0);
+export function RouletteGame({ wallet, bet, setBet, busy, play, result, members, market, catalog, pokemonWagerId, setPokemonWagerId }) {
+  const [type,setType]=useState('numero'),[number,setNumber]=useState(0),[color,setColor]=useState('vermelho'),[parity,setParity]=useState('par'),[range,setRange]=useState('baixa'),[dozen,setDozen]=useState(1),[pokemon,setPokemon]=useState('Pikachu'),[bets,setBets]=useState([]),[rotation,setRotation]=useState(0);
   const red=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
   const pocketColor=n=>n===0 ? 'verde' : red.has(n) ? 'vermelho' : 'preto';
   const mascotByNumber=new Map(wallet.regras.casasRoleta.map(entry=>[entry.numero,entry]));
   const segments=wallet.regras.roleta.map(n=>({ ...mascotByNumber.get(n), label:String(n),weight:1,color:({ vermelho:'#963c42',preto:'#20282b',verde:'#2c7f57' })[pocketColor(n)] }));
   const selection=type==='numero' ? { tipo:type,numero:Number(number) } : type==='cor' ? { tipo:type,cor:color } : type==='paridade' ? { tipo:type,paridade:parity } : type==='faixa' ? { tipo:type,faixa:range } : type==='duzia' ? { tipo:type,duzia:Number(dozen) } : { tipo:type,pokemon };
-  const cost=bets.reduce((sum,b)=>sum+b.valor,0), selected=members.find(m=>m.id===wagerId);
+  const cost=bets.reduce((sum,b)=>sum+b.valor,0), selected=members.find(m=>m.id===pokemonWagerId);
   return <section className="casino-panel"><div className="casino-game-heading"><div><span className="casino-eyebrow">MODELO EUROPEU · ZERO ÚNICO</span><h2>Roleta Pokémon</h2></div><span className="game-badge">37 casas</span></div><p>De 0 a 36: 18 casas vermelhas, 18 pretas e um zero verde. O zero não conta como par, ímpar, faixa ou dúzia.</p>
     <div className="roulette-layout"><CasinoWheel segments={segments} rotation={rotation} busy={busy} /><div className="roulette-betting-grid" role="group" aria-label="Números da roleta">{Array.from({ length:37 },(_,n)=>{ const mascot=mascotByNumber.get(n); return <button type="button" key={n} title={`${n} · ${mascot.pokemon}`} className={`roulette-number ${pocketColor(n)} ${type==='numero' && Number(number)===n ? 'selected' : ''} ${result?.resultado?.numero===n ? 'pocket-winning' : ''}`} aria-label={`Apostar no número ${n} · ${mascot.pokemon}`} aria-pressed={type==='numero' && Number(number)===n} disabled={busy} onClick={()=>{ setType('numero'); setNumber(n); }}><img src={assetUrl(`/assets/pokemon/${mascot.especieId}-front.png`)} alt="" loading="lazy" /><b>{n}</b></button>; })}</div></div>
     <div className="casino-form"><label>Tipo de palpite<select value={type} onChange={e=>setType(e.target.value)}><option value="numero">Número · 36×</option><option value="cor">Cor · 2× (verde: 36×)</option><option value="paridade">Par ou ímpar · 2×</option><option value="faixa">1–18 ou 19–36 · 2×</option><option value="duzia">Dúzia · 3×</option><option value="pokemon">Grupo Pokémon · 4×</option></select></label>{type==='numero' && <NumberInput label="Número escolhido" value={number} onChange={setNumber} min={0} max={36} />}{type==='cor' && <label>Cor<select value={color} onChange={e=>setColor(e.target.value)}>{['vermelho','preto','verde'].map(c=><option key={c}>{c}</option>)}</select></label>}{type==='paridade' && <label>Paridade<select value={parity} onChange={e=>setParity(e.target.value)}><option value="par">Par</option><option value="impar">Ímpar</option></select></label>}{type==='faixa' && <label>Faixa<select value={range} onChange={e=>setRange(e.target.value)}><option value="baixa">1 a 18</option><option value="alta">19 a 36</option></select></label>}{type==='duzia' && <label>Dúzia<select value={dozen} onChange={e=>setDozen(e.target.value)}>{[1,2,3].map(n=><option key={n} value={n}>{(n-1)*12+1} a {n*12}</option>)}</select></label>}{type==='pokemon' && <label>Pokémon<select value={pokemon} onChange={e=>setPokemon(e.target.value)}>{pokemonNames.map(n=><option key={n}>{n}</option>)}</select></label>}<NumberInput label="Fichas nesta aposta" value={bet} onChange={setBet} min={5} /><button disabled={busy || !!wallet.rodada || !validBet(bet) || (type==='numero' && (!Number.isInteger(Number(number)) || number<0 || number>36)) || bets.length>=24} onClick={()=>setBets(current=>[...current,{ ...selection,valor:Number(bet) }])}>Adicionar aposta</button></div>
     <BetList bets={bets} busy={busy} remove={index=>setBets(current=>current.filter((_,i)=>i!==index))} />
     <details className="casino-rules"><summary>Pokémon das casas e aposta de coleção</summary><p>Ímpares vermelhos: Charmander · ímpares pretos: Squirtle · pares vermelhos: Bulbasaur · pares pretos: Pikachu · zero: Mew. Apostar em um Pokémon da coleção continua usando o seu grupo de casas; o zero sempre representa Mew.</p><PokemonWagerPicker members={members} market={market} catalog={catalog} selectedId={wagerId} onSelect={setWagerId} busy={busy || !!wallet.rodada} selection={selection} /></details>
-    <button disabled={busy || !!wallet.rodada || (!bets.length && !wagerId) || cost>wallet.fichas || !!wagerId && (members.length<2 || selected?.favorito)} onClick={async()=>{ const data=await play('roleta',{ apostas:bets,...(wagerId ? { pokemonAposta:{ pokemonId:wagerId,...selection } } : {}) },async next=>{ const i=wallet.regras.roleta.indexOf(next.resultado.numero); setRotation(current=>winningRotation(current,segmentAngles(segments)[i].center)); await pause(2450); }); if(data){setBets([]);setWagerId('');} }}>{busy ? 'Roleta girando…' : `Girar roleta · ${money(cost)} fichas${wagerId ? ' + Pokémon' : ''}`}</button>
+    <button disabled={busy || !!wallet.rodada || (!bets.length && !pokemonWagerId) || cost>wallet.fichas || !!pokemonWagerId && (members.length<2 || selected?.favorito)} onClick={async()=>{ const data=await play('roleta',{ apostas:bets,...(pokemonWagerId ? { pokemonAposta:{ pokemonId:pokemonWagerId,...selection } } : {}) },async next=>{ const i=wallet.regras.roleta.indexOf(next.resultado.numero); setRotation(current=>winningRotation(current,segmentAngles(segments)[i].center)); await pause(2450); }); if(data)setBets([]); }}>{busy ? 'Roleta girando…' : `Girar roleta · ${money(cost)} fichas${pokemonWagerId ? ' + Pokémon' : ''}`}</button>
     <RoundResult result={result}>{result?.resultado && `Número ${result.resultado.numero} · ${result.resultado.cor}${result.pokemonPremio ? ` · prêmio do Pokémon: ${money(result.pokemonPremio.ganho)} ₽` : ''}`}</RoundResult>
   </section>;
 }
 
-export function VoltorbGame({ wallet, bet, setBet, busy, play, result }) {
+export function VoltorbGame({ wallet, bet, setBet, busy, play, result, pokemonWagerId }) {
   const [visual,setVisual]=useState(null),active=wallet.rodada?.jogo === 'voltorb' ? wallet.rodada : null, table=visual ?? active ?? result?.mesa;
   return <section className="casino-panel"><div className="casino-game-heading"><div><span className="casino-eyebrow">ATÉ CINCO ESCOLHAS · BÔNUS DE LINHA</span><h2>Voltorb Flip</h2></div><span className="game-badge">0 · 0,5 · 1 · 2 · 3 · 5×</span></div><p>Abra até cinco cartas e receba a aposta multiplicada pela soma delas. Complete uma linha horizontal ou vertical para dobrar o retorno. Se encontrar um Voltorb, perde a rodada e toda a aposta.</p><p className="casino-muted">Há 6 Voltorbs, 8 cartas de 0,5×, 6 de 1×, 3 de 2×, uma de 3× e uma de 5×. Diagonais não recebem bônus.</p>
-    {!active && <div className="casino-controls"><BetInput bet={bet} setBet={setBet} /><button disabled={busy || !!wallet.rodada || !validBet(bet) || Number(bet)>wallet.fichas} onClick={async()=>{ setVisual(null); await play('voltorb',{ aposta:Number(bet) }); }}>Iniciar rodada</button></div>}
+    {!active && <div className="casino-controls"><BetInput bet={bet} setBet={setBet} /><button disabled={busy || !!wallet.rodada || !validBet(bet) || Number(bet)>wallet.fichas} onClick={async()=>{ setVisual(null); await play('voltorb',{ aposta:Number(bet),...pokemonStake(pokemonWagerId) }); }}>Iniciar rodada</button></div>}
     <div className={`voltorb-card-grid ${result?.bonusLinha===2 ? 'completed-line' : ''}`} aria-label="Tabuleiro Voltorb de 25 cartas">{Array.from({ length:25 },(_,i)=>{
       const value=table?.casas[i], open=value!==null && value!==undefined;
       return <FlipCard key={`${table?.id ?? 'empty'}-${i}`} open={open} selected={table?.abertas.includes(i)} disabled={busy || !active || open} label={`Carta Voltorb ${i+1}${open ? `: ${factor(value)}` : ''}`} onClick={()=>play('voltorb/virar',{ ...roundToken(active),indice:i },async data=>{ setVisual(data.rodada ?? data.mesa); await pause(350); })}>{value===0 ? <><img src={assetUrl('/assets/pokemon/100-front.png')} alt="" /><b>0×</b></> : <b>{factor(value ?? 0)}</b>}</FlipCard>;

@@ -1,9 +1,8 @@
-## Pokémon Simulator SQLite v0.5.1
+## Pokémon Simulator SQLite v0.5.2
 
-- Pokémon do Mercado agora aparecem no nível 1, com renovação automática a cada hora.
-- Reduzido para 3.000 ₽ o custo de atualizar manualmente o estoque do Mercado Pokémon.
-- Atualizados os símbolos do caça-níquel: Poké Bola, Magikarp, Ditto, aves lendárias, iniciais, Pikachu e Mew.
-- Pagamentos do caça-níquel: trio BAR 20×, Pikachu 5×, trio de um mesmo inicial 10× e Mew 50×. Poké Bola paga 0,5× e Magikarp 1×; Ditto substitui símbolos.
+- Agora é possível apostar Pokémon em todos os jogos do Pokécassino.
+- Ao vencer, a aposta de Pokémon rende o valor de venda multiplicado pelo resultado em Pokédólares e o equivalente em fichas (5 ₽ por ficha).
+- Em derrota ou abandono, o Pokémon apostado é perdido. Favoritos e o último Pokémon da coleção são protegidos.
 
 ## Downloads para Windows x64
 

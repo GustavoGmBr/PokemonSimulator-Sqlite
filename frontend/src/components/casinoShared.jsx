@@ -12,6 +12,7 @@ export const betLabel = bet => bet.multiplicador !== undefined ? factor(bet.mult
           : bet.tipo === 'faixa' ? (bet.faixa === 'baixa' ? '1 a 18' : '19 a 36')
             : bet.tipo === 'duzia' ? `${bet.duzia}ª dúzia` : bet.cor;
 export const roundToken = round => ({ rodadaId:round.id, versao:round.versao });
+export const pokemonStake = pokemonId => pokemonId ? { pokemonAposta:{ pokemonId } } : {};
 export const pause = ms => new Promise(resolve => setTimeout(resolve, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : ms));
 export const validBet = value => Number.isInteger(Number(value)) && Number(value) >= 5 && Number(value) <= 20_000_000;
 export function NumberInput({ label, value, onChange, min=1, max=20_000_000 }) {

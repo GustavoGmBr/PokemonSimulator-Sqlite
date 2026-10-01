@@ -23,7 +23,7 @@ export function PokemonWagerPicker({ members, market, catalog, selectedId, onSel
   const selected = members.find((member) => member.id === selectedId);
   return <div className="casino-pokemon-wager">
     <h3>Apostar um Pokémon da coleção</h3>
-    <p>O Pokémon sai da coleção ao girar, mesmo se você perder. Favoritos são protegidos contra apostas. Em caso de acerto, o prêmio em Pokédólares é o valor de venda multiplicado pelo prêmio do palpite escolhido (2×, 3×, 4× ou 36×).</p>
+    <p>O Pokémon sai da coleção ao girar, mesmo se você perder. Favoritos são protegidos contra apostas. Em caso de acerto, você recebe o valor multiplicado pelo palpite em Pokédólares e também em fichas (5 ₽ equivalem a 1 ficha).</p>
     <div className="casino-wager-filters">
       <label>Buscar por nome ou Nº Dex<input type="search" value={search} onChange={(event) => { setSearch(event.target.value); setVisibleCount(48); }} placeholder="Nome ou número" /></label>
       <NumberInput label="Valor mínimo (₽)" value={minValue} onChange={(value) => { setMinValue(value); setVisibleCount(48); }} min={0} />

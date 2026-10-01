@@ -3,7 +3,7 @@ import { createCasinoGames, publicCasinoRound } from './casinoGames.js';
 import { SLOT_SYMBOLS, SLOT_WEIGHTS, SLOT_LINES, ROULETTE_ORDER, FORTUNE_SEGMENTS, PIPLUP_MULTIPLIERS, PIPLUP_CHANCES, RACERS, weightedIndex, slotPayout, rouletteResult, rouletteMultiplier } from './casinoRules.js';
 export { slotPayout, rouletteMultiplier } from './casinoRules.js';
 import { HttpError } from '../lib/errors.js';
-import { getCatalogo } from './catalogo.js';
+import { getCatalogo, getEspecie } from './catalogo.js';
 import { pokemonSaleValue } from './market.js';
 
 export const CASINO_CHIP_COST = 5;
@@ -36,7 +36,30 @@ export function createCasinoService(db, { rng = randomInt } = {}) {
   function ensureRoom(save, bet, maximum) {
     checkBalance(save.fichas - bet + Math.floor(bet * maximum));
   }
-  const games = createCasinoGames(db, { saveFor, checkBet, checkBalance, ensureRoom, assertNoRound, rng });
+  async function preparePokemonWager(tx, save, pokemonId) {
+    if (!pokemonId) return null;
+    const [member, count, battle] = await Promise.all([
+      tx.pokemonCapturado.findFirst({ where: { id: pokemonId, saveId: save.id } }),
+      tx.pokemonCapturado.count({ where: { saveId: save.id } }),
+      tx.batalha.findUnique({ where: { saveId: save.id }, select: { id: true } }),
+    ]);
+    if (!member) throw new HttpError(404, 'Pokémon apostado não encontrado.');
+    if (member.favorito) throw new HttpError(409, 'Remova a marca de favorito antes de apostar este Pokémon.');
+    if (count <= 1) throw new HttpError(409, 'Mantenha pelo menos um Pokémon na coleção.');
+    if (battle) throw new HttpError(409, 'Encerre a batalha antes de apostar Pokémon.');
+    return { pokemonId: member.id, especieId: member.especieId, nome: getEspecie(member.especieId).nomeExibicao, valorBase: pokemonSaleValue(member) };
+  }
+  async function resolvePokemonWager(tx, save, wager, multiplier) {
+    if (!wager) return null;
+    const payoutMultiplier = Number.isFinite(multiplier) && multiplier > 0 ? multiplier : 0;
+    const ganho = Math.floor(wager.valorBase * payoutMultiplier);
+    const fichas = Math.floor(ganho / CASINO_CHIP_COST);
+    return { pokemonId: wager.pokemonId, nome: wager.nome, valorBase: wager.valorBase, multiplicador: payoutMultiplier, ganho, fichas };
+  }
+  async function consumePokemonWager(tx, wager) {
+    if (wager) await tx.pokemonCapturado.delete({ where: { id: wager.pokemonId } });
+  }
+  const games = createCasinoGames(db, { saveFor, checkBet, checkBalance, ensureRoom, assertNoRound, preparePokemonWager, consumePokemonWager, resolvePokemonWager, rng });
   return {
     async overview(usuarioId) {
       return db.$transaction(async tx => {
@@ -75,16 +98,21 @@ export function createCasinoService(db, { rng = randomInt } = {}) {
         return { custo: cost, fichas: save.fichas - cost };
       }, { isolationLevel: 'Serializable' });
     },
-    async slots(usuarioId, aposta) {
+    async slots(usuarioId, aposta, pokemonId) {
       return db.$transaction(async (tx) => {
         const save = await saveFor(tx, usuarioId);
         checkBet(save, aposta);
         await assertNoRound(tx, save); ensureRoom(save, aposta, 500);
+        const pokemonWager = await preparePokemonWager(tx, save, pokemonId);
         const symbols = Array.from({ length: 9 }, () => SLOT_SYMBOLS[weightedIndex(SLOT_WEIGHTS, rng)]);
         const result = slotPayout(symbols, aposta);
-        checkBalance(save.fichas - aposta + result.premio);
-        await tx.save.update({ where: { id: save.id }, data: { fichas: save.fichas - aposta + result.premio } });
-        return { simbolos: symbols, aposta, ...result, fichas: save.fichas - aposta + result.premio };
+        await consumePokemonWager(tx, pokemonWager);
+        const pokemonPremio = await resolvePokemonWager(tx, save, pokemonWager, result.premio / aposta);
+        const fichas = save.fichas - aposta + result.premio + (pokemonPremio?.fichas ?? 0);
+        const moedas = save.moedas + (pokemonPremio?.ganho ?? 0);
+        checkBalance(fichas); checkBalance(moedas);
+        await tx.save.update({ where: { id: save.id }, data: { fichas, moedas } });
+        return { simbolos: symbols, aposta, ...result, pokemonAposta: pokemonWager, pokemonPremio, fichas, moedas };
       }, { isolationLevel: 'Serializable' });
     },
     async roulette(usuarioId, bets, pokemonWager) {
@@ -96,25 +124,17 @@ export function createCasinoService(db, { rng = randomInt } = {}) {
         const result = rouletteResult(rng(37));
         const details = bets.map((bet) => ({ ...bet, premio: bet.valor * rouletteMultiplier(result, bet) }));
         const premio = details.reduce((sum, bet) => sum + bet.premio, 0);
-        let pokemonPremio = null;
+        let pokemonPremio = null, pokemonStake = null;
         if (pokemonWager) {
-          const [member, count, battle] = await Promise.all([
-            tx.pokemonCapturado.findFirst({ where: { id: pokemonWager.pokemonId, saveId: save.id } }),
-            tx.pokemonCapturado.count({ where: { saveId: save.id } }),
-            tx.batalha.findUnique({ where: { saveId: save.id }, select: { id: true } }),
-          ]);
-          if (!member) throw new HttpError(404, 'Pokémon apostado não encontrado.');
-          if (member.favorito) throw new HttpError(409, 'Remova a marca de favorito antes de apostar este Pokémon.');
-          if (count <= 1) throw new HttpError(409, 'Mantenha pelo menos um Pokémon na coleção.');
-          if (battle) throw new HttpError(409, 'Encerre a batalha antes de apostar Pokémon.');
+          pokemonStake = await preparePokemonWager(tx, save, pokemonWager.pokemonId);
           const multiplier = rouletteMultiplier(result, pokemonWager);
-          pokemonPremio = { pokemonId: member.id, valorBase: pokemonSaleValue(member), multiplicador: multiplier, ganho: Math.floor(pokemonSaleValue(member) * multiplier) };
-          checkBalance(save.moedas + pokemonPremio.ganho);
-          await tx.pokemonCapturado.delete({ where: { id: member.id } });
+          await consumePokemonWager(tx, pokemonStake);
+          pokemonPremio = await resolvePokemonWager(tx, save, pokemonStake, multiplier);
         }
-        checkBalance(save.fichas - total + premio);
-        await tx.save.update({ where: { id: save.id }, data: { fichas: save.fichas - total + premio, moedas: save.moedas + (pokemonPremio?.ganho ?? 0) } });
-        return { resultado: result, apostas: details, custo: total, premio, pokemonPremio, fichas: save.fichas - total + premio, moedas: save.moedas + (pokemonPremio?.ganho ?? 0) };
+        const fichas = save.fichas - total + premio + (pokemonPremio?.fichas ?? 0), moedas = save.moedas + (pokemonPremio?.ganho ?? 0);
+        checkBalance(fichas); checkBalance(moedas);
+        await tx.save.update({ where: { id: save.id }, data: { fichas, moedas } });
+        return { resultado: result, apostas: details, custo: total, premio, pokemonAposta: pokemonStake, pokemonPremio, fichas, moedas };
       }, { isolationLevel: 'Serializable' });
     },
     ...games,

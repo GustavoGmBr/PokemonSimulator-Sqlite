@@ -1,4 +1,15 @@
 .casino-page { display:grid; gap:22px; }
+.casino-stake-picker { display:grid; gap:10px; padding:15px 17px; border:1px solid #6e8a67; border-radius:12px; background:linear-gradient(115deg,#20382a,#19291f); }
+.casino-stake-picker summary { display:flex; align-items:center; gap:9px; color:#f2eab5; font-weight:750; cursor:pointer; }
+.casino-stake-picker summary span { padding:3px 7px; border:1px solid #627d52; border-radius:99px; color:#c2d39f; font-size:10px; font-weight:600; }
+.casino-stake-picker > p,.casino-stake-picker > small { color:#bdcbb1; font-size:12px; }
+.casino-stake-picker label { display:grid; gap:6px; max-width:520px; color:#d8e2c9; font-size:12px; }
+.casino-stake-picker select { width:100%; min-height:42px; padding:9px 11px; border:1px solid #66835e; border-radius:8px; background:#122018; color:#fff; font:inherit; }
+.casino-stake-picker select:disabled { opacity:.6; }
+.casino-stake-value { color:#f4df92 !important; }
+.casino-pokemon-prize { padding:12px 15px; border:1px solid #77804a; border-radius:10px; background:#343d26; color:#f7e9a7; font-weight:700; }
+.casino-pokemon-prize.won { border-color:#80a468; background:#243d2a; color:#d7f0ae; }
+.casino-pokemon-prize.lost { border-color:#a36555; background:#3a2927; color:#f0b5a0; }
 .casino-wallet { display:flex; flex-wrap:wrap; gap:12px; }
 .casino-wallet > div, .casino-panel, .shop-cart { background:#1c2b22; border:1px solid #506b4e; border-radius:15px; padding:18px; }
 .casino-wallet > div { min-width:175px; display:grid; gap:4px; color:#c6d7bc; }
