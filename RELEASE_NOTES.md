@@ -1,7 +1,7 @@
-## Pokémon Simulator SQLite v0.5.9
+## Pokémon Simulator SQLite v0.5.10
 
-- A tela do Voltorb Flip agora destaca que completar uma linha dobra o prêmio em 2×.
-- A explicação deixa claro que 5× é o valor de uma carta, e não o bônus de linha.
+- Caça-níquel: a chance de espaço vazio caiu de 25% para 20%, e a chance individual do Ditto subiu de 5% para 10%.
+- Pokémon Race: o prêmio por acertar o vencedor aumentou de 4× para 6×, incluindo fichas e prêmio de aposta Pokémon.
 
 ## Downloads para Windows x64
 

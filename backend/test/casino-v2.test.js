@@ -123,13 +123,13 @@ test('queda do Piplup perde a entrada e impede sacar a mesma rodada', async () =
   assert.equal(end.resultado,'queda'); assert.equal(await balance(),9900);
   await assert.rejects(casino.actPiplup(user(), { ...token(rodada), acao:'sacar' }), /rodada mudou/);
 });
-test('corrida move cinco Pokémon e paga 4× apenas ao escolhido vencedor', async () => {
+test('corrida move cinco Pokémon e paga 6× apenas ao escolhido vencedor', async () => {
   const data = raceResult(() => 0); assert.equal(data.vencedor,0); assert.equal(data.quadros.at(-1)[0],100);
   assert.ok(data.quadros.at(-1).slice(1).every(position => position < 100));
   const casino = service(() => 0);
-  assert.equal((await casino.race(user(),100,0)).premio,400);
+  assert.equal((await casino.race(user(),100,0)).premio,600);
   assert.equal((await casino.race(user(),100,1)).premio,0);
-  assert.equal(await balance(),10200);
+  assert.equal(await balance(),10400);
 });
 test('Fortune usa segmentos proporcionais e paga o multiplicador sorteado', async () => {
   assert.equal(FORTUNE_SEGMENTS.reduce((sum,s) => sum+s.peso,0),100);

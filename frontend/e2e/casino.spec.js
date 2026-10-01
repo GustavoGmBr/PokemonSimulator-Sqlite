@@ -134,6 +134,8 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await snapshot(page,info,'pokejack');
 
   await page.getByRole('tab',{name:'Pokémon Race'}).click();
+  await expect(page.getByText('Vencedor: 6×',{exact:true})).toBeVisible();
+  await expect(page.locator('.casino-panel')).toContainText('Você recebe 6× a aposta');
   await page.getByRole('button',{name:'Largar corrida'}).click();
   await expect(page.locator('.race-countdown')).toBeVisible();
   await expect(page.locator('.casino-result-toast')).toBeVisible();

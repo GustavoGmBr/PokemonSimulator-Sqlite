@@ -103,7 +103,7 @@ test('Pokémon Race credita ambos os prêmios ao acertar o vencedor', async () =
   const pokemon = await addWagerPokemon(), value = pokemonSaleValue(pokemon);
   const result = await service(max => max - 1).race(user(), 0, 4, pokemon.id);
   assert.equal(result.vencedor, 4);
-  await assertPokemonPrize(result, value, 4);
+  await assertPokemonPrize(result, value, 6);
 });
 
 test('Wheel of Fortune usa o multiplicador sorteado no prêmio Pokémon', async () => {

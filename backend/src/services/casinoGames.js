@@ -107,11 +107,11 @@ export function createCasinoGames(db, { saveFor, checkBet, checkBalance, ensureR
     },
     async race(usuarioId, aposta, pokemon, pokemonId) {
       return transaction(async tx => {
-        const save = await saveFor(tx, usuarioId); await assertNoRound(tx, save); checkBet(save, aposta); ensureRoom(save, aposta, 4);
+        const save = await saveFor(tx, usuarioId); await assertNoRound(tx, save); checkBet(save, aposta); ensureRoom(save, aposta, 6);
         const wager = await preparePokemonWager(tx, save, pokemonId);
-        const race = raceResult(rng), premio = race.vencedor === pokemon ? aposta * 4 : 0;
+        const race = raceResult(rng), premio = race.vencedor === pokemon ? aposta * 6 : 0;
         await consumePokemonWager(tx, wager);
-        const pokemonPremio = await resolvePokemonWager(tx, save, wager, race.vencedor === pokemon ? 4 : 0);
+        const pokemonPremio = await resolvePokemonWager(tx, save, wager, race.vencedor === pokemon ? 6 : 0);
         const fichas = save.fichas - aposta + premio + (pokemonPremio?.fichas ?? 0), moedas = save.moedas + (pokemonPremio?.ganho ?? 0);
         checkBalance(fichas); checkBalance(moedas);
         await tx.save.update({ where: { id: save.id }, data: { fichas, moedas } });
