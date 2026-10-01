@@ -1,8 +1,10 @@
-## Pokémon Simulator SQLite v0.4.1
+## Pokémon Simulator SQLite v0.5.0
 
-- Corrigido o contador de renovação do Mercado Pokémon: agora exibe horas, minutos e segundos em vez de `NaN:NaN:NaN`.
-- Adicionado botão para trocar o estoque imediatamente por 10.000 Pokédólares. A cobrança e a geração do novo estoque são feitas juntas e o saldo atualizado aparece na tela.
-- A renovação automática de seis horas e as regras de raridade, preço e desafios permanecem iguais.
+- Voltorb Flip now has 6 Voltorbs. Turning one over ends the game and loses the entire wager.
+- The 0☆ IV rating is larger and more visible in wild Pokémon encounters.
+- Redesigned the trainer profile with overall progress, region tabs, badge and challenge status, and save management.
+- The Pokémon market now offers 12 Pokémon per refresh, including for existing saves.
+- Fixed the market renewal countdown and added an optional stock refresh for 10,000 Pokédólares.
 
 ## Downloads para Windows x64
 

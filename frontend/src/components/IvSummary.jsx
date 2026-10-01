@@ -1,8 +1,8 @@
 import { IV_STATS, normalizeIvs, ivQuality } from '../lib/ivs';
 
-export function IvStars({ ivs, showPerfectMarker = false }) {
+export function IvStars({ ivs, showPerfectMarker = false, emphasizeZero = false }) {
   const quality = ivQuality(ivs);
-  return <span className={`iv-stars ${quality.stars === 4 ? 'iv-perfect' : ''}`} aria-label={`Qualidade IV: ${quality.stars} estrelas`}>{quality.stars === 0 ? '0☆' : '⭐'.repeat(quality.stars)}{showPerfectMarker && quality.stars === 4 ? ' 🔴' : ''}</span>;
+  return <span className={`iv-stars ${quality.stars === 4 ? 'iv-perfect' : ''} ${emphasizeZero && quality.stars === 0 ? 'iv-zero-emphasis' : ''}`} aria-label={`Qualidade IV: ${quality.stars} estrelas`}>{quality.stars === 0 ? '0☆' : '⭐'.repeat(quality.stars)}{showPerfectMarker && quality.stars === 4 ? ' 🔴' : ''}</span>;
 }
 
 export function IvSummary({ ivs }) {

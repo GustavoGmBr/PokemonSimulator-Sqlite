@@ -9,7 +9,7 @@ import { naturalMoves } from './moveRules.js';
 
 const ballPrices = { 'poke-ball': 200, 'great-ball': 600, 'ultra-ball': 1200 };
 const SHOP_REFRESH_MS = 6 * 60 * 60 * 1000;
-const SHOP_SIZE = 10;
+const SHOP_SIZE = 12;
 const SHOP_SHINY_DENOMINATOR = 4086;
 
 function rollShopShiny(rng, rolls) {
@@ -28,11 +28,12 @@ export function pokemonSaleValue(member) {
 }
 
 export function createMarketService(db, { rng = randomInt, now = Date.now } = {}) {
-  function makeStock(completed, hasCharm, period) {
+  function makeStock(completed, hasCharm, period, size = SHOP_SIZE, excludedSpecies = []) {
     const catalog = getCatalogo();
-    const available = catalog.pokemon.filter(species => legendaryUnlocked(species, completed));
+    const excluded = new Set(excludedSpecies);
+    const available = catalog.pokemon.filter(species => !excluded.has(species.id) && legendaryUnlocked(species, completed));
     const list = [];
-    while (list.length < SHOP_SIZE && available.length) {
+    while (list.length < size && available.length) {
       const species = available.splice(rng(available.length), 1)[0];
       const generation = generationForSpecies(species.id);
       const region = REGIONS.find(entry => entry.geracao === generation && species.id >= entry.minSpecies && species.id <= entry.maxSpecies);
@@ -59,6 +60,12 @@ export function createMarketService(db, { rng = randomInt, now = Date.now } = {}
     if (!record || record.periodo !== period) {
       const estado = makeStock(completed, charm?.quantidade > 0, period);
       record = await tx.lojaPokemonEstoque.upsert({ where: { saveId: save.id }, create: { saveId: save.id, periodo: period, estado }, update: { periodo: period, estado } });
+    } else if (record.estado.pokemons.length < SHOP_SIZE) {
+      const existing = record.estado.pokemons;
+      const missing = SHOP_SIZE - existing.length;
+      const extra = makeStock(completed, charm?.quantidade > 0, period, missing, existing.map(entry => entry.especieId));
+      const estado = { ...record.estado, pokemons: [...existing, ...extra.pokemons] };
+      record = await tx.lojaPokemonEstoque.update({ where: { saveId: save.id }, data: { estado } });
     }
     return { record, completed, hasCharm: charm?.quantidade > 0, renovaEm: new Date((period + 1) * SHOP_REFRESH_MS).toISOString(), restanteMs: (period + 1) * SHOP_REFRESH_MS - now() };
   }

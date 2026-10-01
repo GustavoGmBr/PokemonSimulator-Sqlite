@@ -51,11 +51,17 @@ export function MarketPage() {
   if (!save.data.inicialEspecieId) return <Navigate to="/inicial" replace />;
 
   const stock = shop.data;
-  const refreshAt = Date.parse(stock.renovaEm);
-  const timeLeft = Number.isFinite(refreshAt) ? Math.max(0, refreshAt - now) : 0;
-  const hours = String(Math.floor(timeLeft / 3_600_000)).padStart(2, '0');
-  const minutes = String(Math.floor(timeLeft % 3_600_000 / 60_000)).padStart(2, '0');
-  const seconds = String(Math.floor(timeLeft % 60_000 / 1000)).padStart(2, '0');
+  const refreshAt = typeof stock.renovaEm === 'string' ? Date.parse(stock.renovaEm) : NaN;
+  const serverRemaining = Number(stock.restanteMs);
+  const elapsedSinceFetch = Math.max(0, now - (shop.dataUpdatedAt || now));
+  const timeLeft = Number.isFinite(refreshAt)
+    ? Math.max(0, refreshAt - now)
+    : Number.isFinite(serverRemaining)
+      ? Math.max(0, serverRemaining - elapsedSinceFetch)
+      : null;
+  const hours = timeLeft === null ? '--' : String(Math.floor(timeLeft / 3_600_000)).padStart(2, '0');
+  const minutes = timeLeft === null ? '--' : String(Math.floor(timeLeft % 3_600_000 / 60_000)).padStart(2, '0');
+  const seconds = timeLeft === null ? '--' : String(Math.floor(timeLeft % 60_000 / 1000)).padStart(2, '0');
 
   return <div className="market-page">
     <PageTitle label="MERCADO POKÉMON" title="Encontre novos parceiros.">Compre Pokémon com Pokédólares ou venda exemplares da sua coleção.</PageTitle>
@@ -64,7 +70,7 @@ export function MarketPage() {
       <button type="button" role="tab" aria-selected={tab === 'vender'} className={tab === 'vender' ? 'active' : ''} onClick={() => setTab('vender')}>Vender Pokémon</button>
     </div>
     {tab === 'comprar' ? <section className="pokemon-shop">
-      <div className="pokemon-shop-heading"><div><h2>Estoque de Pokémon</h2><p>Dez Pokémon novos aparecem a cada seis horas. Todos chegam com pelo menos duas estrelas de IV.</p></div><div className="pokemon-shop-tools"><span className="shop-countdown">Próxima atualização automática <strong>{hours}:{minutes}:{seconds}</strong></span><span className="shop-balance">Saldo: <strong>{money(stock.moedas)} ₽</strong></span><button className="shop-refresh-button" type="button" disabled={Boolean(busyId) || stock.moedas < 10_000} onClick={refreshPokemon}>{busyId === 'refresh' ? 'Atualizando…' : 'Atualizar estoque · 10.000 ₽'}</button></div></div>
+      <div className="pokemon-shop-heading"><div><h2>Estoque de Pokémon</h2><p>Doze Pokémon novos aparecem a cada seis horas. Todos chegam com pelo menos duas estrelas de IV.</p></div><div className="pokemon-shop-tools"><span className="shop-countdown">Próxima atualização automática <strong>{hours}:{minutes}:{seconds}</strong></span><span className="shop-balance">Saldo: <strong>{money(stock.moedas)} ₽</strong></span><button className="shop-refresh-button" type="button" disabled={Boolean(busyId) || stock.moedas < 10_000} onClick={refreshPokemon}>{busyId === 'refresh' ? 'Atualizando…' : 'Atualizar estoque · 10.000 ₽'}</button></div></div>
       {error && <p role="alert" className="battle-error">{error}</p>}
       <div className="pokemon-shop-grid">{stock.pokemons.map(item => {
         const species = speciesById.get(item.especieId);
