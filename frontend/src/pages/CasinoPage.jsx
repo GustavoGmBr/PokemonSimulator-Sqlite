@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Coins, Ticket } from 'lucide-react';
@@ -6,7 +6,7 @@ import { api, assetUrl } from '../lib/api';
 import { useCatalogo, useColecao, useSave } from '../lib/queries';
 import { Failure, Loading, PageTitle } from '../components/common';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { CasinoResultDialog } from '../components/CasinoResultDialog';
+import { CasinoResultToast } from '../components/CasinoResultToast';
 import { PokemonWagerPicker } from '../components/CasinoWagerPicker';
 import { NumberInput, money, roundToken } from '../components/casinoShared';
 import { SlotGame, RouletteGame, VoltorbGame } from '../components/CasinoTables';
@@ -29,6 +29,7 @@ export function CasinoPage() {
   const values=useQuery({ queryKey:['sale-values',save.data?.usuarioId,save.data?.id],queryFn:()=>api('/jogador/pokemon/valores-venda'),enabled:Boolean(save.data?.inicialEspecieId) });
   const [tab,setTab]=useState('slots'),[chips,setChips]=useState('10'),[bet,setBet]=useState('5'),[result,setResult]=useState(null),[resultOpen,setResultOpen]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[itemAmounts,setItemAmounts]=useState({}),[abandon,setAbandon]=useState(false),[pokemonWagerId,setPokemonWagerId]=useState('');
   const pending=useRef(false);
+  const dismissResult=useCallback(()=>setResultOpen(false),[]);
   useEffect(()=>{
     const round=casino.data?.rodada;
     if(round) setTab(games.find(g=>g.route===round.jogo)?.id ?? 'slots');
@@ -69,6 +70,6 @@ export function CasinoPage() {
     {game.id !== 'shop' && !wallet.rodada && game.id !== 'roulette' && <details className="casino-stake-picker"><summary>Apostar um Pokémon da coleção <span>Opcional</span></summary><PokemonWagerPicker members={collection.data ?? []} catalog={catalog.data} market={new Map((values.data ?? []).map(entry=>[entry.pokemonId,entry.valor]))} selectedId={pokemonWagerId} onSelect={setPokemonWagerId} busy={busy} /></details>}
     <div id="casino-game-panel" role="tabpanel" aria-labelledby={`casino-tab-${tab}`}>{Component ? <Component wallet={wallet} bet={bet} setBet={setBet} busy={busy} play={play} result={result?.jogo===game.route ? result : null} members={collection.data ?? []} catalog={catalog.data} market={new Map((values.data ?? []).map(entry=>[entry.pokemonId,entry.valor]))} pokemonWagerId={pokemonWagerId} setPokemonWagerId={setPokemonWagerId} /> : <section className="casino-panel"><h2>Loja de fichas</h2><p>Troque fichas por Poké Bolas, incluindo Master Bola, itens de cura e essências de IV.</p><div className="casino-items">{wallet.itens.map(item=><div key={item.itemId}><img src={assetUrl(item.sprite)} alt="" /><strong>{item.nome}</strong><span>{money(item.preco)} fichas</span><NumberInput label="Quantidade" value={itemAmounts[item.itemId] ?? '0'} onChange={value=>setItemAmounts(current=>({ ...current,[item.itemId]:value }))} min={0} max={999} /></div>)}</div><p>Compras selecionadas: {cart.reduce((sum,line)=>sum+line.quantidade,0)} · total {money(cost)} fichas</p><button disabled={busy || !cart.length || cost>wallet.fichas || cart.some(line=>!Number.isInteger(line.quantidade) || line.quantidade>999)} onClick={async()=>{if(await play('itens',{ itens:cart }))setItemAmounts({});}}>Comprar itens</button></section>}</div>
     <ConfirmDialog open={abandon} onOpenChange={setAbandon} onConfirm={async()=>{if(await play('rodada/desistir',roundToken(wallet.rodada)))setAbandon(false);}} pending={busy} error={error} title="Abandonar a rodada?" description="A entrada desta rodada será perdida, sem prêmio. Para receber o acumulado do Piplup, use o botão Sacar na mesa." confirmLabel="Abandonar e perder entrada" destructive />
-    <CasinoResultDialog open={resultOpen} onOpenChange={setResultOpen} result={result} racers={wallet.regras.corredores} />
+    <CasinoResultToast open={resultOpen} onDismiss={dismissResult} result={result} racers={wallet.regras.corredores} />
   </div>;
 }

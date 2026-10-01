@@ -1,9 +1,7 @@
-## Pokémon Simulator SQLite v0.5.4
+## Pokémon Simulator SQLite v0.5.5
 
-- As missões agora também entregam fichas de cassino, além de Pokédólares e itens.
-- Ditto voltou ao caça-níquel como coringa: completa uma trinca ao acompanhar dois símbolos iguais; três Ditto pagam 5×.
-- A aposta de Pokémon usa o seletor visual com busca, filtros de valor, ordenação e proteção de favoritos em todos os jogos, seguindo o padrão da roleta.
-- Os resultados de rodadas e compras do Pokécassino agora aparecem em uma janela popup com prêmios, apostas e saldo atualizado.
+- Os resultados do Pokécassino agora aparecem como notificações toast animadas, sem interromper a partida.
+- As notificações destacam prêmio, aposta, fichas, saldo e Pokémon ganhos ou perdidos; ficam visíveis por até 12 segundos e pausam quando o jogador passa o mouse ou navega até elas.
 
 ## Downloads para Windows x64
 

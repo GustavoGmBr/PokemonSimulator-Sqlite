@@ -38,8 +38,8 @@ async function enter(page) {
   await expect(page.getByRole('heading',{name:'A sorte está lançada.'})).toBeVisible();
 }
 async function dismissCasinoResult(page) {
-  const dialog=page.locator('.casino-result-dialog');
-  if(await dialog.isVisible()) await dialog.getByRole('button',{name:'Continuar'}).click();
+  const dialog=page.locator('.casino-result-toast');
+  if(await dialog.isVisible()) await dialog.getByRole('button',{name:'Fechar notificação'}).click();
 }
 async function snapshot(page,info,name) {
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -58,12 +58,12 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await page.getByRole('button',{name:/Apostar Pikachu/}).click();
   await page.getByLabel('Comprar fichas · 5 ₽ cada').fill('1000');
   await page.getByRole('button',{name:'Comprar · 5.000 ₽'}).click();
-  await expect(page.locator('.casino-result-dialog')).toContainText('Compra realizada');
+  await expect(page.locator('.casino-result-toast')).toContainText('Compra realizada');
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-wallet')).toContainText('1.000');
   await page.getByRole('button',{name:'Girar',exact:true}).click();
   await expect(page.locator('.slot-machine')).toHaveClass(/slots-rolling/);
-  await expect(page.locator('.casino-result-dialog')).toBeVisible();
+  await expect(page.locator('.casino-result-toast')).toBeVisible();
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-result')).toContainText('retorno:');
   await expect(page.locator('.slot-reel')).toHaveCount(3);
@@ -79,7 +79,7 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await expect(page.getByRole('button',{name:/Favorito protegido Bulbasaur/})).toBeDisabled();
   await page.getByRole('button',{name:/Apostar Pikachu/}).click();
   await page.getByRole('button',{name:/Girar roleta/}).click();
-  await expect(page.locator('.casino-result-dialog')).toBeVisible();
+  await expect(page.locator('.casino-result-toast')).toBeVisible();
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-result')).toContainText('Número');
   expect(await db.pokemonCapturado.findUnique({where:{id:wagered.id}})).toBeNull();
@@ -98,7 +98,7 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
     await page.getByRole('button',{name:`Carta Voltorb ${i}`,exact:true}).click();
     await expect(page.locator('.voltorb-progress')).toContainText(`${i} de até 5`);
   }
-  await expect(page.locator('.casino-result-dialog')).toBeVisible();
+  await expect(page.locator('.casino-result-toast')).toBeVisible();
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-result')).toContainText('Linha completa');
   await expect(page.locator('.casino-result')).toContainText('retorno: 75 fichas');
@@ -115,7 +115,7 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await page.reload();await expect(page.getByRole('heading',{name:'Pokejack',exact:true})).toBeVisible();
   await expect(page.locator('.card-hidden')).toHaveCount(1);
   await page.getByRole('button',{name:/Dobrar ·/}).click();
-  await expect(page.locator('.casino-result-dialog')).toBeVisible();
+  await expect(page.locator('.casino-result-toast')).toBeVisible();
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-result')).toContainText('Você venceu');
   await expect(page.locator('.casino-result')).toContainText('retorno: 20 fichas');
@@ -125,7 +125,7 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await page.getByRole('tab',{name:'Pokémon Race'}).click();
   await page.getByRole('button',{name:'Largar corrida'}).click();
   await expect(page.locator('.race-countdown')).toBeVisible();
-  await expect(page.locator('.casino-result-dialog')).toBeVisible();
+  await expect(page.locator('.casino-result-toast')).toBeVisible();
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-result')).toContainText('venceu!');
   await expect(page.locator('.race-runner')).toHaveCount(5);
@@ -135,7 +135,7 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await page.getByRole('tab',{name:'Wheel of Fortune'}).click();
   await expect(page.locator('.fortune-picks > div')).toHaveCount(7);
   await page.getByRole('button',{name:/Girar fortuna/}).click();
-  await expect(page.locator('.casino-result-dialog')).toBeVisible();
+  await expect(page.locator('.casino-result-toast')).toBeVisible();
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-result')).toContainText('O ponteiro parou');
   await snapshot(page,info,'fortune');
@@ -151,7 +151,7 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
     await page.reload();
     await expect(page.getByRole('heading',{name:'Pula Piplup',exact:true})).toBeVisible();
     await page.getByRole('button',{name:/Sacar \d+ fichas/}).click();
-    await expect(page.locator('.casino-result-dialog')).toBeVisible();
+    await expect(page.locator('.casino-result-toast')).toBeVisible();
     await dismissCasinoResult(page);
     await expect(page.locator('.casino-result')).toContainText('Saque realizado');
   } else await expect(page.locator('.casino-result')).toContainText('Piplup caiu');
@@ -159,7 +159,7 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await page.getByRole('tab',{name:'Loja de fichas'}).click();
   const ball=page.locator('.casino-items > div').filter({has:page.getByText('Poké Bola',{exact:true})});
   await ball.getByLabel('Quantidade').fill('2');await page.getByRole('button',{name:'Comprar itens'}).click();
-  await expect(page.locator('.casino-result-dialog')).toBeVisible();
+  await expect(page.locator('.casino-result-toast')).toBeVisible();
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-panel')).toContainText('Compras selecionadas: 0');
   expect((await db.itemInventario.findUnique({where:{saveId_itemId:{saveId:save.id,itemId:'poke-ball'}}})).quantidade).toBe(12);
@@ -170,10 +170,10 @@ test('animações reduzidas mantêm o resultado e a interface utilizável',async
   await page.emulateMedia({ reducedMotion:'reduce' });await enter(page);
   await page.getByLabel('Comprar fichas · 5 ₽ cada').fill('100');
   await page.getByRole('button',{name:'Comprar · 500 ₽'}).click();
-  await expect(page.locator('.casino-result-dialog')).toBeVisible();
+  await expect(page.locator('.casino-result-toast')).toBeVisible();
   await dismissCasinoResult(page);
   await page.getByRole('button',{name:'Girar',exact:true}).click();
-  await expect(page.locator('.casino-result-dialog')).toBeVisible();
+  await expect(page.locator('.casino-result-toast')).toBeVisible();
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-result')).toContainText('retorno:');
   expect(await page.locator('.slot-strip').first().evaluate(el=>getComputedStyle(el).transitionDuration)).toBe('0s');
@@ -189,7 +189,7 @@ test('animações reduzidas mantêm o resultado e a interface utilizável',async
   expect(await scene.evaluate(el=>{const actor=el.querySelector('.piplup-actor').getBoundingClientRect(),bounds=el.getBoundingClientRect();return actor.left>=bounds.left && actor.right<=bounds.right;})).toBe(true);
   await page.getByRole('button',{name:'Abandonar rodada',exact:true}).click();
   await page.getByRole('button',{name:'Abandonar e perder entrada',exact:true}).click();
-  await expect(page.locator('.casino-result-dialog')).toBeVisible();
+  await expect(page.locator('.casino-result-toast')).toBeVisible();
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-result')).toContainText('Rodada abandonada');
   await expect(page.locator('.casino-active-round')).toHaveCount(0);
