@@ -17,7 +17,7 @@ const rewardNames = { 'rare-candy': 'Doce Raro', 'exp-candy-p': 'Doce EXP P', 'e
 const healNames = { potion: 'Poção', 'super-potion': 'Superpoção', 'hyper-potion': 'Hiperpoção', 'max-potion': 'Poção Máxima', 'full-restore': 'Restauração Total', revive: 'Reviver', 'max-revive': 'Reviver Máximo' };
 function Life({ name, combatant, wildEncounter = false }) {
   const percent = Math.max(0, Math.min(100, combatant.hp / combatant.maxHp * 100));
-  return <div className="battle-life"><div><strong>{name}{combatant.shiny ? <Sparkles size={14} aria-label="Shiny" /> : null}</strong><span>Nv. {combatant.nivel}</span></div><IvStars ivs={combatant.ivs} emphasizeZero={wildEncounter} /><div className="battle-life-types">{combatant.tipos.map((type) => <TypeBadge key={type} type={type} />)}</div><div className="battle-life-track"><span style={{ width: `${percent}%`, background: percent < 20 ? '#e47b6c' : percent < 50 ? '#eac86f' : '#a8db75' }} /></div><small>HP {combatant.hp} / {combatant.maxHp}</small></div>;
+  return <div className="battle-life"><div><strong>{name}{combatant.shiny ? <Sparkles size={14} aria-label="Shiny" /> : null}</strong><span>Nv. {combatant.nivel}</span></div><IvStars ivs={combatant.ivs} hideZero={wildEncounter} /><div className="battle-life-types">{combatant.tipos.map((type) => <TypeBadge key={type} type={type} />)}</div><div className="battle-life-track"><span style={{ width: `${percent}%`, background: percent < 20 ? '#e47b6c' : percent < 50 ? '#eac86f' : '#a8db75' }} /></div><small>HP {combatant.hp} / {combatant.maxHp}</small></div>;
 }
 
 function ItemChoices({ label, items, names, selected, onSelect, busy }) {
@@ -108,6 +108,7 @@ export function BattlePage({ area = 'batalhas' }) {
   function toggleMember(id) { setSelected((current) => current.includes(id) ? current.filter((entry) => entry !== id) : current.length < teamLimit ? [...current, id] : [...current.slice(0, -1), id]); }
   return <>
     <PageTitle label={area === 'selvagens' ? 'ENCONTROS SELVAGENS · NOVE GERAÇÕES' : 'ARENA DE BATALHAS · DEZ CAMPANHAS'} title={area === 'selvagens' ? 'Explore a região.' : 'Escolha seu próximo desafio.'}>{area === 'selvagens' ? 'Defina o intervalo de níveis liberado pelos desafios. Ao vencer o campeão da região, escolha também a espécie.' : 'Enfrente treinadores, participe de torneios ou vença os desafios e campeões de cada região.'}</PageTitle>
+    {area === 'selvagens' && <details className="wild-iv-guide"><summary>O que significam as estrelas do Pokémon selvagem?</summary><p>As estrelas resumem a qualidade dos IVs: valores individuais que contribuem para os atributos do Pokémon. Mais estrelas indicam IVs totais melhores. A classificação não altera o nível nem o tipo do Pokémon.</p><div><span>⭐ 1 estrela: 91–120 pontos</span><span>⭐⭐ 2 estrelas: 121–150 pontos</span><span>⭐⭐⭐ 3 estrelas: 151–185 pontos</span><span>⭐⭐⭐⭐ 4 estrelas: 186 pontos · perfeito</span></div><small>Pokémon com 0 estrelas não exibem um indicador de estrelas.</small></details>}
     <div className="battle-toolbar"><span><Trophy size={16} /> Escolha uma região · Shiny base: <strong>1 em 4096</strong></span><SpriteControls mode={mode} setMode={changeMode} showShiny={false} /></div>
     {error && <p className="battle-error" role="alert">{error}</p>}
     {active ? <div className="battle-active">

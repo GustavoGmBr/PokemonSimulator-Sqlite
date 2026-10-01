@@ -41,6 +41,12 @@
 .wild-range-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .wild-range-fields label { display: grid; gap: 6px; font-size: 12px; color: #d1e3be; }
 .wild-range-fields input { width: 100%; padding: 9px; }
+.wild-iv-guide { margin:12px 0; padding:14px 16px; border:1px solid #526e4d; border-radius:11px; background:#17271d; color:#d8e4ce; }
+.wild-iv-guide summary { color:#f0e6ac; font-weight:700; cursor:pointer; }
+.wild-iv-guide p { margin:10px 0; line-height:1.5; }
+.wild-iv-guide > div { display:flex; flex-wrap:wrap; gap:7px; }
+.wild-iv-guide > div span { padding:6px 9px; border:1px solid #536d4c; border-radius:8px; background:#213729; font-size:12px; }
+.wild-iv-guide small { display:block; margin-top:10px; color:#b5c8aa; }
 .effectiveness { grid-column: 1 / -1; font-size: 10px; font-weight: 700; }.effectiveness-super { color: #a9e68c; }.effectiveness-neutral { color: #d4dbc9; }.effectiveness-weak { color: #e9af9b; }
 .profile-region { margin: 22px 0; padding: 22px; border: 1px solid #415737; border-radius: 14px; background: #1b2920; }.profile-region h3 { color: #b8d5a3; font-size: 12px; margin: 22px 0 13px; }.badge-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }.gym-badge { min-height: 145px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 12px; border: 1px solid #42513e; border-radius: 10px; opacity: .55; }.gym-badge.earned { opacity: 1; border-color: #c4df7c; background: #2b3c2a; }.badge-medal { width: 45px; height: 45px; display: grid; place-items: center; border-radius: 50%; background: #3b4b37; color: #becbaa; }.earned .badge-medal { color: #f6e39a; background: #615f34; box-shadow: 0 0 15px #f6dc7840; }.gym-badge strong { font-size: 11px; }.gym-badge small { color: #a9bd9d; font-size: 10px; }.elite-progress { display: flex; flex-wrap: wrap; gap: 8px; }.elite-progress span { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #45583e; padding: 8px 10px; border-radius: 7px; color: #9fac96; font-size: 10px; }.elite-progress .earned { border-color: #c4df7c; color: #e0f5b2; }
 @media (max-width: 680px) { .badge-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

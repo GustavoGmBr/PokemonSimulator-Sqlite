@@ -63,8 +63,16 @@ test('caça-níqueis converte o multiplicador das linhas para ₽ e fichas', asy
   const pokemon = await addWagerPokemon(), value = pokemonSaleValue(pokemon);
   const result = await service(() => 0).slots(user(), 10, pokemon.id);
   assert.equal(result.simbolos.every(symbol => symbol === 'mew'), true);
-  await assertPokemonPrize(result, value, 250);
+  await assertPokemonPrize(result, value, 400);
   assert.equal(await db.pokemonCapturado.findUnique({ where: { id: pokemon.id } }), null);
+});
+
+test('caça-níqueis aceita apostar somente o Pokémon, sem gastar fichas', async () => {
+  const pokemon = await addWagerPokemon(), value = pokemonSaleValue(pokemon), initialChips = 100_000;
+  const result = await service(() => 0).slots(user(), 0, pokemon.id);
+  await assertPokemonPrize(result, value, 400);
+  assert.equal(result.aposta, 0);
+  assert.equal(result.fichas, initialChips + result.pokemonPremio.fichas);
 });
 
 test('roleta converte o palpite vencedor de Pokémon para ₽ e fichas', async () => {
@@ -76,7 +84,7 @@ test('roleta converte o palpite vencedor de Pokémon para ₽ e fichas', async (
 test('Voltorb encerra e perde o Pokémon apostado ao revelar uma bomba', async () => {
   const pokemon = await addWagerPokemon();
   const casino = service(max => max - 1);
-  const { rodada } = await casino.startVoltorb(user(), 10, pokemon.id);
+  const { rodada } = await casino.startVoltorb(user(), 0, pokemon.id);
   assert.equal(await db.pokemonCapturado.findUnique({ where: { id: pokemon.id } }), null);
   const result = await casino.flipVoltorb(user(), { rodadaId: rodada.id, versao: rodada.versao, indice: 0 });
   assert.equal(result.resultado, 'voltorb');
@@ -85,7 +93,7 @@ test('Voltorb encerra e perde o Pokémon apostado ao revelar uma bomba', async (
 
 test('Pokejack paga o valor e as fichas equivalentes quando a mão empata', async () => {
   const pokemon = await addWagerPokemon(), value = pokemonSaleValue(pokemon), casino = service(max => max - 1);
-  const { rodada } = await casino.startPokejack(user(), 10, pokemon.id);
+  const { rodada } = await casino.startPokejack(user(), 0, pokemon.id);
   const result = await casino.actPokejack(user(), { rodadaId: rodada.id, versao: rodada.versao, acao: 'parar' });
   assert.equal(result.resultado, 'empate');
   await assertPokemonPrize(result, value, 1);
@@ -93,21 +101,21 @@ test('Pokejack paga o valor e as fichas equivalentes quando a mão empata', asyn
 
 test('Pokémon Race credita ambos os prêmios ao acertar o vencedor', async () => {
   const pokemon = await addWagerPokemon(), value = pokemonSaleValue(pokemon);
-  const result = await service(max => max - 1).race(user(), 10, 4, pokemon.id);
+  const result = await service(max => max - 1).race(user(), 0, 4, pokemon.id);
   assert.equal(result.vencedor, 4);
   await assertPokemonPrize(result, value, 4);
 });
 
 test('Wheel of Fortune usa o multiplicador sorteado no prêmio Pokémon', async () => {
   const pokemon = await addWagerPokemon(), value = pokemonSaleValue(pokemon);
-  const result = await service(max => max - 1).fortune(user(), 10, pokemon.id);
+  const result = await service(max => max - 1).fortune(user(), 0, pokemon.id);
   assert.equal(result.multiplicador, 10);
   await assertPokemonPrize(result, value, 10);
 });
 
 test('Pula Piplup mantém e liquida a aposta Pokémon ao sacar', async () => {
   const pokemon = await addWagerPokemon(), value = pokemonSaleValue(pokemon), casino = service(() => 0);
-  const { rodada } = await casino.startPiplup(user(), 10, pokemon.id);
+  const { rodada } = await casino.startPiplup(user(), 0, pokemon.id);
   const stepped = await casino.actPiplup(user(), { rodadaId: rodada.id, versao: rodada.versao, acao: 'pular' });
   const result = await casino.actPiplup(user(), { rodadaId: rodada.id, versao: stepped.rodada.versao, acao: 'sacar' });
   assert.equal(result.resultado, 'saque');

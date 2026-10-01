@@ -1,0 +1,39 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { SLOT_LINES, SLOT_MULTIPLIERS, SLOT_SYMBOLS, SLOT_WEIGHTS, slotPayout } from '../src/services/casinoRules.js';
+import { casinoWagerSchema, raceSchema, rouletteSchema } from '../src/validators/casino.js';
+
+test('caça-níqueis paga trincas nas três colunas verticais', () => {
+  const grid = ['pikachu', 'blank', 'blank', 'pikachu', 'blank', 'blank', 'pikachu', 'blank', 'blank'];
+  const result = slotPayout(grid, 100);
+  assert.deepEqual(result.linhas.map(({ linha }) => linha), [4]);
+  assert.equal(result.linhas[0].premio, 500);
+});
+
+test('APIs aceitam aposta sem fichas quando existe um Pokémon em jogo', () => {
+  const stake = { pokemonId: 'pokemon-123' };
+  assert.equal(casinoWagerSchema.safeParse({ aposta: 0, pokemonAposta: stake }).success, true);
+  assert.equal(casinoWagerSchema.safeParse({ aposta: 0 }).success, false);
+  assert.equal(raceSchema.safeParse({ aposta: 0, pokemon: 2, pokemonAposta: stake }).success, true);
+  assert.equal(rouletteSchema.safeParse({ apostas: [], pokemonAposta: { tipo: 'numero', numero: 10, pokemonId: stake.pokemonId } }).success, true);
+});
+
+test('oito linhas horizontais, verticais e diagonais são avaliadas', () => {
+  assert.equal(SLOT_LINES.length, 8);
+  const result = slotPayout(Array(9).fill('mew'), 10);
+  assert.equal(result.linhas.length, 8);
+  assert.equal(result.premio, 8 * 50 * 10);
+});
+
+test('símbolos e multiplicadores seguem a tabela nova sem pontos nem coringa', () => {
+  assert.deepEqual(SLOT_SYMBOLS.filter((symbol) => symbol !== 'blank').sort(), Object.keys(SLOT_MULTIPLIERS).sort());
+  assert.equal(SLOT_SYMBOLS.includes('ditto'), false);
+  assert.equal(SLOT_SYMBOLS.includes('magikarp'), false);
+  assert.equal(SLOT_SYMBOLS.includes('bar'), false);
+  assert.equal(SLOT_WEIGHTS.length, SLOT_SYMBOLS.length);
+  for (const [symbol, multiplier] of Object.entries(SLOT_MULTIPLIERS)) {
+    const result = slotPayout(Array(9).fill(symbol), 100);
+    assert.equal(result.linhas[0].multiplicador, multiplier, symbol);
+    assert.equal(result.linhas[0].premio, Math.floor(100 * multiplier), symbol);
+  }
+});

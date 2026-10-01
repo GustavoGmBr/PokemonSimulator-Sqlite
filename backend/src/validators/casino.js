@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 const money = z.number().int().min(5).max(20_000_000);
+const optionalTokenBet = z.number().int().min(0).max(20_000_000);
 const pokemon = z.enum(['Pikachu', 'Bulbasaur', 'Charmander', 'Squirtle']);
 const color = z.enum(['vermelho', 'preto', 'verde']);
 const casinoItems = z.array(z.object({ itemId: z.string().min(1).max(60), quantidade: z.number().int().min(1).max(999) }).strict()).min(1).max(50).refine((items) => new Set(items.map((item) => item.itemId)).size === items.length);
@@ -8,7 +9,7 @@ const casinoItems = z.array(z.object({ itemId: z.string().min(1).max(60), quanti
 export const buyChipsSchema = z.object({ quantidade: z.number().int().min(1).max(20_000_000) }).strict();
 export const buyCasinoItemsSchema = z.object({ itens: casinoItems }).strict();
 const pokemonStake = z.object({ pokemonId: z.string().min(1).max(30) }).strict();
-export const casinoWagerSchema = z.object({ aposta: money, pokemonAposta: pokemonStake.optional() }).strict();
+export const casinoWagerSchema = z.object({ aposta: optionalTokenBet, pokemonAposta: pokemonStake.optional() }).strict().refine((body) => body.aposta >= 5 || body.pokemonAposta, 'Aposte ao menos 5 fichas ou escolha um Pokémon.');
 const rouletteBet = z.discriminatedUnion('tipo', [
   z.object({ tipo: z.literal('numero'), numero: z.number().int().min(0).max(36), valor: money }).strict(),
   z.object({ tipo: z.literal('paridade'), paridade: z.enum(['par', 'impar']), valor: money }).strict(),
@@ -33,5 +34,5 @@ export const roundActionSchema = z.object(roundAction).strict();
 export const voltorbFlipSchema = z.object({ ...roundAction, indice: z.number().int().min(0).max(24) }).strict();
 export const pokejackActionSchema = z.object({ ...roundAction, acao: z.enum(['pedir', 'parar', 'dobrar']) }).strict();
 export const piplupActionSchema = z.object({ ...roundAction, acao: z.enum(['pular', 'sacar']) }).strict();
-export const raceSchema = z.object({ aposta: money, pokemon: z.number().int().min(0).max(4), pokemonAposta: pokemonStake.optional() }).strict();
+export const raceSchema = z.object({ aposta: optionalTokenBet, pokemon: z.number().int().min(0).max(4), pokemonAposta: pokemonStake.optional() }).strict().refine((body) => body.aposta >= 5 || body.pokemonAposta, 'Aposte ao menos 5 fichas ou escolha um Pokémon.');
 export const fortuneSchema = casinoWagerSchema;

@@ -8,7 +8,7 @@ export function PokemonStakeSelector({ members, catalog, market, selectedId, onS
   const speciesById = new Map(catalog.pokemon.map(species => [species.id, species]));
   return <details className="casino-stake-picker">
     <summary>Apostar um Pokémon da coleção <span>Opcional</span></summary>
-    <p>O Pokémon é removido da coleção quando a rodada começa. Se vencer, você recebe o valor multiplicado pelo resultado em Pokédólares e o equivalente em fichas (5 ₽ = 1 ficha). Favoritos ficam protegidos e é preciso manter ao menos um Pokémon na coleção.</p>
+    <p>A aposta em fichas é opcional quando você escolhe um Pokémon: informe 0 fichas para jogar só com ele. O Pokémon é removido da coleção quando a rodada começa. Se vencer, você recebe o valor multiplicado pelo resultado em Pokédólares e o equivalente em fichas (5 ₽ = 1 ficha). Favoritos ficam protegidos e é preciso manter ao menos um Pokémon na coleção.</p>
     {!canStake ? <p className="casino-muted">Tenha pelo menos dois Pokémon na coleção para apostar um.</p> : <label>Pokémon em jogo
       <select value={selectedId} disabled={busy} onChange={event => onSelect(event.target.value)}>
         <option value="">Não apostar Pokémon</option>

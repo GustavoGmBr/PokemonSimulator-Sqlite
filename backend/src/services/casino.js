@@ -102,12 +102,13 @@ export function createCasinoService(db, { rng = randomInt } = {}) {
       return db.$transaction(async (tx) => {
         const save = await saveFor(tx, usuarioId);
         checkBet(save, aposta);
-        await assertNoRound(tx, save); ensureRoom(save, aposta, 500);
+        await assertNoRound(tx, save); ensureRoom(save, aposta, SLOT_LINES.length * 100);
         const pokemonWager = await preparePokemonWager(tx, save, pokemonId);
         const symbols = Array.from({ length: 9 }, () => SLOT_SYMBOLS[weightedIndex(SLOT_WEIGHTS, rng)]);
         const result = slotPayout(symbols, aposta);
         await consumePokemonWager(tx, pokemonWager);
-        const pokemonPremio = await resolvePokemonWager(tx, save, pokemonWager, result.premio / aposta);
+        const pokemonMultiplier = result.linhas.reduce((sum, line) => sum + line.multiplicador, 0);
+        const pokemonPremio = await resolvePokemonWager(tx, save, pokemonWager, pokemonMultiplier);
         const fichas = save.fichas - aposta + result.premio + (pokemonPremio?.fichas ?? 0);
         const moedas = save.moedas + (pokemonPremio?.ganho ?? 0);
         checkBalance(fichas); checkBalance(moedas);

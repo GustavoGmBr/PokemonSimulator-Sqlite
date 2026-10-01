@@ -1,8 +1,10 @@
-## Pokémon Simulator SQLite v0.5.2
+## Pokémon Simulator SQLite v0.5.3
 
-- Agora é possível apostar Pokémon em todos os jogos do Pokécassino.
-- Ao vencer, a aposta de Pokémon rende o valor de venda multiplicado pelo resultado em Pokédólares e o equivalente em fichas (5 ₽ por ficha).
-- Em derrota ou abandono, o Pokémon apostado é perdido. Favoritos e o último Pokémon da coleção são protegidos.
+- O caça-níqueis agora tem oito linhas ativas: três horizontais, três verticais e duas diagonais. Trincas verticais também pagam.
+- Tabela de prêmios atualizada: Poké Bola 0,5×, Grande Bola 1,5×, Ultra Bola 3×, Pikachu 5×, iniciais 10× cada, aves lendárias 20× cada, Mewtwo 30×, Mew 50× e Master Bola 100×.
+- Moltres, Zapdos e Articuno aparecem em símbolos separados. A descrição dos ganhos foi organizada por símbolo e multiplicador, e os pontos foram removidos dos espaços vazios durante a rolagem.
+- É possível jogar nos jogos do cassino apostando somente um Pokémon, sem fichas. Quando houver aposta em fichas, os ganhos continuam sendo somados ao prêmio do Pokémon.
+- Encontros selvagens explicam as estrelas de IV. Pokémon com 0 estrelas não exibem o indicador.
 
 ## Downloads para Windows x64
 
