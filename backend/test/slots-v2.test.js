@@ -39,7 +39,7 @@ test('oito linhas horizontais, verticais e diagonais são avaliadas', () => {
   assert.equal(result.premio, 8 * 50 * 10);
 });
 
-test('espaços vazios têm 15% de chance e os símbolos preservam suas chances relativas', () => {
+test('espaços vazios têm 25% de chance e os símbolos preservam suas chances relativas', () => {
   assert.deepEqual(SLOT_SYMBOLS.filter((symbol) => symbol !== 'blank').sort(), Object.keys(SLOT_MULTIPLIERS).sort());
   assert.equal(SLOT_SYMBOLS.includes('ditto'), true);
   assert.equal(SLOT_SYMBOLS.includes('magikarp'), false);
@@ -47,8 +47,8 @@ test('espaços vazios têm 15% de chance e os símbolos preservam suas chances r
   assert.equal(SLOT_WEIGHTS.length, SLOT_SYMBOLS.length);
   const total=SLOT_WEIGHTS.reduce((sum, weight) => sum + weight, 0);
   const draws=Array.from({length:total},(_,ticket)=>SLOT_SYMBOLS[weightedIndex(SLOT_WEIGHTS,()=>ticket)]);
-  assert.equal(draws.filter(symbol=>symbol==='blank').length / total, 0.15);
-  assert.equal(draws.filter(symbol=>symbol==='ditto').length, 1445);
+  assert.equal(draws.filter(symbol=>symbol==='blank').length / total, 0.25);
+  assert.equal(draws.filter(symbol=>symbol==='ditto').length, 1275);
   assert.deepEqual(slotPayout(Array(9).fill('blank'),100),{premio:0,linhas:[]});
   assert.equal(slotPayout(['pikachu','ditto','blank',...Array(6).fill('blank')],100).premio,0);
   assert.equal(slotPayout(['ditto','ditto','blank',...Array(6).fill('blank')],100).premio,100);

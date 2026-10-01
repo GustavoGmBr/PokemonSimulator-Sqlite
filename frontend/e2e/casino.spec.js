@@ -81,7 +81,7 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await expect(page.locator('.casino-result')).toContainText('retorno:');
   await expect(page.locator('.slot-reel')).toHaveCount(3);
   await expect(page.locator('.slot-cell')).toHaveCount(9);
-  await expect(page.locator('.casino-rules')).toContainText('15% de chance de ficar vazia');
+  await expect(page.locator('.casino-rules')).toContainText('25% de chance de ficar vazia');
   await expect(page.locator('.slot-paytable > div')).toHaveCount(8);
   await snapshot(page,info,'slots');
   await page.getByLabel('Aposta em fichas').fill('5');

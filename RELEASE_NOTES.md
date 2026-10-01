@@ -1,3 +1,8 @@
+## Pokémon Simulator SQLite v0.5.16
+
+- A chance de espaço vazio no caça-níquel aumentou de 15% para 25% por posição. Os demais símbolos dividem os outros 75% proporcionalmente.
+- A descrição do jogo foi atualizada para informar a nova chance. Os multiplicadores e as regras do Ditto são preservados.
+
 ## Pokémon Simulator SQLite v0.5.15
 
 - Espaços vazios retornaram ao caça-níquel, com 15% de chance por posição. Eles ficam visualmente vazios, sem pontos, e não completam trincas.
