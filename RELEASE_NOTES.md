@@ -1,7 +1,8 @@
-## Pokémon Simulator SQLite v0.5.10
+## Pokémon Simulator SQLite v0.5.11
 
-- Caça-níquel: a chance de espaço vazio caiu de 25% para 20%, e a chance individual do Ditto subiu de 5% para 10%.
-- Pokémon Race: o prêmio por acertar o vencedor aumentou de 4× para 6×, incluindo fichas e prêmio de aposta Pokémon.
+- Caça-níqueis: Poké Bola paga 0,5×, Grande Bola 1,5×, Ultra Bola 3×, Pikachu 5×, Mewtwo 30×, Mew 50× e Master Bola 100×.
+- Ditto é coringa: dois Ditto devolvem a aposta da linha; três pagam 4×. Removidos os espaços vazios e aumentada a chance de Ditto.
+- Rolagem automática mostra um único resumo ao terminar, com giros concluídos, total gasto e total ganho.
 
 ## Downloads para Windows x64
 

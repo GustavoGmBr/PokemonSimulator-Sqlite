@@ -10,15 +10,18 @@ test('caça-níqueis paga trincas nas três colunas verticais', () => {
   assert.equal(result.linhas[0].premio, 500);
 });
 
-test('Ditto substitui um símbolo para completar trincas e trinca de Ditto paga 5×', () => {
+test('Ditto substitui um símbolo; dois devolvem a linha e três pagam 4×', () => {
   const grid = ['poke-ball', 'ditto', 'poke-ball', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
   const result = slotPayout(grid, 100);
   assert.deepEqual(result.linhas.map(({ linha }) => linha), [1]);
   assert.equal(result.linhas[0].simbolo, 'poke-ball');
   assert.equal(result.linhas[0].coringas, 1);
   assert.equal(result.linhas[0].premio, 50);
-  assert.equal(slotPayout(Array(9).fill('ditto'), 100).linhas[0].premio, 500);
-  assert.equal(slotPayout(['ditto','poke-ball','great-ball',...Array(6).fill('blank')], 100).linhas.length, 0);
+  const pair=slotPayout(['ditto','ditto','mew',...Array(6).fill('mewtwo')],100).linhas[0];
+  assert.equal(pair.multiplicador,1);
+  assert.equal(pair.premio,100);
+  assert.equal(slotPayout(Array(9).fill('ditto'), 100).linhas[0].premio, 400);
+  assert.equal(slotPayout(['ditto','poke-ball','great-ball',...Array(6).fill('mewtwo')], 100).linhas.some(line=>line.linha===1), false);
 });
 
 test('APIs aceitam aposta sem fichas quando existe um Pokémon em jogo', () => {
@@ -36,18 +39,17 @@ test('oito linhas horizontais, verticais e diagonais são avaliadas', () => {
   assert.equal(result.premio, 8 * 50 * 10);
 });
 
-test('vazio tem peso de 20%, Ditto 10% e a tabela soma 100%', () => {
+test('não há espaços vazios e Ditto tem 17% de chance', () => {
   assert.deepEqual(SLOT_SYMBOLS.filter((symbol) => symbol !== 'blank').sort(), Object.keys(SLOT_MULTIPLIERS).sort());
   assert.equal(SLOT_SYMBOLS.includes('ditto'), true);
   assert.equal(SLOT_SYMBOLS.includes('magikarp'), false);
   assert.equal(SLOT_SYMBOLS.includes('bar'), false);
   assert.equal(SLOT_WEIGHTS.length, SLOT_SYMBOLS.length);
   assert.equal(SLOT_WEIGHTS.reduce((sum, weight) => sum + weight, 0), 100);
-  assert.equal(SLOT_WEIGHTS[SLOT_SYMBOLS.indexOf('blank')], 20);
-  assert.equal(SLOT_WEIGHTS[SLOT_SYMBOLS.indexOf('ditto')], 10);
+  assert.equal(SLOT_SYMBOLS.includes('blank'), false);
+  assert.equal(SLOT_WEIGHTS[SLOT_SYMBOLS.indexOf('ditto')], 17);
   const draws=Array.from({length:100},(_,ticket)=>SLOT_SYMBOLS[weightedIndex(SLOT_WEIGHTS,()=>ticket)]);
-  assert.equal(draws.filter(symbol=>symbol==='blank').length,20);
-  assert.equal(draws.filter(symbol=>symbol==='ditto').length,10);
+  assert.equal(draws.filter(symbol=>symbol==='ditto').length,17);
   for (const [symbol, multiplier] of Object.entries(SLOT_MULTIPLIERS)) {
     const result = slotPayout(Array(9).fill(symbol), 100);
     assert.equal(result.linhas[0].multiplicador, multiplier, symbol);

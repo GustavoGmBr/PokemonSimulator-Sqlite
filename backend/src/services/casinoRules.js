@@ -1,8 +1,8 @@
 import { randomInt } from 'node:crypto';
 
-export const SLOT_SYMBOLS = ['mew', 'mewtwo', 'master-ball', 'articuno', 'zapdos', 'moltres', 'pikachu', 'charmander', 'bulbasaur', 'squirtle', 'ultra-ball', 'great-ball', 'poke-ball', 'ditto', 'blank'];
-export const SLOT_WEIGHTS = [1, 2, 1, 2, 2, 2, 6, 6, 6, 6, 9, 12, 15, 10, 20];
-export const SLOT_MULTIPLIERS = { 'poke-ball': 0.5, 'great-ball': 1.5, 'ultra-ball': 3, pikachu: 5, ditto: 5, charmander: 10, bulbasaur: 10, squirtle: 10, articuno: 20, zapdos: 20, moltres: 20, mewtwo: 30, mew: 50, 'master-ball': 100 };
+export const SLOT_SYMBOLS = ['mew', 'mewtwo', 'master-ball', 'pikachu', 'ultra-ball', 'great-ball', 'poke-ball', 'ditto'];
+export const SLOT_WEIGHTS = [2, 4, 2, 11, 16, 21, 27, 17];
+export const SLOT_MULTIPLIERS = { 'poke-ball': 0.5, 'great-ball': 1.5, 'ultra-ball': 3, pikachu: 5, ditto: 4, mewtwo: 30, mew: 50, 'master-ball': 100 };
 // Grid positions are read left-to-right, top-to-bottom. Every horizontal,
 // vertical, and diagonal trio is an active line.
 export const SLOT_LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [6, 4, 2]];
@@ -40,10 +40,11 @@ export function slotPayout(grid, bet) {
   for (const [index, positions] of SLOT_LINES.entries()) {
     const symbols = positions.map(position => grid[position]);
     const regular = symbols.filter(symbol => symbol !== 'ditto');
+    const wildcards = symbols.length - regular.length;
     const symbol = regular[0] ?? 'ditto';
     const matching = regular.every(value => value === symbol);
-    const multiplier = matching ? SLOT_MULTIPLIERS[symbol] ?? 0 : 0;
-    if (multiplier) wins.push({ linha: index + 1, posicoes: positions, simbolo: symbol, multiplicador: multiplier, premio: Math.floor(bet * multiplier), coringas: symbols.filter(value => value === 'ditto').length });
+    const multiplier = wildcards === 3 ? 4 : wildcards === 2 ? 1 : matching ? SLOT_MULTIPLIERS[symbol] ?? 0 : 0;
+    if (multiplier) wins.push({ linha: index + 1, posicoes: positions, simbolo: wildcards >= 2 ? 'ditto' : symbol, multiplicador: multiplier, premio: Math.floor(bet * multiplier), coringas: wildcards });
   }
   return { premio: wins.reduce((sum, win) => sum + win.premio, 0), linhas: wins };
 }

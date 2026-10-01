@@ -27,14 +27,14 @@ export function CasinoPage() {
   const client=useQueryClient(), save=useSave(), catalog=useCatalogo(), collection=useColecao(save.data?.id);
   const casino=useQuery({ queryKey:['casino',save.data?.id], queryFn:()=>api('/cassino'),enabled:Boolean(save.data?.inicialEspecieId) });
   const values=useQuery({ queryKey:['sale-values',save.data?.usuarioId,save.data?.id],queryFn:()=>api('/jogador/pokemon/valores-venda'),enabled:Boolean(save.data?.inicialEspecieId) });
-  const [tab,setTab]=useState('slots'),[chips,setChips]=useState('10'),[bet,setBet]=useState('5'),[result,setResult]=useState(null),[resultOpen,setResultOpen]=useState(false),[busy,setBusy]=useState(false),[autoRunning,setAutoRunning]=useState(false),[error,setError]=useState(''),[itemAmounts,setItemAmounts]=useState({}),[abandon,setAbandon]=useState(false),[pokemonWagerId,setPokemonWagerId]=useState('');
+  const [tab,setTab]=useState('slots'),[chips,setChips]=useState('10'),[bet,setBet]=useState('5'),[result,setResult]=useState(null),[toastResult,setToastResult]=useState(null),[resultOpen,setResultOpen]=useState(false),[busy,setBusy]=useState(false),[autoRunning,setAutoRunning]=useState(false),[error,setError]=useState(''),[itemAmounts,setItemAmounts]=useState({}),[abandon,setAbandon]=useState(false),[pokemonWagerId,setPokemonWagerId]=useState('');
   const pending=useRef(false);
   const dismissResult=useCallback(()=>setResultOpen(false),[]);
   useEffect(()=>{
     const round=casino.data?.rodada;
     if(round) setTab(games.find(g=>g.route===round.jogo)?.id ?? 'slots');
   },[casino.data?.rodada?.id]);
-  async function play(path,body,animate) {
+  async function play(path,body,animate,options={}) {
     if(pending.current) return null;
     pending.current=true;setBusy(true);setError('');setResult(null);setResultOpen(false);
     try {
@@ -43,12 +43,14 @@ export function CasinoPage() {
       if(body.pokemonAposta) setPokemonWagerId('');
       const resultData={ ...data,jogo:data.mesa?.jogo ?? path.split('/')[0] };
       setResult(resultData);
-      if (!Object.prototype.hasOwnProperty.call(data,'rodada') || data.rodada === null) setResultOpen(true);
+      if (options.showToast !== false && (!Object.prototype.hasOwnProperty.call(data,'rodada') || data.rodada === null)) { setToastResult(resultData);setResultOpen(true); }
       await Promise.all(['casino','save','colecao','sale-values','inventario'].map(key=>client.invalidateQueries({ queryKey:[key] })));
       return data;
     } catch(caught) { setError(caught.message); await client.invalidateQueries({ queryKey:['casino'] }); return null; }
     finally { pending.current=false;setBusy(false); }
   }
+  function onAutoRunningChange(running) { setAutoRunning(running);if(running)setResultOpen(false); }
+  function onAutoComplete(summary) { setToastResult({ jogo:'slots-auto',custo:summary.gasto,premio:summary.ganho,autoResumo:summary });setResultOpen(true); }
   if(save.isPending || catalog.isPending || (save.data?.inicialEspecieId && (casino.isPending || collection.isPending || values.isPending))) return <Loading label="Abrindo o Pokécassino…" />;
   if(save.error || catalog.error || casino.error || collection.error || values.error) return <Failure error={save.error || catalog.error || casino.error || collection.error || values.error} retry={()=>{save.refetch();catalog.refetch();casino.refetch();collection.refetch();values.refetch();}} />;
   if(!save.data?.iniciadoEm) return <Navigate to="/saves" replace />;
@@ -68,8 +70,8 @@ export function CasinoPage() {
     {wallet.rodada && <div className="casino-active-round"><span><strong>Rodada de {active?.name} em andamento</strong> · aposta de {money(wallet.rodada.aposta)} fichas.{wallet.rodada.pokemonAposta ? ` Pokémon em risco: ${wallet.rodada.pokemonAposta.nome} (${money(wallet.rodada.pokemonAposta.valorBase)} ₽).` : ''} Você pode continuar após reabrir o jogo.</span><button disabled={busy} onClick={()=>setTab(active.id)}>Retomar rodada</button><button disabled={busy} onClick={()=>setAbandon(true)}>Abandonar rodada</button></div>}
     {error && <p role="alert" className="battle-error">{error}</p>}
     {game.id !== 'shop' && !wallet.rodada && game.id !== 'roulette' && <details className="casino-stake-picker"><summary>Apostar um Pokémon da coleção <span>Opcional</span></summary><PokemonWagerPicker members={collection.data ?? []} catalog={catalog.data} market={new Map((values.data ?? []).map(entry=>[entry.pokemonId,entry.valor]))} selectedId={pokemonWagerId} onSelect={setPokemonWagerId} busy={busy || autoRunning} /></details>}
-    <div id="casino-game-panel" role="tabpanel" aria-labelledby={`casino-tab-${tab}`}>{Component ? <Component wallet={wallet} bet={bet} setBet={setBet} busy={busy || autoRunning} onAutoRunningChange={setAutoRunning} play={play} result={result?.jogo===game.route ? result : null} members={collection.data ?? []} catalog={catalog.data} market={new Map((values.data ?? []).map(entry=>[entry.pokemonId,entry.valor]))} pokemonWagerId={pokemonWagerId} setPokemonWagerId={setPokemonWagerId} /> : <section className="casino-panel"><h2>Loja de fichas</h2><p>Troque fichas por Poké Bolas, incluindo Master Bola, itens de cura e essências de IV.</p><div className="casino-items">{wallet.itens.map(item=><div key={item.itemId}><img src={assetUrl(item.sprite)} alt="" /><strong>{item.nome}</strong><span>{money(item.preco)} fichas</span><NumberInput label="Quantidade" value={itemAmounts[item.itemId] ?? '0'} onChange={value=>setItemAmounts(current=>({ ...current,[item.itemId]:value }))} min={0} max={999} /></div>)}</div><p>Compras selecionadas: {cart.reduce((sum,line)=>sum+line.quantidade,0)} · total {money(cost)} fichas</p><button disabled={busy || autoRunning || !cart.length || cost>wallet.fichas || cart.some(line=>!Number.isInteger(line.quantidade) || line.quantidade>999)} onClick={async()=>{if(await play('itens',{ itens:cart }))setItemAmounts({});}}>Comprar itens</button></section>}</div>
+    <div id="casino-game-panel" role="tabpanel" aria-labelledby={`casino-tab-${tab}`}>{Component ? <Component wallet={wallet} bet={bet} setBet={setBet} busy={busy || autoRunning} onAutoRunningChange={onAutoRunningChange} onAutoComplete={onAutoComplete} play={play} result={result?.jogo===game.route ? result : null} members={collection.data ?? []} catalog={catalog.data} market={new Map((values.data ?? []).map(entry=>[entry.pokemonId,entry.valor]))} pokemonWagerId={pokemonWagerId} setPokemonWagerId={setPokemonWagerId} /> : <section className="casino-panel"><h2>Loja de fichas</h2><p>Troque fichas por Poké Bolas, incluindo Master Bola, itens de cura e essências de IV.</p><div className="casino-items">{wallet.itens.map(item=><div key={item.itemId}><img src={assetUrl(item.sprite)} alt="" /><strong>{item.nome}</strong><span>{money(item.preco)} fichas</span><NumberInput label="Quantidade" value={itemAmounts[item.itemId] ?? '0'} onChange={value=>setItemAmounts(current=>({ ...current,[item.itemId]:value }))} min={0} max={999} /></div>)}</div><p>Compras selecionadas: {cart.reduce((sum,line)=>sum+line.quantidade,0)} · total {money(cost)} fichas</p><button disabled={busy || autoRunning || !cart.length || cost>wallet.fichas || cart.some(line=>!Number.isInteger(line.quantidade) || line.quantidade>999)} onClick={async()=>{if(await play('itens',{ itens:cart }))setItemAmounts({});}}>Comprar itens</button></section>}</div>
     <ConfirmDialog open={abandon} onOpenChange={setAbandon} onConfirm={async()=>{if(await play('rodada/desistir',roundToken(wallet.rodada)))setAbandon(false);}} pending={busy} error={error} title="Abandonar a rodada?" description="A entrada desta rodada será perdida, sem prêmio. Para receber o acumulado do Piplup, use o botão Sacar na mesa." confirmLabel="Abandonar e perder entrada" destructive />
-    <CasinoResultToast open={resultOpen} onDismiss={dismissResult} result={result} racers={wallet.regras.corredores} />
+    <CasinoResultToast open={resultOpen} onDismiss={dismissResult} result={toastResult} racers={wallet.regras.corredores} />
   </div>;
 }
