@@ -1,7 +1,8 @@
-## Pokémon Simulator SQLite v0.5.5
+## Pokémon Simulator SQLite v0.5.6
 
-- Os resultados do Pokécassino agora aparecem como notificações toast animadas, sem interromper a partida.
-- As notificações destacam prêmio, aposta, fichas, saldo e Pokémon ganhos ou perdidos; ficam visíveis por até 12 segundos e pausam quando o jogador passa o mouse ou navega até elas.
+- O caça-níquel ganhou a opção de rolagem automática com quantidade de giros configurável.
+- O limite de giros é calculado pelo saldo de fichas dividido pela aposta por giro, e é recalculado quando a aposta ou o saldo mudam.
+- A sequência pode ser interrompida; aposta e controles do cassino ficam bloqueados durante a execução.
 
 ## Downloads para Windows x64
 

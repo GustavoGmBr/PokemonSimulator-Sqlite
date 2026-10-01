@@ -61,6 +61,14 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await expect(page.locator('.casino-result-toast')).toContainText('Compra realizada');
   await dismissCasinoResult(page);
   await expect(page.locator('.casino-wallet')).toContainText('1.000');
+  await page.getByLabel('Aposta em fichas').fill('200');
+  const autoCount=page.getByLabel('Quantidade de giros');
+  await expect(autoCount).toHaveAttribute('max','5');
+  await expect(autoCount).toHaveValue('5');
+  await autoCount.fill('2');
+  await page.getByRole('button',{name:'Iniciar rolagem · 2×'}).click();
+  await expect(page.locator('.slot-auto-finished')).toContainText('2 de 2 giros',{timeout:15000});
+  await dismissCasinoResult(page);
   await page.getByRole('button',{name:'Girar',exact:true}).click();
   await expect(page.locator('.slot-machine')).toHaveClass(/slots-rolling/);
   await expect(page.locator('.casino-result-toast')).toBeVisible();
@@ -69,6 +77,7 @@ test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await expect(page.locator('.slot-reel')).toHaveCount(3);
   await expect(page.locator('.slot-cell')).toHaveCount(9);
   await snapshot(page,info,'slots');
+  await page.getByLabel('Aposta em fichas').fill('5');
 
   await page.getByRole('tab',{name:'Roleta',exact:true}).click();
   await expect(page.locator('.roulette-number')).toHaveCount(37);

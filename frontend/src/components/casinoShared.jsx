@@ -15,12 +15,12 @@ export const roundToken = round => ({ rodadaId:round.id, versao:round.versao });
 export const pokemonStake = pokemonId => pokemonId ? { pokemonAposta:{ pokemonId } } : {};
 export const pause = ms => new Promise(resolve => setTimeout(resolve, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : ms));
 export const validBet = (value, allowZero = false) => Number.isInteger(Number(value)) && Number(value) >= (allowZero ? 0 : 5) && Number(value) <= 20_000_000;
-export function NumberInput({ label, value, onChange, min=1, max=20_000_000 }) {
-  return <label className="casino-number">{label}<input type="number" min={min} max={max} step="1" value={value} onChange={event => onChange(event.target.value)} /></label>;
+export function NumberInput({ label, value, onChange, min=1, max=20_000_000, disabled=false }) {
+  return <label className="casino-number">{label}<input type="number" min={min} max={max} step="1" value={value} disabled={disabled} onChange={event => onChange(event.target.value)} /></label>;
 }
 export function PokemonToken({ name }) { return <span className="casino-pokemon"><img src={assetUrl(`/assets/pokemon/${pokemonId[name]}-front.png`)} alt="" />{name}</span>; }
 export function BetList({ bets, remove, busy }) { return bets.length ? <div className="casino-bets">{bets.map((entry,index) => <div key={index}><span>{betLabel(entry)} · {money(entry.valor)} fichas</span><button type="button" disabled={busy} onClick={() => remove(index)} aria-label={`Remover aposta ${index + 1}`}>×</button></div>)}</div> : <p className="casino-empty">Nenhuma aposta adicionada.</p>; }
-export function BetInput({ bet, setBet, allowZero = false }) { return <NumberInput label={allowZero ? 'Aposta em fichas (opcional)' : 'Aposta em fichas'} value={bet} onChange={setBet} min={allowZero ? 0 : 5} />; }
+export function BetInput({ bet, setBet, allowZero = false, disabled=false }) { return <NumberInput label={allowZero ? 'Aposta em fichas (opcional)' : 'Aposta em fichas'} value={bet} onChange={setBet} min={allowZero ? 0 : 5} disabled={disabled} />; }
 export function RoundResult({ result, children }) {
   if (result?.premio === undefined) return null;
   const stake = result.custo ?? result.aposta, difference = result.premio - stake;

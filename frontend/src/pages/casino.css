@@ -109,6 +109,16 @@
 
 .slot-machine { --slot-height:94px; width:min(100%,430px); justify-self:center; padding:14px; background:linear-gradient(135deg,#a49358,#53482e 45%,#b4a468); border:3px solid #d2bb79; border-radius:22px; box-shadow:0 12px 0 #111b15,0 18px 30px #0004; }
 .slot-machine-lights { text-align:center; font-weight:850; letter-spacing:3px; font-size:14px; color:#fae9b6; padding:12px 0 17px; text-shadow:0 0 12px #fed883; }
+.slot-auto-spin { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px 20px; margin-top:16px; padding:16px; border:1px solid #61764e; border-radius:13px; background:linear-gradient(120deg,#24382a,#17271d); }
+.slot-auto-spin > div:first-child strong { color:#f0dfa1; font-size:15px; }
+.slot-auto-spin > div:first-child p { margin:5px 0 0; max-width:470px; color:#bdccb7; font-size:12px; line-height:1.5; }
+.slot-auto-controls { display:flex; flex-wrap:wrap; align-items:end; gap:9px; justify-content:flex-end; }
+.slot-auto-controls .casino-number input { width:125px; }
+.slot-auto-limit { align-self:center; color:#b6c7a9; font-size:11px; white-space:nowrap; }
+.slot-auto-controls > button { min-height:42px; padding:9px 13px; border:1px solid #aabe75; border-radius:9px; background:#425b32; color:#f0edcf; font-weight:750; cursor:pointer; }
+.slot-auto-controls > button:disabled { opacity:.5; cursor:not-allowed; }
+.slot-auto-controls > .slot-auto-stop { border-color:#ba7765; background:#58352d; }
+.slot-auto-finished { grid-column:1/-1; margin:0; color:#f0dfa1; font-size:12px; }
 .casino-reels { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; border:7px solid #202a20; background:#111b15; border-radius:14px; overflow:hidden; }
 .slot-reel { height:calc(var(--slot-height) * 3); overflow:hidden; background:linear-gradient(#19291e,#243328,#17261c); position:relative; }
 .slot-reel::after { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(#0005,transparent 22%,transparent 78%,#0006); border:1px solid #6a7356; }
@@ -241,6 +251,11 @@
 @keyframes piplup-hop { 0%,100% { transform:translateY(0); } 48% { transform:translateY(-72px) rotate(-8deg); } }
 @media(max-width:850px) { .roulette-layout,.fortune-layout { grid-template-columns:1fr; gap:18px; } .roulette-betting-grid { max-width:480px; width:100%; justify-self:center; } .fortune-picks { grid-template-columns:repeat(4,minmax(0,1fr)); } }
 @media(max-width:650px) {
+  .slot-auto-spin { grid-template-columns:1fr; padding:13px; }
+  .slot-auto-controls { display:grid; grid-template-columns:1fr 1fr; justify-content:stretch; }
+  .slot-auto-controls .casino-number { grid-column:1/-1; }
+  .slot-auto-controls .casino-number input { width:100%; }
+  .slot-auto-controls > button { grid-column:1/-1; width:100%; }
   .casino-result-toast { right:12px; bottom:12px; width:calc(100vw - 24px); padding:14px; max-height:58vh; }
   .casino-panel { padding:14px; } .casino-tabs { gap:6px; } .casino-tabs button { font-size:11px; padding:9px 8px; } .casino-tab-icon { min-width:16px; font-size:14px; }
   .casino-controls > button { flex:1; } .casino-controls .casino-number { flex:1; min-width:120px; } .casino-controls input { width:100%; }

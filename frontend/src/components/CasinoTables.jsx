@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { assetUrl } from '../lib/api';
 import { PokemonWagerPicker } from './CasinoWagerPicker';
 import { CasinoWheel, segmentAngles, winningRotation } from './CasinoWheel';
@@ -13,8 +13,11 @@ function SlotSymbol({ name }) {
   if(names[name]) return <PokemonToken name={names[name]} />;
   return <span className="slot-token slot-blank" aria-hidden="true" />;
 }
-export function SlotGame({ wallet, bet, setBet, busy, play, result, pokemonWagerId }) {
-  const [symbols,setSymbols]=useState(Array(9).fill('blank')), [rolling,setRolling]=useState(false),[offset,setOffset]=useState(0);
+export function SlotGame({ wallet, bet, setBet, busy, play, result, pokemonWagerId, onAutoRunningChange=()=>{} }) {
+  const [symbols,setSymbols]=useState(Array(9).fill('blank')), [rolling,setRolling]=useState(false),[offset,setOffset]=useState(0),[autoCount,setAutoCount]=useState('10'),[autoRunning,setAutoRunning]=useState(false),[autoProgress,setAutoProgress]=useState({done:0,total:0});
+  const stopAuto=useRef(false);
+  const validStake=validBet(bet,!!pokemonWagerId),autoLimit=validBet(bet) && Number(bet)>0 ? Math.floor(wallet.fichas/Number(bet)) : 0,canAuto=validBet(bet) && !pokemonWagerId && autoLimit>0;
+  const selectedAutoCount=Math.min(Math.max(1,Number(autoCount)||1),autoLimit);
   const winning=new Set(result?.linhas?.flatMap(line => line.posicoes) ?? []);
   async function spin() {
     setRolling(true); setOffset(0);
@@ -24,13 +27,30 @@ export function SlotGame({ wallet, bet, setBet, busy, play, result, pokemonWager
       setOffset(SYMBOLS.length * 4); await pause(2250);
     });
     setRolling(false); setOffset(0); if(data) setSymbols(data.simbolos);
+    return data;
+  }
+  async function startAutoSpin() {
+    const total=selectedAutoCount;
+    if(autoRunning || total<1 || !canAuto) return;
+    stopAuto.current=false;setAutoProgress({done:0,total});setAutoRunning(true);onAutoRunningChange(true);
+    try {
+      for(let index=0;index<total;index++) {
+        if(stopAuto.current) break;
+        const data=await spin();
+        setAutoProgress({done:index+1,total});
+        if(!data) break;
+      }
+    } finally {
+      setAutoRunning(false);onAutoRunningChange(false);
+    }
   }
   return <section className="casino-panel"><div className="casino-game-heading"><div><span className="casino-eyebrow">TRÊS ROLOS · OITO LINHAS</span><h2>Caça-níqueis</h2></div><span className="game-badge">Trincas horizontais, verticais e diagonais</span></div>
     <div className={`slot-machine ${rolling ? 'slots-rolling' : ''}`} aria-label="Rolos do caça-níqueis" aria-busy={busy}><div className="slot-machine-lights">✦ POKÉ JACKPOT ✦</div><div className="casino-reels">{[0,1,2].map(col => {
       const final=[symbols[col],symbols[col+3],symbols[col+6]], strip=rolling ? [...Array.from({ length:4 },()=>SYMBOLS).flat(),...final] : final;
       return <div className="slot-reel" key={col}><div className="slot-strip" style={{ transform:`translateY(calc(-${offset} * var(--slot-height)))`, '--reel-delay':`${col * 120}ms` }}>{strip.map((symbol,row) => <div key={row} className={`slot-cell ${!rolling && winning.has(row*3+col) ? 'slot-winner' : ''}`}><SlotSymbol name={symbol} /></div>)}</div></div>;
     })}</div></div>
-    <div className="casino-controls"><BetInput bet={bet} setBet={setBet} allowZero={!!pokemonWagerId} /><button disabled={busy || !!wallet.rodada || !validBet(bet,!!pokemonWagerId) || Number(bet)>wallet.fichas} onClick={spin}>{busy ? 'Rolos girando…' : 'Girar'}</button></div>
+    <div className="casino-controls"><BetInput bet={bet} setBet={setBet} allowZero={!!pokemonWagerId} disabled={busy || autoRunning} /><button disabled={busy || autoRunning || !!wallet.rodada || !validStake || Number(bet)>wallet.fichas} onClick={spin}>{busy ? 'Rolos girando…' : 'Girar'}</button></div>
+    <section className="slot-auto-spin" aria-label="Rolagem automática"><div><strong>Rolagem automática</strong><p>Escolha a aposta por giro e quantas vezes quer jogar. O limite considera suas fichas disponíveis e a rolagem automática usa fichas, sem aposta de Pokémon.</p></div><div className="slot-auto-controls"><NumberInput label="Quantidade de giros" value={autoLimit>0 ? String(selectedAutoCount) : autoCount} min={1} max={Math.max(1,autoLimit)} disabled={busy || autoRunning || autoLimit<1} onChange={value=>{ const parsed=Number(value); setAutoCount(String(Math.min(Math.max(1,Number.isFinite(parsed)?parsed:1),Math.max(1,autoLimit)))); }} /><span className="slot-auto-limit">Máximo: {autoLimit} {autoLimit===1 ? 'giro' : 'giros'}</span>{autoRunning ? <button type="button" className="slot-auto-stop" onClick={()=>{ stopAuto.current=true; }}>Parar · {autoProgress.done}/{autoProgress.total}</button> : <button type="button" disabled={busy || !!wallet.rodada || !canAuto} onClick={startAutoSpin}>Iniciar rolagem · {selectedAutoCount}×</button>}</div>{autoProgress.total>0 && !autoRunning && <p className="slot-auto-finished" role="status">Sequência encerrada: {autoProgress.done} de {autoProgress.total} giros.</p>}</section>
     <RoundResult result={result}>{result?.linhas?.length ? `${result.linhas.length} ${result.linhas.length === 1 ? 'linha premiada' : 'linhas premiadas'}!` : 'Sem combinação nesta rodada'}</RoundResult>
     {result?.linhas?.length > 0 && <ul className="slot-win-list">{result.linhas.map(line => <li key={line.linha}>Linha {line.linha} · {lineNames[line.linha-1]} · {factor(line.multiplicador)} = {money(line.premio)} fichas{line.coringas ? ` · ${line.coringas} coringa(s)` : ''}</li>)}</ul>}
     <details className="casino-rules" open><summary>Tabela de prêmios</summary><p>Faça uma trinca em qualquer uma das oito linhas. Ditto é coringa: duas figuras iguais junto com um Ditto formam a trinca, que paga o multiplicador da figura repetida. Três Ditto pagam 5×. Cada linha usa a aposta inteira e os prêmios são somados; duas trincas de Pikachu, por exemplo, pagam 10× a aposta no total. Apostando só um Pokémon, fichas são opcionais.</p><div className="slot-paytable">{[['poke-ball','Poké Bola','0,5×'],['great-ball','Grande Bola','1,5×'],['ultra-ball','Ultra Bola','3×'],['pikachu','Pikachu','5×'],['ditto','Ditto coringa','5× se formar trinca sozinho'],['charmander','Charmander','10×'],['bulbasaur','Bulbasaur','10×'],['squirtle','Squirtle','10×'],['moltres','Moltres','20×'],['zapdos','Zapdos','20×'],['articuno','Articuno','20×'],['mewtwo','Mewtwo','30×'],['mew','Mew','50×'],['master-ball','Master Bola','100×']].map(([symbol,label,mult]) => <div key={symbol}><SlotSymbol name={symbol} /><span>{label}</span><b>{mult}</b></div>)}</div><p>Os pagamentos são arredondados para baixo por linha. Moltres, Zapdos e Articuno aparecem em símbolos separados.</p></details>
