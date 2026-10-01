@@ -1,6 +1,7 @@
-param([string]$Version = '0.2.4')
+param([string]$Version = '')
 $ErrorActionPreference = 'Stop'
 $workspace = Split-Path -Parent $PSScriptRoot
+if (-not $Version) { $Version = (Get-Content (Join-Path $workspace 'package.json') -Raw | ConvertFrom-Json).version }
 $output = Join-Path $workspace "dist/releases/v$Version"
 $build = Get-Content (Join-Path $output 'build-info.json') -Raw | ConvertFrom-Json
 $case = Join-Path $workspace ('dist/package-test-' + [guid]::NewGuid().ToString('N'))
@@ -60,11 +61,27 @@ if (-not $launcher.WaitForExit(60000) -or $launcher.ExitCode -ne 0) { throw "Ini
 $verify = Join-Path $case 'verify-save.mjs'
 @'
 import { DatabaseSync } from 'node:sqlite';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
+import path from 'node:path';
 const db = new DatabaseSync(process.argv[2]);
 const save = db.prepare('SELECT moedas, fichas FROM Save WHERE id=?').get('qa-save');
 const pokemon = db.prepare('SELECT ivs FROM PokemonCapturado WHERE id=?').get('qa-starter');
 if (save.moedas !== 12345 || save.fichas !== 123 || Object.values(JSON.parse(pokemon.ivs)).some(value => value !== 31)) throw Error('Save ou migração de IVs incorretos.');
 db.close();
+const root = path.dirname(path.dirname(process.argv[2]));
+const requirePackage = createRequire(path.join(root, 'backend/package.json'));
+const { PrismaClient } = requirePackage('@prisma/client');
+const prisma = new PrismaClient({ datasourceUrl: `file:${process.argv[2].replaceAll('\\', '/')}` });
+const { createApp } = await import(pathToFileURL(path.join(root, 'backend/src/app.js')));
+const server = createApp({ db: prisma, config: { CORS_ORIGIN: 'http://127.0.0.1' } }).listen(0, '127.0.0.1');
+await new Promise(resolve => server.once('listening', resolve));
+try {
+  const response = await fetch(`http://127.0.0.1:${server.address().port}/api/cassino`, { headers: { 'X-Save-Id': 'qa-save' } });
+  if (!response.ok) throw Error('Packaged casino API failed.');
+  const { data } = await response.json();
+  if (data.regras.roleta.length !== 37 || data.regras.corredores.length !== 5 || data.regras.fortune.length !== 7 || data.fichas !== 123) throw Error('Packaged casino rules or wallet differ.');
+} finally { await new Promise(resolve => server.close(resolve)); await prisma.$disconnect(); }
 '@ | Set-Content -LiteralPath $verify -Encoding utf8
 & (Join-Path $target 'runtime/node.exe') $verify $database
 if ($LASTEXITCODE -ne 0) { throw 'A migração do save antigo falhou.' }

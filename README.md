@@ -2,13 +2,13 @@
 
 Remake single-player em JavaScript com ES Modules. Frontend React 18 em `frontend/` e API Express/Prisma/SQLite em `backend/`. Os saves ficam em `backend/pokemon.db`; não é preciso criar conta nem conectar à internet para jogar.
 
-Versão pública atual: **v0.2.5**. O repositório inclui o código-fonte e o inicializador Windows `PokemonSimulator.exe`. As sprites são baixadas automaticamente na primeira execução e depois são servidas localmente, sem consultar a PokéAPI durante as partidas. Este é um projeto de fã, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Os dados e sprites Pokémon pertencem aos respectivos titulares; os dados de referência foram obtidos via [PokéAPI](https://pokeapi.co/).
+Versão pública atual: **v0.3.0**. O repositório inclui o código-fonte e o inicializador Windows `PokemonSimulator.exe`. As sprites são baixadas automaticamente na primeira execução e depois são servidas localmente, sem consultar a PokéAPI durante as partidas. Este é um projeto de fã, sem vínculo com Nintendo, Game Freak ou The Pokémon Company. Os dados e sprites Pokémon pertencem aos respectivos titulares; os dados de referência foram obtidos via [PokéAPI](https://pokeapi.co/).
 
 Os saves são locais e podem ser criados, escolhidos e excluídos na tela inicial. A configuração local fica em `backend/.env`, ignorado pelo Git.
 
 ## Executar localmente
 
-Para jogar no Windows x64, escolha uma edição na [release](https://github.com/GustavoGmBr/PokemonSimulator-Sqlite/releases/latest): **PokemonSimulator-v0.2.5-compact-win-x64.zip** (sem sprites; baixa as imagens no primeiro início) ou **PokemonSimulator-v0.2.5-complete-win-x64.zip** (inclui todas as sprites; funciona offline desde a primeira abertura). Extraia todos os arquivos e abra **PokemonSimulator.exe**. O runtime já está incluído: não é necessário instalar Node.js nem abrir CMD. Na edição compacta, conecte-se à internet na primeira execução para baixar o pacote de sprites (aproximadamente 938 MB). O progresso aparece no inicializador, que verifica a integridade do download antes de instalar as imagens. Depois disso, o jogo funciona offline. O banco SQLite é criado automaticamente.
+Para jogar no Windows x64, escolha uma edição na [release](https://github.com/GustavoGmBr/PokemonSimulator-Sqlite/releases/latest): **PokemonSimulator-v0.3.0-compact-win-x64.zip** (sem sprites; baixa as imagens no primeiro início) ou **PokemonSimulator-v0.3.0-complete-win-x64.zip** (inclui todas as sprites; funciona offline desde a primeira abertura). Extraia todos os arquivos e abra **PokemonSimulator.exe**. O runtime já está incluído: não é necessário instalar Node.js nem abrir CMD. Na edição compacta, conecte-se à internet na primeira execução para baixar o pacote de sprites (aproximadamente 938 MB). O progresso aparece no inicializador, que verifica a integridade do download antes de instalar as imagens. Depois disso, o jogo funciona offline. O banco SQLite é criado automaticamente.
 
 Na abertura, o inicializador consulta a última release e instala atualizações antes de executar o jogo. Os downloads são verificados por SHA-256. Após o download, uma janela própria confirma a instalação antes de reiniciar, com recuperação dos arquivos anteriores em caso de falha. Os saves e o `.env` são preservados. Sem conexão, a versão instalada continua disponível quando as sprites já foram preparadas. Imagens existentes e íntegras são aproveitadas; imagens ausentes são recuperadas automaticamente quando houver internet.
 
@@ -74,13 +74,28 @@ Cada Pokémon tem seis IVs de 0 a 31: HP, Ataque, Defesa, Ataque Especial, Defes
 
 Na lista Meus Pokémon aparecem apenas as estrelas dos IVs. Ao clicar em um Pokémon, os detalhes mostram os seis valores, total, porcentagem e qualidade. Encontros selvagens usam ⭐, ⭐⭐, ⭐⭐⭐ ou ⭐⭐⭐⭐; a classificação sem estrelas continua como 0☆. Filtre a coleção por estrelas e intervalo de porcentagem. As seis **Essências de IV** aumentam +1 no atributo correspondente (limite 31), custam 5.000 ₽ ou 1.000 fichas cada e são obtidas em missões e torneios. Use na aba Atributos dos detalhes do Pokémon, fora de batalha. Um IV já máximo não consome o item.
 
+## Pokécassino
+
+Oito jogos usam fichas locais. Multiplicadores representam o retorno total, incluindo a entrada; apostar 10 fichas e receber 2× devolve 20. Prêmios fracionários são arredondados para baixo.
+
+- **Caça-níqueis:** três rolos animados, cinco linhas, tabela de pagamentos e coringa que completa combinações. Três coringas pagam 5×.
+- **Cartas:** faça os palpites, distribua 24 cartas e clique para escolher. A primeira carta decide o prêmio; as outras podem ser viradas para conferir a mesa. Carta exata paga 24×, dupla 12×, número 6× e Pokémon 4×.
+- **Roleta:** roda europeia circular, 37 casas (0 a 36), com 18 vermelhas, 18 pretas e zero verde. Número e verde pagam 36×, vermelho/preto, paridade e faixa pagam 2×, dúzia paga 3× e grupo Pokémon paga 4×. O zero fica fora de paridade, faixas, dúzias e grupos. A aposta de um Pokémon da coleção continua disponível, com proteção de favoritos e do último exemplar.
+- **Voltorb Flip:** abra cinco cartas, some seus multiplicadores e aplique a soma à entrada. Uma linha horizontal ou vertical completa dobra o retorno; diagonais não contam. A mesa tem 3 cartas de 0×, 8 de 0,5×, 9 de 1×, 3 de 2×, uma de 3× e uma de 5×. Voltorb soma zero e a rodada continua até a quinta escolha.
+- **Pokejack:** baralho de 52 cartas, ás de 1 ou 11, figuras de 10; banca para em 17. Vitória paga 2×, natural (21 com duas cartas) paga 3×, empate devolve a entrada. Dobrar debita outra entrada, dá uma carta e encerra a mão.
+- **Pokémon Race:** cinco corredores com movimentos aleatórios; acertar o vencedor paga 4×.
+- **Wheel of Fortune:** aposte em um ou mais multiplicadores. Só palpites que coincidem com o ponteiro pagam. Setores de 0×, 0,25×, 0,5×, 1×, 2×, 5× e 10× ocupam 20%, 18%, 18%, 20%, 16%, 6% e 2% da roda, respectivamente.
+- **Pula Piplup:** sete saltos, com retornos de 1×, 1,1×, 1,5×, 2×, 2,5×, 3,5× e 5×. As chances de sucesso por salto são 90%, 85%, 80%, 80%, 75%, 70% e 65%. Saque após qualquer salto seguro; uma queda perde a entrada. A sétima placa paga automaticamente.
+
+Cartas, Voltorb, Pokejack e Piplup salvam a rodada em andamento. Termine ou abandone a rodada antes de fazer outra aposta ou comprar fichas. Uma rodada antiga de Voltorb recebe sua entrada de volta uma única vez ao abrir o novo cassino. Os oito jogos têm animações e respeitam a preferência de movimento reduzido.
+
 ## Disponível
 
 - Seleção de vários saves locais, criação de novas jornadas e exclusão de saves.
 - Encontros selvagens com nível mínimo e máximo escolhidos dentro do limite liberado pelos desafios da região. Em todas as gerações, o limite segue a última região disponível; o intervalo permanece ao procurar outro Pokémon.
 - Escolha de um inicial de qualquer geração de Kanto a Paldea no nível 5, persistida no arquivo SQLite. O novo save recebe 10 Poké Bolas e 5 Poções ao escolher o inicial.
 - Menu com coleção em destaque, favoritos persistentes, filtros por número, nome, tipo, geração, shiny, forma e nível, e ordenação por captura ou força. O mercado em `/mercado` permite vender vários Pokémon capturados de uma vez, mantendo pelo menos um. A bolsa é agrupada por categoria; a loja em `/loja` permite buscar itens pelo nome e comprar diferentes itens e quantidades em um carrinho.
-- Pokécassino em `/cassino`: cada ficha custa 5 ₽ e serve para jogar caça-níqueis, cartas, roleta e Voltorb Flip ou comprar Poké Bolas (incluindo Master Bola) e itens de cura. Na roleta, é possível filtrar os Pokémon da coleção por nome e valor, conferir a sprite e apostar um exemplar: ele sai da coleção em qualquer resultado, e uma vitória paga o valor de venda multiplicado em Pokédólares. Favoritos não podem ser vendidos nem apostados.
+- Pokécassino com oito jogos, animações, rodadas persistentes e loja de fichas.
 - Pokédex dos 1.025 com filtro por geração, capturados, forma shiny, sprites 2D/3D pré-renderizados e detalhes de atributos, XP, golpes e evolução. A galeria de formas mostra Normal, Mega, G-Max, Primal e fusões lado a lado com seus requisitos.
 - Escolha visual de até quatro ataques por Pokémon e aba de TMs compatíveis, compradas para um exemplar específico com Pokédólares. Em batalha, cura e Poké Bolas são escolhidas por cartões com sprite e quantidade.
 - Áreas separadas para selvagens e batalhas. O jogador pode procurar em qualquer região liberada ou em todas elas de uma vez. Lendários e míticos selvagens aparecem após vencer os quatro desafios finais da respectiva região; a escolha manual também respeita isso. Após derrotar o campeão de uma região, escolhe espécie e nível dos selvagens daquela região. Treinadores aleatórios e torneios usam Pokémon de todas as gerações, equilibrados pela dificuldade. Contra treinadores, desafios e torneios, é possível escolher até o mesmo número de Pokémon do adversário e alternar entre eles. Alola tem Provas Insulares e Galar tem a Copa dos Campeões.
