@@ -51,7 +51,7 @@ test('espaços vazios têm 25% de chance e os símbolos preservam suas chances r
   assert.equal(draws.filter(symbol=>symbol==='ditto').length, 1275);
   assert.deepEqual(slotPayout(Array(9).fill('blank'),100),{premio:0,linhas:[]});
   assert.equal(slotPayout(['pikachu','ditto','blank',...Array(6).fill('blank')],100).premio,0);
-  assert.equal(slotPayout(['ditto','ditto','blank',...Array(6).fill('blank')],100).premio,100);
+  assert.equal(slotPayout(['ditto','ditto','blank',...Array(6).fill('blank')],100).premio,0);
   for (const [symbol, multiplier] of Object.entries(SLOT_MULTIPLIERS)) {
     const result = slotPayout(Array(9).fill(symbol), 100);
     assert.equal(result.linhas[0].multiplicador, multiplier, symbol);

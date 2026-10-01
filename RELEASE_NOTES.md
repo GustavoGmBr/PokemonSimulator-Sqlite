@@ -1,3 +1,7 @@
+## Pokémon Simulator SQLite v0.5.17
+
+- Corrigido o caça-níquel: a combinação de dois Dittos com um espaço vazio não paga prêmio.
+
 ## Pokémon Simulator SQLite v0.5.16
 
 - A chance de espaço vazio no caça-níquel aumentou de 15% para 25% por posição. Os demais símbolos dividem os outros 75% proporcionalmente.

@@ -44,7 +44,7 @@ export function slotPayout(grid, bet) {
     const wildcards = symbols.length - regular.length;
     const symbol = regular[0] ?? 'ditto';
     const matching = regular.every(value => value === symbol);
-    const multiplier = wildcards === 3 ? 4 : wildcards === 2 ? 1 : matching ? SLOT_MULTIPLIERS[symbol] ?? 0 : 0;
+    const multiplier = wildcards === 3 ? 4 : symbols.includes('blank') ? 0 : wildcards === 2 ? 1 : matching ? SLOT_MULTIPLIERS[symbol] ?? 0 : 0;
     if (multiplier) wins.push({ linha: index + 1, posicoes: positions, simbolo: wildcards >= 2 ? 'ditto' : symbol, multiplicador: multiplier, premio: Math.floor(bet * multiplier), coringas: wildcards });
   }
   return { premio: wins.reduce((sum, win) => sum + win.premio, 0), linhas: wins };
