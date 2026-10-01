@@ -34,13 +34,25 @@ export function MarketPage() {
     } finally { setBusyId(''); }
   }
 
+  async function refreshPokemon() {
+    setBusyId('refresh'); setError('');
+    try {
+      await api('/mercado/pokemon/atualizar', { method: 'POST' });
+      await Promise.all(['save', SHOP_KEY].map(key => client.invalidateQueries({ queryKey: [key] })));
+    } catch (caught) {
+      setError(caught.message);
+      await Promise.all([client.invalidateQueries({ queryKey: [SHOP_KEY] }), client.invalidateQueries({ queryKey: ['save'] })]);
+    } finally { setBusyId(''); }
+  }
+
   if (save.isPending || catalog.isPending || (save.data?.inicialEspecieId && shop.isPending)) return <Loading label="Abrindo o mercado…" />;
   if (save.error || catalog.error || shop.error) return <Failure error={save.error || catalog.error || shop.error} retry={() => { save.refetch(); catalog.refetch(); shop.refetch(); }} />;
   if (!save.data?.iniciadoEm) return <Navigate to="/saves" replace />;
   if (!save.data.inicialEspecieId) return <Navigate to="/inicial" replace />;
 
   const stock = shop.data;
-  const timeLeft = Math.max(0, stock.restanteMs - (now - Date.parse(shop.dataUpdatedAt)));
+  const refreshAt = Date.parse(stock.renovaEm);
+  const timeLeft = Number.isFinite(refreshAt) ? Math.max(0, refreshAt - now) : 0;
   const hours = String(Math.floor(timeLeft / 3_600_000)).padStart(2, '0');
   const minutes = String(Math.floor(timeLeft % 3_600_000 / 60_000)).padStart(2, '0');
   const seconds = String(Math.floor(timeLeft % 60_000 / 1000)).padStart(2, '0');
@@ -52,7 +64,7 @@ export function MarketPage() {
       <button type="button" role="tab" aria-selected={tab === 'vender'} className={tab === 'vender' ? 'active' : ''} onClick={() => setTab('vender')}>Vender Pokémon</button>
     </div>
     {tab === 'comprar' ? <section className="pokemon-shop">
-      <div className="pokemon-shop-heading"><div><h2>Estoque de Pokémon</h2><p>Dez Pokémon novos aparecem a cada seis horas. Todos chegam com pelo menos duas estrelas de IV.</p></div><span className="shop-countdown">Próxima atualização <strong>{hours}:{minutes}:{seconds}</strong></span></div>
+      <div className="pokemon-shop-heading"><div><h2>Estoque de Pokémon</h2><p>Dez Pokémon novos aparecem a cada seis horas. Todos chegam com pelo menos duas estrelas de IV.</p></div><div className="pokemon-shop-tools"><span className="shop-countdown">Próxima atualização automática <strong>{hours}:{minutes}:{seconds}</strong></span><span className="shop-balance">Saldo: <strong>{money(stock.moedas)} ₽</strong></span><button className="shop-refresh-button" type="button" disabled={Boolean(busyId) || stock.moedas < 10_000} onClick={refreshPokemon}>{busyId === 'refresh' ? 'Atualizando…' : 'Atualizar estoque · 10.000 ₽'}</button></div></div>
       {error && <p role="alert" className="battle-error">{error}</p>}
       <div className="pokemon-shop-grid">{stock.pokemons.map(item => {
         const species = speciesById.get(item.especieId);

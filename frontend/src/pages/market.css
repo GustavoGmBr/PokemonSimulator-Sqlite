@@ -7,6 +7,11 @@
 .pokemon-shop-heading p { margin:0; color:#bdcbb6; }
 .shop-countdown { display:grid; gap:3px; padding:9px 12px; border:1px solid #746d4b; border-radius:9px; color:#d6d6ba; font-size:.8rem; }
 .shop-countdown strong { color:#f5dda0; font-size:1.05rem; font-variant-numeric:tabular-nums; }
+.pokemon-shop-tools { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:9px; }
+.shop-balance { color:#d6d6ba; font-size:.82rem; }
+.shop-balance strong { color:#f5dda0; }
+.pokemon-shop .shop-refresh-button { border:1px solid #84a973; border-radius:9px; padding:9px 12px; background:#39583b; color:#fff; cursor:pointer; font:inherit; font-size:.82rem; }
+.pokemon-shop .shop-refresh-button:disabled { opacity:.5; cursor:not-allowed; }
 .pokemon-shop-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr)); gap:11px; }
 .pokemon-shop-card { display:grid; grid-template-columns:82px minmax(0,1fr) auto; align-items:center; gap:11px; min-width:0; padding:12px; border:1px solid #506e51; border-radius:12px; background:#21352a; }
 .pokemon-shop-card.sold { opacity:.66; }
@@ -25,4 +30,4 @@
 .pokemon-shop-buy strong { white-space:nowrap; color:#f5dda0; }
 .pokemon-shop-buy button { border:1px solid #83a775; border-radius:8px; padding:8px 10px; background:#3b5b3c; color:#fff; cursor:pointer; font:inherit; font-size:.82rem; }
 .pokemon-shop-buy button:disabled { opacity:.5; cursor:not-allowed; }
-@media(max-width:480px) { .pokemon-shop-card { grid-template-columns:66px minmax(0,1fr); gap:8px; } .pokemon-shop-image { width:66px; height:66px; grid-row:span 2; } .pokemon-shop-image img { width:60px; height:60px; } .pokemon-shop-buy { grid-column:2; grid-template-columns:1fr auto; justify-items:stretch; align-items:center; } }
+@media(max-width:480px) { .pokemon-shop-tools { justify-content:flex-start; } .pokemon-shop-card { grid-template-columns:66px minmax(0,1fr); gap:8px; } .pokemon-shop-image { width:66px; height:66px; grid-row:span 2; } .pokemon-shop-image img { width:60px; height:60px; } .pokemon-shop-buy { grid-column:2; grid-template-columns:1fr auto; justify-items:stretch; align-items:center; } }

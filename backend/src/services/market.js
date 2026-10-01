@@ -60,7 +60,7 @@ export function createMarketService(db, { rng = randomInt, now = Date.now } = {}
       const estado = makeStock(completed, charm?.quantidade > 0, period);
       record = await tx.lojaPokemonEstoque.upsert({ where: { saveId: save.id }, create: { saveId: save.id, periodo: period, estado }, update: { periodo: period, estado } });
     }
-    return { record, renovaEm: new Date((period + 1) * SHOP_REFRESH_MS).toISOString(), restanteMs: (period + 1) * SHOP_REFRESH_MS - now() };
+    return { record, completed, hasCharm: charm?.quantidade > 0, renovaEm: new Date((period + 1) * SHOP_REFRESH_MS).toISOString(), restanteMs: (period + 1) * SHOP_REFRESH_MS - now() };
   }
 
   return {
@@ -90,6 +90,19 @@ export function createMarketService(db, { rng = randomInt, now = Date.now } = {}
         const { golpes, golpesDesbloqueados, experiencia, atributos, hpAtual } = pokemon;
         const owned = await tx.pokemonCapturado.create({ data: { saveId: save.id, especieId: pokemon.especieId, nivel: pokemon.nivel, experiencia, hpAtual, shiny: pokemon.shiny, bolaCaptura: 'poke-ball', ivs: pokemon.ivs, atributos, golpes, golpesDesbloqueados } });
         return { pokemon: owned, preco: pokemon.preco, moedas: save.moedas - pokemon.preco };
+      }, { isolationLevel: 'Serializable', timeout: 20_000 });
+    },
+    async refreshPokemon(usuarioId) {
+      const refreshPrice = 10_000;
+      return db.$transaction(async tx => {
+        const save = await tx.save.findUnique({ where: { usuarioId } });
+        if (!save?.inicialEspecieId) throw new HttpError(409, 'Inicie sua jornada antes de usar o Mercado Pokémon.');
+        const { record, completed, hasCharm } = await stockFor(tx, save);
+        const charged = await tx.save.updateMany({ where: { id: save.id, moedas: { gte: refreshPrice } }, data: { moedas: { decrement: refreshPrice } } });
+        if (charged.count !== 1) throw new HttpError(409, 'São necessários 10.000 Pokédólares para atualizar o estoque.');
+        const estado = makeStock(completed, hasCharm, record.periodo);
+        await tx.lojaPokemonEstoque.update({ where: { saveId: save.id }, data: { estado } });
+        return { moedas: save.moedas - refreshPrice, pokemons: estado.pokemons.map(({ golpes, golpesDesbloqueados, experiencia, atributos, hpAtual, ...entry }) => entry), custo: refreshPrice };
       }, { isolationLevel: 'Serializable', timeout: 20_000 });
     },
     async values(usuarioId) {
