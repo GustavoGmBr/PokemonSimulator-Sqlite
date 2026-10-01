@@ -10,6 +10,7 @@ import { money } from '../components/casinoShared';
 import './market.css';
 
 const SHOP_KEY = 'pokemon-shop';
+const SHOP_REFRESH_PRICE = 3_000;
 
 export function MarketPage() {
   const client = useQueryClient();
@@ -70,7 +71,7 @@ export function MarketPage() {
       <button type="button" role="tab" aria-selected={tab === 'vender'} className={tab === 'vender' ? 'active' : ''} onClick={() => setTab('vender')}>Vender Pokémon</button>
     </div>
     {tab === 'comprar' ? <section className="pokemon-shop">
-      <div className="pokemon-shop-heading"><div><h2>Estoque de Pokémon</h2><p>Doze Pokémon novos aparecem a cada seis horas. Todos chegam com pelo menos duas estrelas de IV.</p></div><div className="pokemon-shop-tools"><span className="shop-countdown">Próxima atualização automática <strong>{hours}:{minutes}:{seconds}</strong></span><span className="shop-balance">Saldo: <strong>{money(stock.moedas)} ₽</strong></span><button className="shop-refresh-button" type="button" disabled={Boolean(busyId) || stock.moedas < 10_000} onClick={refreshPokemon}>{busyId === 'refresh' ? 'Atualizando…' : 'Atualizar estoque · 10.000 ₽'}</button></div></div>
+      <div className="pokemon-shop-heading"><div><h2>Estoque de Pokémon</h2><p>Doze Pokémon de nível 1 aparecem a cada hora. Todos chegam com pelo menos duas estrelas de IV.</p></div><div className="pokemon-shop-tools"><span className="shop-countdown">Próxima atualização automática <strong>{hours}:{minutes}:{seconds}</strong></span><span className="shop-balance">Saldo: <strong>{money(stock.moedas)} ₽</strong></span><button className="shop-refresh-button" type="button" disabled={Boolean(busyId) || stock.moedas < SHOP_REFRESH_PRICE} onClick={refreshPokemon}>{busyId === 'refresh' ? 'Atualizando…' : `Atualizar estoque · ${money(SHOP_REFRESH_PRICE)} ₽`}</button></div></div>
       {error && <p role="alert" className="battle-error">{error}</p>}
       <div className="pokemon-shop-grid">{stock.pokemons.map(item => {
         const species = speciesById.get(item.especieId);

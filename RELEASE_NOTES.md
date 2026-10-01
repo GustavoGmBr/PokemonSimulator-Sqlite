@@ -1,10 +1,9 @@
-## Pokémon Simulator SQLite v0.5.0
+## Pokémon Simulator SQLite v0.5.1
 
-- Voltorb Flip now has 6 Voltorbs. Turning one over ends the game and loses the entire wager.
-- The 0☆ IV rating is larger and more visible in wild Pokémon encounters.
-- Redesigned the trainer profile with overall progress, region tabs, badge and challenge status, and save management.
-- The Pokémon market now offers 12 Pokémon per refresh, including for existing saves.
-- Fixed the market renewal countdown and added an optional stock refresh for 10,000 Pokédólares.
+- Pokémon do Mercado agora aparecem no nível 1, com renovação automática a cada hora.
+- Reduzido para 3.000 ₽ o custo de atualizar manualmente o estoque do Mercado Pokémon.
+- Atualizados os símbolos do caça-níquel: Poké Bola, Magikarp, Ditto, aves lendárias, iniciais, Pikachu e Mew.
+- Pagamentos do caça-níquel: trio BAR 20×, Pikachu 5×, trio de um mesmo inicial 10× e Mew 50×. Poké Bola paga 0,5× e Magikarp 1×; Ditto substitui símbolos.
 
 ## Downloads para Windows x64
 

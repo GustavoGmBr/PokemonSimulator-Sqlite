@@ -1,8 +1,8 @@
 import { randomInt } from 'node:crypto';
 
-export const SLOT_SYMBOLS = ['master-ball', 'bar', 'pikachu', 'charmander', 'replay', 'cherry', 'wild', 'blank'];
-export const SLOT_WEIGHTS = [1, 2, 4, 4, 4, 5, 2, 10];
-export const SLOT_MULTIPLIERS = { 'master-ball': 100, bar: 30, pikachu: 5, charmander: 5, replay: 1, wild: 5 };
+export const SLOT_SYMBOLS = ['mew', 'bar', 'pikachu', 'charmander', 'bulbasaur', 'squirtle', 'magikarp', 'poke-ball', 'ditto', 'blank'];
+export const SLOT_WEIGHTS = [1, 2, 4, 2, 2, 2, 4, 5, 2, 8];
+export const SLOT_MULTIPLIERS = { mew: 50, bar: 20, pikachu: 5, charmander: 10, bulbasaur: 10, squirtle: 10, magikarp: 1, ditto: 5 };
 export const SLOT_LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 4, 8], [6, 4, 2]];
 export const ROULETTE_ORDER = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
 const RED = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
@@ -37,12 +37,12 @@ export function slotPayout(grid, bet) {
   const wins = [];
   for (const [index, positions] of SLOT_LINES.entries()) {
     const symbols = positions.map(position => grid[position]);
-    const regular = symbols.filter(symbol => symbol !== 'wild');
-    const symbol = regular[0] ?? 'wild';
+    const regular = symbols.filter(symbol => symbol !== 'ditto');
+    const symbol = regular[0] ?? 'ditto';
     const matching = regular.every(value => value === symbol);
     const multiplier = matching && SLOT_MULTIPLIERS[symbol] ? SLOT_MULTIPLIERS[symbol]
-      : symbols[0] === 'cherry' || (symbols[0] === 'wild' && symbols.includes('cherry')) ? 0.5 : 0;
-    if (multiplier) wins.push({ linha: index + 1, posicoes: positions, simbolo: symbol, multiplicador: multiplier, premio: Math.floor(bet * multiplier), coringas: symbols.filter(value => value === 'wild').length });
+      : symbols[0] === 'poke-ball' || (symbols[0] === 'ditto' && symbols.includes('poke-ball')) ? 0.5 : 0;
+    if (multiplier) wins.push({ linha: index + 1, posicoes: positions, simbolo: symbol, multiplicador: multiplier, premio: Math.floor(bet * multiplier), coringas: symbols.filter(value => value === 'ditto').length });
   }
   return { premio: wins.reduce((sum, win) => sum + win.premio, 0), linhas: wins };
 }

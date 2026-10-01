@@ -2,8 +2,8 @@ import { assetUrl } from '../lib/api';
 
 export const money = amount => Number(amount ?? 0).toLocaleString('pt-BR');
 export const factor = value => `${Number(value).toLocaleString('pt-BR')}×`;
-export const pokemonNames = ['Pikachu', 'Bulbasaur', 'Charmander', 'Squirtle'];
-export const pokemonId = { Pikachu:25, Bulbasaur:1, Charmander:4, Squirtle:7 };
+export const pokemonNames = ['Pikachu', 'Bulbasaur', 'Charmander', 'Squirtle', 'Mew', 'Magikarp', 'Ditto'];
+export const pokemonId = { Pikachu:25, Bulbasaur:1, Charmander:4, Squirtle:7, Mew:151, Magikarp:129, Ditto:132 };
 export const betLabel = bet => bet.multiplicador !== undefined ? factor(bet.multiplicador)
   : bet.tipo === 'exata' ? `${bet.pokemon} · ${bet.cor ?? bet.numero}`
     : bet.tipo === 'dupla' ? `${bet.pokemon} · ${bet.numero} ou ${bet.numero + 1}`

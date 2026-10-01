@@ -8,9 +8,10 @@ import { levelMovesFor } from './battleRules.js';
 import { naturalMoves } from './moveRules.js';
 
 const ballPrices = { 'poke-ball': 200, 'great-ball': 600, 'ultra-ball': 1200 };
-const SHOP_REFRESH_MS = 6 * 60 * 60 * 1000;
+const SHOP_REFRESH_MS = 60 * 60 * 1000;
 const SHOP_SIZE = 12;
 const SHOP_SHINY_DENOMINATOR = 4086;
+const SHOP_REFRESH_PRICE = 3_000;
 
 function rollShopShiny(rng, rolls) {
   for (let attempt = 0; attempt < rolls; attempt++) if (rng(SHOP_SHINY_DENOMINATOR) === 0) return true;
@@ -44,7 +45,7 @@ export function createMarketService(db, { rng = randomInt, now = Date.now } = {}
       const stars = ivQuality(ivs).stars;
       let price = 10_000 * (unlocked ? 1 : 2) * (shiny ? 5 : 1) * (stars === 4 ? 2 : stars === 3 ? 1.5 : 1);
       price = Math.floor(price);
-      const level = 1 + rng(100);
+      const level = 1;
       const atributos = statsFor(species, level, shiny, ivs);
       list.push({ id: randomUUID(), especieId: species.id, nome: species.nomeExibicao, geracao: generation, geracaoDesbloqueada: unlocked, nivel: level, shiny, ivs, estrelas: stars, preco: price, disponivel: true, experiencia: species.experienciaPorNivel.find(entry => entry.nivel === level)?.experiencia ?? 0, hpAtual: atributos.hp, atributos, golpes: levelMovesFor(species, level).map(move => ({ nome: move.nome })), golpesDesbloqueados: naturalMoves(species, level) });
     }
@@ -100,16 +101,15 @@ export function createMarketService(db, { rng = randomInt, now = Date.now } = {}
       }, { isolationLevel: 'Serializable', timeout: 20_000 });
     },
     async refreshPokemon(usuarioId) {
-      const refreshPrice = 10_000;
       return db.$transaction(async tx => {
         const save = await tx.save.findUnique({ where: { usuarioId } });
         if (!save?.inicialEspecieId) throw new HttpError(409, 'Inicie sua jornada antes de usar o Mercado Pokémon.');
         const { record, completed, hasCharm } = await stockFor(tx, save);
-        const charged = await tx.save.updateMany({ where: { id: save.id, moedas: { gte: refreshPrice } }, data: { moedas: { decrement: refreshPrice } } });
-        if (charged.count !== 1) throw new HttpError(409, 'São necessários 10.000 Pokédólares para atualizar o estoque.');
+        const charged = await tx.save.updateMany({ where: { id: save.id, moedas: { gte: SHOP_REFRESH_PRICE } }, data: { moedas: { decrement: SHOP_REFRESH_PRICE } } });
+        if (charged.count !== 1) throw new HttpError(409, 'São necessários 3.000 Pokédólares para atualizar o estoque.');
         const estado = makeStock(completed, hasCharm, record.periodo);
         await tx.lojaPokemonEstoque.update({ where: { saveId: save.id }, data: { estado } });
-        return { moedas: save.moedas - refreshPrice, pokemons: estado.pokemons.map(({ golpes, golpesDesbloqueados, experiencia, atributos, hpAtual, ...entry }) => entry), custo: refreshPrice };
+        return { moedas: save.moedas - SHOP_REFRESH_PRICE, pokemons: estado.pokemons.map(({ golpes, golpesDesbloqueados, experiencia, atributos, hpAtual, ...entry }) => entry), custo: SHOP_REFRESH_PRICE };
       }, { isolationLevel: 'Serializable', timeout: 20_000 });
     },
     async values(usuarioId) {

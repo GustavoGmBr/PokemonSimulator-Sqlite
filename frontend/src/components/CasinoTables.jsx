@@ -4,12 +4,13 @@ import { PokemonWagerPicker } from './CasinoWagerPicker';
 import { CasinoWheel, segmentAngles, winningRotation } from './CasinoWheel';
 import { BetInput, BetList, FlipCard, NumberInput, PokemonToken, RoundResult, factor, money, pause, pokemonNames, roundToken, validBet } from './casinoShared';
 
-const SYMBOLS=['master-ball','bar','pikachu','charmander','replay','cherry','wild','blank'];
+const SYMBOLS=['mew','bar','pikachu','charmander','bulbasaur','squirtle','magikarp','poke-ball','ditto','blank'];
 const lineNames=['horizontal superior','horizontal central','horizontal inferior','diagonal ↘','diagonal ↗'];
 function SlotSymbol({ name }) {
-  if(name === 'master-ball') return <span className="slot-token slot-master"><img src={assetUrl('/assets/items/master-ball.png')} alt="" /><b>7</b></span>;
-  if(name === 'pikachu' || name === 'charmander') return <PokemonToken name={name === 'pikachu' ? 'Pikachu' : 'Charmander'} />;
-  return <span className={`slot-token slot-${name}`}>{({ bar:'BAR', replay:'↻', cherry:'🍒', wild:'✦', blank:'·' })[name]}{name === 'wild' && <small>CORINGA</small>}</span>;
+  if(name === 'bar') return <span className="slot-token slot-bar" aria-label="Moltres, Zapdos e Articuno"><span className="slot-birds">{[146,145,144].map(id=><img key={id} src={assetUrl(`/assets/pokemon/${id}-front.png`)} alt="" />)}</span><b>BAR</b></span>;
+  if(name === 'poke-ball') return <span className="slot-token slot-poke-ball"><img src={assetUrl('/assets/items/poke-ball.png')} alt="" /></span>;
+  if(name === 'pikachu' || name === 'charmander' || name === 'bulbasaur' || name === 'squirtle' || name === 'mew' || name === 'magikarp' || name === 'ditto') return <PokemonToken name={{ pikachu:'Pikachu',charmander:'Charmander',bulbasaur:'Bulbasaur',squirtle:'Squirtle',mew:'Mew',magikarp:'Magikarp',ditto:'Ditto' }[name]} />;
+  return <span className={`slot-token slot-${name}`}>·</span>;
 }
 export function SlotGame({ wallet, bet, setBet, busy, play, result }) {
   const [symbols,setSymbols]=useState(Array(9).fill('blank')), [rolling,setRolling]=useState(false),[offset,setOffset]=useState(0);
@@ -23,7 +24,7 @@ export function SlotGame({ wallet, bet, setBet, busy, play, result }) {
     });
     setRolling(false); setOffset(0); if(data) setSymbols(data.simbolos);
   }
-  return <section className="casino-panel"><div className="casino-game-heading"><div><span className="casino-eyebrow">TRÊS ROLOS · CINCO LINHAS</span><h2>Caça-níqueis</h2></div><span className="game-badge">✦ Coringa novo</span></div>
+  return <section className="casino-panel"><div className="casino-game-heading"><div><span className="casino-eyebrow">TRÊS ROLOS · CINCO LINHAS</span><h2>Caça-níqueis</h2></div><span className="game-badge">✦ Ditto é o coringa</span></div>
     <div className={`slot-machine ${rolling ? 'slots-rolling' : ''}`} aria-label="Rolos do caça-níqueis" aria-busy={busy}><div className="slot-machine-lights">✦ POKÉ JACKPOT ✦</div><div className="casino-reels">{[0,1,2].map(col => {
       const final=[symbols[col],symbols[col+3],symbols[col+6]], strip=rolling ? [...Array.from({ length:4 },()=>SYMBOLS).flat(),...final] : final;
       return <div className="slot-reel" key={col}><div className="slot-strip" style={{ transform:`translateY(calc(-${offset} * var(--slot-height)))`, '--reel-delay':`${col * 120}ms` }}>{strip.map((symbol,row) => <div key={row} className={`slot-cell ${!rolling && winning.has(row*3+col) ? 'slot-winner' : ''}`}><SlotSymbol name={symbol} /></div>)}</div></div>;
@@ -31,7 +32,7 @@ export function SlotGame({ wallet, bet, setBet, busy, play, result }) {
     <div className="casino-controls"><BetInput bet={bet} setBet={setBet} /><button disabled={busy || !!wallet.rodada || !validBet(bet) || Number(bet)>wallet.fichas} onClick={spin}>{busy ? 'Rolos girando…' : 'Girar'}</button></div>
     <RoundResult result={result}>{result?.linhas?.length ? `${result.linhas.length} ${result.linhas.length === 1 ? 'linha premiada' : 'linhas premiadas'}!` : 'Sem combinação nesta rodada'}</RoundResult>
     {result?.linhas?.length > 0 && <ul className="slot-win-list">{result.linhas.map(line => <li key={line.linha}>Linha {line.linha} · {lineNames[line.linha-1]} · {factor(line.multiplicador)} = {money(line.premio)} fichas{line.coringas ? ` · ${line.coringas} coringa(s)` : ''}</li>)}</ul>}
-    <details className="casino-rules" open><summary>Como os resultados pagam</summary><p>As três horizontais e as duas diagonais estão sempre ativas. Cada linha usa o valor inteiro da aposta; os prêmios das linhas são somados. O coringa substitui qualquer símbolo em uma combinação. Três coringas pagam 5×.</p><div className="slot-paytable">{[['master-ball','Três Master Bolas','100×'],['bar','Três BAR','30×'],['pikachu','Três Pikachu ou três Charmander','5×'],['replay','Três replay','1×'],['cherry','Cereja na primeira coluna da linha','0,5×']].map(([symbol,label,mult]) => <div key={symbol}><SlotSymbol name={symbol} /><span>{label}</span><b>{mult}</b></div>)}</div><p>Com uma cereja na primeira posição, a linha paga metade mesmo sem trinca. Um coringa nessa posição pode substituí-la se houver uma cereja na linha. Valores fracionários são arredondados para baixo por linha.</p></details>
+    <details className="casino-rules" open><summary>Como os resultados pagam</summary><p>As três horizontais e as duas diagonais estão sempre ativas. Cada linha usa o valor inteiro da aposta; os prêmios das linhas são somados. Ditto substitui qualquer símbolo em uma combinação. Três Ditto pagam 5×.</p><div className="slot-paytable">{[['mew','Três Mew','50×'],['bar','Três símbolos BAR (Moltres, Zapdos e Articuno)','20×'],['charmander','Três iniciais iguais','10×'],['pikachu','Três Pikachu','5×'],['magikarp','Três Magikarp','1×'],['poke-ball','Poké Bola na primeira coluna da linha','0,5×']].map(([symbol,label,mult]) => <div key={symbol}><SlotSymbol name={symbol} /><span>{label}</span><b>{mult}</b></div>)}</div><p>Os iniciais são Charmander, Bulbasaur e Squirtle; cada trinca paga 10×. Com uma Poké Bola na primeira posição, a linha paga metade mesmo sem trinca. Ditto nessa posição também pode substituí-la. Valores fracionários são arredondados para baixo por linha.</p></details>
   </section>;
 }
 

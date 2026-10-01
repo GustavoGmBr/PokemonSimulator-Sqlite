@@ -27,6 +27,10 @@
 .slot-master { position:relative; }
 .slot-master b { position:absolute; top:1px; right:-8px; color:#fce986; font-size:1.5rem; text-shadow:0 1px 3px #000; }
 .slot-bar { border:2px solid #f5d578; padding:9px; border-radius:5px; color:#f5d578; }
+.slot-birds { display:flex; align-items:center; gap:0; }
+.slot-bar .slot-birds img { width:31px; height:31px; margin:0 -4px; }
+.slot-poke-ball { min-width:76px; min-height:76px; place-content:center; border:2px solid #d7dce0; border-radius:50%; background:linear-gradient(#d9544d 0 48%,#f1f1e7 48% 53%,#3a4143 53%); }
+.slot-poke-ball img { width:52px; height:52px; filter:drop-shadow(0 2px 2px #0007); }
 .slot-replay, .slot-cherry { font-size:2rem; }
 .casino-bets { display:flex; flex-wrap:wrap; gap:8px; }
 .casino-bets > div { display:flex; align-items:center; gap:9px; border:1px solid #648060; border-radius:8px; padding:3px 4px 3px 10px; background:#263b2b; }

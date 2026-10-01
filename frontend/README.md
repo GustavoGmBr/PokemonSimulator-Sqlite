@@ -16,7 +16,7 @@ Prefira `PokemonSimulator.exe` ou `npm start` na raiz: o inicializador baixa as 
 - `/saves`: escolher uma jornada existente, criar um save novo ou excluir um save.
 - `/inicial`: escolher um inicial de qualquer geração, com confirmação.
 - `/menu`: ver a coleção em destaque, marcar favoritos, filtrar e ordenar Pokémon; abrir os detalhes de um capturado para evoluir, ativar G-Max ou usar doces.
-- `/mercado`: comprar dez Pokémon que mudam a cada seis horas e vender Pokémon capturados; estoque e compras são guardados por save.
+- `/mercado`: comprar doze Pokémon de nível 1, com renovação automática a cada hora ou atualização manual por 3.000 ₽; também permite vender Pokémon capturados. Estoque e compras são guardados por save.
 - `/loja`: montar um carrinho com Poké Bolas, itens de cura, evolução e bônus em qualquer quantidade permitida. Master Bola e doces não são vendidos nesta loja.
 - `/cassino`: comprar fichas, jogar caça-níqueis, roleta, Voltorb Flip, Pokejack, Pokémon Race, Wheel of Fortune e Pula Piplup; cartas foram removidas. A roleta mostra em cada casa o sprite do Pokémon correspondente. A Wheel of Fortune sorteia o multiplicador automaticamente.
 - `/pokedex`: buscar e filtrar os 1.025 Pokémon, ver capturados, shiny, sprites e galeria de formas com requisitos.
