@@ -1,12 +1,11 @@
 import { randomInt } from 'node:crypto';
 import { createCasinoGames, publicCasinoRound } from './casinoGames.js';
-import { CASINO_POKEMON, SLOT_SYMBOLS, SLOT_WEIGHTS, SLOT_LINES, ROULETTE_ORDER, FORTUNE_SEGMENTS, PIPLUP_MULTIPLIERS, PIPLUP_CHANCES, RACERS, weightedIndex, slotPayout, rouletteResult, rouletteMultiplier } from './casinoRules.js';
-export { slotPayout, cardPayout, rouletteMultiplier } from './casinoRules.js';
+import { SLOT_SYMBOLS, SLOT_WEIGHTS, SLOT_LINES, ROULETTE_ORDER, FORTUNE_SEGMENTS, PIPLUP_MULTIPLIERS, PIPLUP_CHANCES, RACERS, weightedIndex, slotPayout, rouletteResult, rouletteMultiplier } from './casinoRules.js';
+export { slotPayout, rouletteMultiplier } from './casinoRules.js';
 import { HttpError } from '../lib/errors.js';
 import { getCatalogo } from './catalogo.js';
 import { pokemonSaleValue } from './market.js';
 
-export { CASINO_POKEMON } from './casinoRules.js';
 export const CASINO_CHIP_COST = 5;
 export const CASINO_MASTER_BALL_PRICE = 10000;
 const MAX_BALANCE = 2_000_000_000;
@@ -44,13 +43,13 @@ export function createCasinoService(db, { rng = randomInt } = {}) {
         let save = await saveFor(tx, usuarioId);
         let round = await tx.cassinoRodada.findUnique({ where: { saveId: save.id } });
         let reembolso = 0;
-        if (round && !round.estado.jogo) {
+        if (round && (!round.estado.jogo || round.estado.jogo === 'cartas')) {
           reembolso = round.estado.aposta;
           checkBalance(save.fichas + reembolso);
           save = await tx.save.update({ where: { id: save.id }, data: { fichas: { increment: reembolso } } });
           await tx.cassinoRodada.delete({ where: { saveId: save.id } }); round = null;
         }
-        return { fichas: save.fichas, moedas: save.moedas, custoFicha: CASINO_CHIP_COST, reembolso, itens: getCatalogo().itens.filter(item => ['captura', 'cura', 'ivs'].includes(item.categoria)).map(item => casinoItem(item.nome)), rodada: publicCasinoRound(round?.estado), regras: { linhas: SLOT_LINES, roleta: ROULETTE_ORDER, fortune: FORTUNE_SEGMENTS, piplup: PIPLUP_MULTIPLIERS, chancesPiplup: PIPLUP_CHANCES, corredores: RACERS } };
+        return { fichas: save.fichas, moedas: save.moedas, custoFicha: CASINO_CHIP_COST, reembolso, itens: getCatalogo().itens.filter(item => ['captura', 'cura', 'ivs'].includes(item.categoria)).map(item => casinoItem(item.nome)), rodada: publicCasinoRound(round?.estado), regras: { linhas: SLOT_LINES, roleta: ROULETTE_ORDER, casasRoleta: ROULETTE_ORDER.map(numero => rouletteResult(numero)), fortune: FORTUNE_SEGMENTS, piplup: PIPLUP_MULTIPLIERS, chancesPiplup: PIPLUP_CHANCES, corredores: RACERS } };
       }, { isolationLevel: 'Serializable' });
     },
     async buyChips(usuarioId, quantidade) {

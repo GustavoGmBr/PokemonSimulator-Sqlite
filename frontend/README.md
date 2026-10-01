@@ -16,9 +16,9 @@ Prefira `PokemonSimulator.exe` ou `npm start` na raiz: o inicializador baixa as 
 - `/saves`: escolher uma jornada existente, criar um save novo ou excluir um save.
 - `/inicial`: escolher um inicial de qualquer geração, com confirmação.
 - `/menu`: ver a coleção em destaque, marcar favoritos, filtrar e ordenar Pokémon; abrir os detalhes de um capturado para evoluir, ativar G-Max ou usar doces.
-- `/mercado`: selecionar e vender Pokémon capturados por Pokédólares, inclusive vários de uma vez; favoritos ficam protegidos.
+- `/mercado`: comprar dez Pokémon que mudam a cada seis horas e vender Pokémon capturados; estoque e compras são guardados por save.
 - `/loja`: montar um carrinho com Poké Bolas, itens de cura, evolução e bônus em qualquer quantidade permitida. Master Bola e doces não são vendidos nesta loja.
-- `/cassino`: comprar fichas, jogar caça-níqueis, cartas, roleta e Voltorb Flip, e trocar fichas por Poké Bolas (inclusive Master Bola) e itens de cura. A escolha de Pokémon para a roleta mostra sprites, busca por nome e Nº Dex, filtros e ordenação por valor; favoritos não podem ser apostados.
+- `/cassino`: comprar fichas, jogar caça-níqueis, roleta, Voltorb Flip, Pokejack, Pokémon Race, Wheel of Fortune e Pula Piplup; cartas foram removidas. A roleta mostra em cada casa o sprite do Pokémon correspondente. A Wheel of Fortune sorteia o multiplicador automaticamente.
 - `/pokedex`: buscar e filtrar os 1.025 Pokémon, ver capturados, shiny, sprites e galeria de formas com requisitos.
 - `/selvagens` e `/batalha`: encontrar selvagens ou desafiar treinadores, torneios e líderes; depois de ver o adversário, escolher uma equipe de até o mesmo tamanho da equipe adversária, trocar reservas, atacar, curar ou capturar. O Pokémon do jogador aparece de costas.
 - `/perfil`: acompanhar insígnias e histórico de batalhas e capturas.

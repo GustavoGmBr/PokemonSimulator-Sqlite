@@ -1,12 +1,12 @@
 import { randomInt } from 'node:crypto';
 
-export const CASINO_POKEMON = ['Pikachu', 'Bulbasaur', 'Charmander', 'Squirtle'];
 export const SLOT_SYMBOLS = ['master-ball', 'bar', 'pikachu', 'charmander', 'replay', 'cherry', 'wild', 'blank'];
 export const SLOT_WEIGHTS = [1, 2, 4, 4, 4, 5, 2, 10];
 export const SLOT_MULTIPLIERS = { 'master-ball': 100, bar: 30, pikachu: 5, charmander: 5, replay: 1, wild: 5 };
 export const SLOT_LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 4, 8], [6, 4, 2]];
 export const ROULETTE_ORDER = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
 const RED = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
+const ROULETTE_MASCOTS = { vermelhoImpar: { nome: 'Charmander', especieId: 4 }, pretoImpar: { nome: 'Squirtle', especieId: 7 }, vermelhoPar: { nome: 'Bulbasaur', especieId: 1 }, pretoPar: { nome: 'Pikachu', especieId: 25 }, verde: { nome: 'Mew', especieId: 151 } };
 export const FORTUNE_SEGMENTS = [
   { multiplicador: 0, peso: 20, cor: '#444a59' },
   { multiplicador: 0.25, peso: 18, cor: '#886b99' },
@@ -46,14 +46,10 @@ export function slotPayout(grid, bet) {
   }
   return { premio: wins.reduce((sum, win) => sum + win.premio, 0), linhas: wins };
 }
-export function cardPayout(card, bet) {
-  const hit = bet.tipo === 'exata' ? bet.pokemon === card.pokemon && bet.numero === card.numero
-    : bet.tipo === 'dupla' ? bet.pokemon === card.pokemon && [bet.numero, bet.numero + 1].includes(card.numero)
-      : bet.tipo === 'numero' ? bet.numero === card.numero : bet.pokemon === card.pokemon;
-  return hit ? bet.valor * { exata: 24, dupla: 12, numero: 6, pokemon: 4 }[bet.tipo] : 0;
-}
 export function rouletteResult(numero) {
-  return { numero, cor: numero === 0 ? 'verde' : RED.has(numero) ? 'vermelho' : 'preto', pokemon: numero ? CASINO_POKEMON[(numero - 1) % 4] : null };
+  const cor = numero === 0 ? 'verde' : RED.has(numero) ? 'vermelho' : 'preto';
+  const mascotKey = numero === 0 ? 'verde' : `${cor}${numero % 2 ? 'Impar' : 'Par'}`;
+  return { numero, cor, pokemon: ROULETTE_MASCOTS[mascotKey].nome, especieId: ROULETTE_MASCOTS[mascotKey].especieId };
 }
 export function rouletteMultiplier(result, bet) {
   if (bet.tipo === 'numero') return result.numero === bet.numero ? 36 : 0;

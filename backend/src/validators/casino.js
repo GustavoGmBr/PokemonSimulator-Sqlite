@@ -8,12 +8,6 @@ const casinoItems = z.array(z.object({ itemId: z.string().min(1).max(60), quanti
 export const buyChipsSchema = z.object({ quantidade: z.number().int().min(1).max(20_000_000) }).strict();
 export const buyCasinoItemsSchema = z.object({ itens: casinoItems }).strict();
 export const casinoWagerSchema = z.object({ aposta: money }).strict();
-export const cardBetsSchema = z.object({ apostas: z.array(z.discriminatedUnion('tipo', [
-  z.object({ tipo: z.literal('exata'), pokemon, numero: z.number().int().min(1).max(6), valor: money }).strict(),
-  z.object({ tipo: z.literal('dupla'), pokemon, numero: z.number().int().min(1).max(5), valor: money }).strict(),
-  z.object({ tipo: z.literal('numero'), numero: z.number().int().min(1).max(6), valor: money }).strict(),
-  z.object({ tipo: z.literal('pokemon'), pokemon, valor: money }).strict(),
-])).min(1).max(24) }).strict();
 const rouletteBet = z.discriminatedUnion('tipo', [
   z.object({ tipo: z.literal('numero'), numero: z.number().int().min(0).max(36), valor: money }).strict(),
   z.object({ tipo: z.literal('paridade'), paridade: z.enum(['par', 'impar']), valor: money }).strict(),
@@ -36,8 +30,7 @@ export const rouletteSchema = z.object({ apostas: z.array(rouletteBet).max(24), 
 const roundAction = { rodadaId: z.uuid(), versao: z.number().int().min(0) };
 export const roundActionSchema = z.object(roundAction).strict();
 export const voltorbFlipSchema = z.object({ ...roundAction, indice: z.number().int().min(0).max(24) }).strict();
-export const cardFlipSchema = z.object({ ...roundAction, indice: z.number().int().min(0).max(23) }).strict();
 export const pokejackActionSchema = z.object({ ...roundAction, acao: z.enum(['pedir', 'parar', 'dobrar']) }).strict();
 export const piplupActionSchema = z.object({ ...roundAction, acao: z.enum(['pular', 'sacar']) }).strict();
 export const raceSchema = z.object({ aposta: money, pokemon: z.number().int().min(0).max(4) }).strict();
-export const fortuneSchema = z.object({ apostas: z.array(z.object({ multiplicador: z.union([0, 0.25, 0.5, 1, 2, 5, 10].map(value => z.literal(value))), valor: money }).strict()).min(1).max(7).refine(entries => new Set(entries.map(entry => entry.multiplicador)).size === entries.length, 'Use um palpite por multiplicador.') }).strict();
+export const fortuneSchema = z.object({ aposta: money }).strict();

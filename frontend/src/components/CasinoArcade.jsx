@@ -35,13 +35,12 @@ export function RaceGame({ wallet, bet, setBet, busy, play, result }) {
 }
 
 export function FortuneGame({ wallet, bet, setBet, busy, play, result }) {
-  const [chosen,setChosen]=useState(1),[bets,setBets]=useState([]),[rotation,setRotation]=useState(0);
+  const [rotation,setRotation]=useState(0);
   const choices=wallet.regras.fortune, segments=choices.map(s=>({ label:factor(s.multiplicador),weight:s.peso,color:s.cor }));
-  const cost=bets.reduce((sum,b)=>sum+b.valor,0);
-  return <section className="casino-panel"><div className="casino-game-heading"><div><span className="casino-eyebrow">UM PONTEIRO · SETORES DESIGUAIS</span><h2>Wheel of Fortune</h2></div><span className="game-badge">Até 10×</span></div><p>Aposte no multiplicador antes de girar. Somente os palpites iguais ao setor sorteado pagam; setores maiores aparecem mais vezes. O retorno de 0× é zero, e 0,25× ou 0,5× devolvem só parte da aposta.</p>
-    <div className="fortune-layout"><CasinoWheel fortune segments={segments} rotation={rotation} busy={busy} /><div className="fortune-picks" role="group" aria-label="Multiplicadores da fortuna">{choices.map(s=><button type="button" key={s.multiplicador} disabled={busy} className={chosen===s.multiplicador ? 'selected' : ''} style={{ '--sector-color':s.cor }} aria-pressed={chosen===s.multiplicador} onClick={()=>setChosen(s.multiplicador)}><strong>{factor(s.multiplicador)}</strong><small>{s.peso}% da roda</small></button>)}</div></div>
-    <div className="casino-controls"><BetInput bet={bet} setBet={setBet} /><button disabled={busy || !!wallet.rodada || !validBet(bet) || bets.some(b=>b.multiplicador===chosen)} onClick={()=>setBets(current=>[...current,{ multiplicador:chosen,valor:Number(bet) }])}>Apostar em {factor(chosen)}</button></div><BetList bets={bets} busy={busy} remove={index=>setBets(current=>current.filter((_,i)=>i!==index))} /><button disabled={busy || !!wallet.rodada || !bets.length || cost>wallet.fichas} onClick={async()=>{ if(await play('fortune',{ apostas:bets },async data=>{ setRotation(current=>winningRotation(current,segmentAngles(segments)[data.indice].center)); await pause(2450); })) setBets([]); }}>{busy ? 'Roda girando…' : `Girar fortuna · ${money(cost)} fichas`}</button>
-    <RoundResult result={result}>{result && `O ponteiro parou em ${factor(result.multiplicador)}`}</RoundResult>
+  return <section className="casino-panel"><div className="casino-game-heading"><div><span className="casino-eyebrow">UM PONTEIRO · SETORES DESIGUAIS</span><h2>Wheel of Fortune</h2></div><span className="game-badge">Até 10×</span></div><p>Aposte o valor da rodada e gire a roda. O setor onde o ponteiro parar define automaticamente o seu retorno: 0× não paga; 0,25× e 0,5× devolvem uma parte da aposta.</p>
+    <div className="fortune-layout"><CasinoWheel fortune segments={segments} rotation={rotation} busy={busy} /><div className="fortune-picks" aria-label="Multiplicadores e chances da roda">{choices.map(s=><div key={s.multiplicador} style={{ '--sector-color':s.cor }}><strong>{factor(s.multiplicador)}</strong><small>{s.peso}% da roda</small></div>)}</div></div>
+    <div className="casino-controls"><BetInput bet={bet} setBet={setBet} /><button disabled={busy || !!wallet.rodada || !validBet(bet) || Number(bet)>wallet.fichas} onClick={()=>play('fortune',{ aposta:Number(bet) },async data=>{ setRotation(current=>winningRotation(current,segmentAngles(segments)[data.indice].center)); await pause(2450); })}>{busy ? 'Roda girando…' : `Girar fortuna · ${money(bet)} fichas`}</button></div>
+    <RoundResult result={result}>{result && `O ponteiro parou em ${factor(result.multiplicador)} · retorno de ${money(result.premio)} fichas`}</RoundResult>
   </section>;
 }
 

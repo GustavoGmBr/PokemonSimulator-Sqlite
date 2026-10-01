@@ -1,14 +1,74 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { api } from '../lib/api';
 import { useCatalogo, useSave } from '../lib/queries';
-import { Failure, Loading, PageTitle } from '../components/common';
+import { Failure, Loading, PageTitle, PokemonImage, TypeBadge } from '../components/common';
+import { IvStars } from '../components/IvSummary';
 import { TeamPanel } from '../components/TeamPanel';
+import { money } from '../components/casinoShared';
+import './market.css';
+
+const SHOP_KEY = 'pokemon-shop';
 
 export function MarketPage() {
+  const client = useQueryClient();
   const save = useSave();
   const catalog = useCatalogo();
-  if (save.isPending || catalog.isPending) return <Loading label="Abrindo o mercado…" />;
-  if (save.error || catalog.error) return <Failure error={save.error || catalog.error} retry={() => { save.refetch(); catalog.refetch(); }} />;
+  const shop = useQuery({ queryKey: [SHOP_KEY, save.data?.id], queryFn: () => api('/mercado/pokemon'), enabled: Boolean(save.data?.inicialEspecieId), refetchInterval: 30_000 });
+  const [tab, setTab] = useState('comprar');
+  const [busyId, setBusyId] = useState('');
+  const [error, setError] = useState('');
+  const [now, setNow] = useState(Date.now());
+  const speciesById = useMemo(() => new Map((catalog.data?.pokemon ?? []).map(species => [species.id, species])), [catalog.data]);
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
+
+  async function buyPokemon(stockId) {
+    setBusyId(stockId); setError('');
+    try {
+      await api('/mercado/pokemon/comprar', { method: 'POST', body: { stockId } });
+      await Promise.all(['save', 'colecao', 'sale-values', SHOP_KEY].map(key => client.invalidateQueries({ queryKey: [key] })));
+    } catch (caught) {
+      setError(caught.message);
+      await client.invalidateQueries({ queryKey: [SHOP_KEY] });
+    } finally { setBusyId(''); }
+  }
+
+  if (save.isPending || catalog.isPending || (save.data?.inicialEspecieId && shop.isPending)) return <Loading label="Abrindo o mercado…" />;
+  if (save.error || catalog.error || shop.error) return <Failure error={save.error || catalog.error || shop.error} retry={() => { save.refetch(); catalog.refetch(); shop.refetch(); }} />;
   if (!save.data?.iniciadoEm) return <Navigate to="/saves" replace />;
   if (!save.data.inicialEspecieId) return <Navigate to="/inicial" replace />;
-  return <div className="market-page"><PageTitle label="MERCADO POKÉMON · SUA COLEÇÃO" title="Venda seus Pokémon.">Confira os valores, filtre sua coleção e venda vários exemplares de uma vez.</PageTitle><TeamPanel save={save.data} catalogo={catalog.data} market /></div>;
+
+  const stock = shop.data;
+  const timeLeft = Math.max(0, stock.restanteMs - (now - Date.parse(shop.dataUpdatedAt)));
+  const hours = String(Math.floor(timeLeft / 3_600_000)).padStart(2, '0');
+  const minutes = String(Math.floor(timeLeft % 3_600_000 / 60_000)).padStart(2, '0');
+  const seconds = String(Math.floor(timeLeft % 60_000 / 1000)).padStart(2, '0');
+
+  return <div className="market-page">
+    <PageTitle label="MERCADO POKÉMON" title="Encontre novos parceiros.">Compre Pokémon com Pokédólares ou venda exemplares da sua coleção.</PageTitle>
+    <div className="market-tabs" role="tablist" aria-label="Mercado Pokémon">
+      <button type="button" role="tab" aria-selected={tab === 'comprar'} className={tab === 'comprar' ? 'active' : ''} onClick={() => setTab('comprar')}>Comprar Pokémon</button>
+      <button type="button" role="tab" aria-selected={tab === 'vender'} className={tab === 'vender' ? 'active' : ''} onClick={() => setTab('vender')}>Vender Pokémon</button>
+    </div>
+    {tab === 'comprar' ? <section className="pokemon-shop">
+      <div className="pokemon-shop-heading"><div><h2>Estoque de Pokémon</h2><p>Dez Pokémon novos aparecem a cada seis horas. Todos chegam com pelo menos duas estrelas de IV.</p></div><span className="shop-countdown">Próxima atualização <strong>{hours}:{minutes}:{seconds}</strong></span></div>
+      {error && <p role="alert" className="battle-error">{error}</p>}
+      <div className="pokemon-shop-grid">{stock.pokemons.map(item => {
+        const species = speciesById.get(item.especieId);
+        if (!species) return null;
+        const saving = busyId === item.id;
+        return <article className={`pokemon-shop-card ${!item.disponivel ? 'sold' : ''}`} key={item.id}>
+          <div className="pokemon-shop-image">{item.shiny && <span className="shop-shiny">✨ SHINY</span>}<PokemonImage pokemon={species} variant={item.shiny ? 'frontShiny' : 'front'} loading="lazy" /></div>
+          <div className="pokemon-shop-info"><div className="pokemon-shop-name"><strong>{species.nomeExibicao}</strong><span>#{String(item.especieId).padStart(3, '0')}</span></div>
+            <div className="pokemon-shop-tags"><span>Geração {item.geracao}</span>{!item.geracaoDesbloqueada && <span>Geração bloqueada · 2×</span>}{item.shiny && <span>Brilhante · 5×</span>}</div>
+            <div className="pokemon-shop-types">{species.tipos.map(type => <TypeBadge key={type} type={type} />)}</div>
+            <p>Nível {item.nivel} · IVs <IvStars ivs={item.ivs} /></p>
+            {item.estrelas >= 3 && <small className="shop-iv-bonus">Bônus de IV: +{item.estrelas === 4 ? 100 : 50}% no valor</small>}
+          </div>
+          <div className="pokemon-shop-buy"><strong>{money(item.preco)} ₽</strong><button type="button" disabled={!item.disponivel || Boolean(busyId) || stock.moedas < item.preco} onClick={() => buyPokemon(item.id)}>{saving ? 'Comprando…' : item.disponivel ? stock.moedas < item.preco ? 'Saldo insuficiente' : 'Comprar' : 'Vendido'}</button></div>
+        </article>;
+      })}</div>
+    </section> : <TeamPanel save={save.data} catalogo={catalog.data} market />}
+  </div>;
 }

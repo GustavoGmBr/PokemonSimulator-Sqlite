@@ -1,8 +1,21 @@
+import { randomInt, randomUUID } from 'node:crypto';
 import { HttpError } from '../lib/errors.js';
 import { getCatalogo, getEspecie } from './catalogo.js';
-import { ivQuality } from './ivRules.js';
+import { ivQuality, rollIvs } from './ivRules.js';
+import { REGIONS, legendaryUnlocked, regionUnlocked, shinyRolls, statsFor } from './battleRules.js';
+import { generationForSpecies } from './itemRules.js';
+import { levelMovesFor } from './battleRules.js';
+import { naturalMoves } from './moveRules.js';
 
 const ballPrices = { 'poke-ball': 200, 'great-ball': 600, 'ultra-ball': 1200 };
+const SHOP_REFRESH_MS = 6 * 60 * 60 * 1000;
+const SHOP_SIZE = 10;
+const SHOP_SHINY_DENOMINATOR = 4086;
+
+function rollShopShiny(rng, rolls) {
+  for (let attempt = 0; attempt < rolls; attempt++) if (rng(SHOP_SHINY_DENOMINATOR) === 0) return true;
+  return false;
+}
 
 export function pokemonSaleValue(member) {
   const species = getEspecie(member.especieId);
@@ -14,8 +27,71 @@ export function pokemonSaleValue(member) {
   return Math.floor((ballValue + investments) * legendaryMultiplier * shinyMultiplier * ivQuality(member.ivs).valueMultiplier);
 }
 
-export function createMarketService(db) {
+export function createMarketService(db, { rng = randomInt, now = Date.now } = {}) {
+  function makeStock(completed, hasCharm, period) {
+    const catalog = getCatalogo();
+    const available = catalog.pokemon.filter(species => legendaryUnlocked(species, completed));
+    const list = [];
+    while (list.length < SHOP_SIZE && available.length) {
+      const species = available.splice(rng(available.length), 1)[0];
+      const generation = generationForSpecies(species.id);
+      const region = REGIONS.find(entry => entry.geracao === generation && species.id >= entry.minSpecies && species.id <= entry.maxSpecies);
+      const unlocked = region ? regionUnlocked(region.id, completed) : false;
+      const shiny = rollShopShiny(rng, shinyRolls(completed, generation, hasCharm));
+      let ivs;
+      do { ivs = rollIvs(rng); } while (ivQuality(ivs).stars < 2);
+      const stars = ivQuality(ivs).stars;
+      let price = 10_000 * (unlocked ? 1 : 2) * (shiny ? 5 : 1) * (stars === 4 ? 2 : stars === 3 ? 1.5 : 1);
+      price = Math.floor(price);
+      const level = 1 + rng(100);
+      const atributos = statsFor(species, level, shiny, ivs);
+      list.push({ id: randomUUID(), especieId: species.id, nome: species.nomeExibicao, geracao: generation, geracaoDesbloqueada: unlocked, nivel: level, shiny, ivs, estrelas: stars, preco: price, disponivel: true, experiencia: species.experienciaPorNivel.find(entry => entry.nivel === level)?.experiencia ?? 0, hpAtual: atributos.hp, atributos, golpes: levelMovesFor(species, level).map(move => ({ nome: move.nome })), golpesDesbloqueados: naturalMoves(species, level) });
+    }
+    return { periodo: period, pokemons: list };
+  }
+
+  async function stockFor(tx, save) {
+    const period = Math.floor(now() / SHOP_REFRESH_MS);
+    const challenges = await tx.desafioConcluido.findMany({ where: { saveId: save.id }, select: { desafioId: true } });
+    const completed = challenges.map(entry => entry.desafioId);
+    const charm = await tx.itemInventario.findUnique({ where: { saveId_itemId: { saveId: save.id, itemId: 'shiny-charm' } }, select: { quantidade: true } });
+    let record = await tx.lojaPokemonEstoque.findUnique({ where: { saveId: save.id } });
+    if (!record || record.periodo !== period) {
+      const estado = makeStock(completed, charm?.quantidade > 0, period);
+      record = await tx.lojaPokemonEstoque.upsert({ where: { saveId: save.id }, create: { saveId: save.id, periodo: period, estado }, update: { periodo: period, estado } });
+    }
+    return { record, renovaEm: new Date((period + 1) * SHOP_REFRESH_MS).toISOString(), restanteMs: (period + 1) * SHOP_REFRESH_MS - now() };
+  }
+
   return {
+    async pokemon(usuarioId) {
+      return db.$transaction(async tx => {
+        const save = await tx.save.findUnique({ where: { usuarioId } });
+        if (!save?.inicialEspecieId) throw new HttpError(409, 'Inicie sua jornada antes de usar o Mercado Pokémon.');
+        const { record, renovaEm, restanteMs } = await stockFor(tx, save);
+        return { moedas: save.moedas, pokemons: record.estado.pokemons.map(({ golpes, golpesDesbloqueados, experiencia, atributos, hpAtual, ...entry }) => entry), renovaEm, restanteMs };
+      }, { isolationLevel: 'Serializable' });
+    },
+    async buyPokemon(usuarioId, stockId) {
+      return db.$transaction(async tx => {
+        const save = await tx.save.findUnique({ where: { usuarioId } });
+        if (!save?.inicialEspecieId) throw new HttpError(409, 'Inicie sua jornada antes de usar o Mercado Pokémon.');
+        const { record } = await stockFor(tx, save);
+        const pokemon = record.estado.pokemons.find(entry => entry.id === stockId);
+        if (!pokemon) throw new HttpError(404, 'Este Pokémon não está mais no estoque. Atualize o mercado.');
+        if (!pokemon.disponivel) throw new HttpError(409, 'Este Pokémon já foi comprado.');
+        if (save.moedas < pokemon.preco) throw new HttpError(409, 'Pokédólares insuficientes.');
+        const estado = structuredClone(record.estado);
+        const item = estado.pokemons.find(entry => entry.id === stockId);
+        item.disponivel = false;
+        const charged = await tx.save.updateMany({ where: { id: save.id, moedas: { gte: pokemon.preco } }, data: { moedas: { decrement: pokemon.preco } } });
+        if (charged.count !== 1) throw new HttpError(409, 'Pokédólares insuficientes.');
+        await tx.lojaPokemonEstoque.update({ where: { saveId: save.id }, data: { estado } });
+        const { golpes, golpesDesbloqueados, experiencia, atributos, hpAtual } = pokemon;
+        const owned = await tx.pokemonCapturado.create({ data: { saveId: save.id, especieId: pokemon.especieId, nivel: pokemon.nivel, experiencia, hpAtual, shiny: pokemon.shiny, bolaCaptura: 'poke-ball', ivs: pokemon.ivs, atributos, golpes, golpesDesbloqueados } });
+        return { pokemon: owned, preco: pokemon.preco, moedas: save.moedas - pokemon.preco };
+      }, { isolationLevel: 'Serializable', timeout: 20_000 });
+    },
     async values(usuarioId) {
       const members = await db.pokemonCapturado.findMany({ where: { save: { usuarioId } } });
       return members.map((member) => ({ pokemonId: member.id, valor: pokemonSaleValue(member), bolaCaptura: member.bolaCaptura ?? 'poke-ball', investimentoItens: member.investimentoItens }));

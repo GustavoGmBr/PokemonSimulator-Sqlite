@@ -41,9 +41,9 @@ async function snapshot(page,info,name) {
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({ path:info.outputPath(`${name}.png`),fullPage:true });
 }
-test('oito jogos: animações, pagamentos, escolhas e retomada das rodadas',async({page},info)=>{
+test('sete jogos: animações, pagamentos, escolhas e retomada das rodadas',async({page},info)=>{
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
-  await enter(page);await expect(page.getByRole('tab')).toHaveCount(9);
+  await enter(page);await expect(page.getByRole('tab')).toHaveCount(8);
   await page.getByLabel('Comprar fichas · 5 ₽ cada').fill('1000');
   await page.getByRole('button',{name:'Comprar · 5.000 ₽'}).click();
   await expect(page.locator('.casino-wallet')).toContainText('1.000');
@@ -54,27 +54,12 @@ test('oito jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await expect(page.locator('.slot-cell')).toHaveCount(9);
   await snapshot(page,info,'slots');
 
-  await page.getByRole('tab',{name:'Cartas',exact:true}).click();
-  await page.getByRole('button',{name:'Adicionar palpite'}).click();
-  await page.getByRole('button',{name:/Distribuir cartas/}).click();
-  await expect(page.locator('.casino-active-round')).toBeVisible();
-  await expect(page.locator('.casino-card-grid .flipped')).toHaveCount(0);
-  await page.reload();
-  await expect(page.getByRole('heading',{name:'Jogo de cartas'})).toBeVisible();
-  await page.getByRole('button',{name:'Virar carta 1',exact:true}).click();
-  await expect(page.locator('.casino-result')).toContainText('Carta');
-  const paid=(await db.save.findUnique({where:{id:save.id}})).fichas;
-  await page.getByRole('button',{name:'Virar carta 2',exact:true}).click();
-  await expect(page.locator('.casino-card-grid .flipped')).toHaveCount(2);
-  expect((await db.save.findUnique({where:{id:save.id}})).fichas).toBe(paid);
-  await snapshot(page,info,'cards');
-
   await page.getByRole('tab',{name:'Roleta',exact:true}).click();
   await expect(page.locator('.roulette-number')).toHaveCount(37);
   await expect(page.getByRole('img',{name:'Roleta europeia circular com 37 casas'})).toBeVisible();
   await page.getByLabel('Tipo de palpite').selectOption('cor');
   await page.getByRole('button',{name:'Adicionar aposta',exact:true}).click();
-  await page.getByText('Grupos Pokémon e aposta de coleção', {exact:true}).click();
+  await page.getByText('Pokémon das casas e aposta de coleção', {exact:true}).click();
   await expect(page.getByRole('button',{name:/Favorito protegido Bulbasaur/})).toBeDisabled();
   await page.getByRole('button',{name:/Apostar Pikachu/}).click();
   await page.getByRole('button',{name:/Girar roleta/}).click();
@@ -123,9 +108,7 @@ test('oito jogos: animações, pagamentos, escolhas e retomada das rodadas',asyn
   await snapshot(page,info,'race');
 
   await page.getByRole('tab',{name:'Wheel of Fortune'}).click();
-  await expect(page.locator('.fortune-picks button')).toHaveCount(7);
-  await page.getByRole('button',{name:/^10×/}).click();
-  await page.getByRole('button',{name:'Apostar em 10×'}).click();
+  await expect(page.locator('.fortune-picks > div')).toHaveCount(7);
   await page.getByRole('button',{name:/Girar fortuna/}).click();
   await expect(page.locator('.casino-result')).toContainText('O ponteiro parou');
   await snapshot(page,info,'fortune');

@@ -7,13 +7,12 @@ import { useCatalogo, useColecao, useSave } from '../lib/queries';
 import { Failure, Loading, PageTitle } from '../components/common';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { NumberInput, money, roundToken } from '../components/casinoShared';
-import { SlotGame, CardsGame, RouletteGame, VoltorbGame } from '../components/CasinoTables';
+import { SlotGame, RouletteGame, VoltorbGame } from '../components/CasinoTables';
 import { PokejackGame, RaceGame, FortuneGame, PiplupGame } from '../components/CasinoArcade';
 import './casino.css';
 
 const games=[
   { id:'slots',name:'Caça-níqueis',icon:'✦',route:'slots',Component:SlotGame },
-  { id:'cards',name:'Cartas',icon:'♠',route:'cartas',Component:CardsGame },
   { id:'roulette',name:'Roleta',icon:'◉',route:'roleta',Component:RouletteGame },
   { id:'voltorb',name:'Voltorb Flip',icon:'▦',route:'voltorb',Component:VoltorbGame },
   { id:'jack',name:'Pokejack',icon:'21',route:'pokejack',Component:PokejackGame },
@@ -51,10 +50,10 @@ export function CasinoPage() {
   const wallet=casino.data, game=games.find(g=>g.id===tab), Component=game.Component, active=games.find(g=>g.route===wallet.rodada?.jogo);
   const cart=Object.entries(itemAmounts).filter(([,qty])=>Number(qty)>0).map(([itemId,quantity])=>({ itemId,quantidade:Number(quantity) }));
   const cost=cart.reduce((sum,line)=>sum+(wallet.itens.find(item=>item.itemId===line.itemId)?.preco ?? 0)*line.quantidade,0);
-  return <div className="casino-page"><PageTitle label="POKÉCASSINO · OITO JOGOS E UMA LOJA" title="A sorte está lançada.">Escolha sua mesa, acompanhe a rodada e troque as fichas por prêmios para sua jornada.</PageTitle>
+  return <div className="casino-page"><PageTitle label="POKÉCASSINO · SETE JOGOS E UMA LOJA" title="A sorte está lançada.">Escolha sua mesa, acompanhe a rodada e troque as fichas por prêmios para sua jornada.</PageTitle>
     <div className="casino-wallet"><div><Coins size={21} /><span>Pokédólares</span><strong>{money(wallet.moedas)} ₽</strong></div><div><Ticket size={21} /><span>Fichas</span><strong>{money(wallet.fichas)}</strong></div><div className="casino-chip-buy"><NumberInput label="Comprar fichas · 5 ₽ cada" value={chips} onChange={setChips} /><button disabled={busy || !!wallet.rodada || !Number.isInteger(Number(chips)) || Number(chips)<1 || Number(chips)>20_000_000 || Number(chips)*5>wallet.moedas} onClick={()=>play('fichas',{ quantidade:Number(chips) })}>Comprar · {money(Number(chips)*5)} ₽</button></div></div>
     <p className="casino-return-note">Multiplicadores indicam o retorno total: apostar 10 fichas e ganhar 2× devolve 20 fichas. Prêmios fracionários são arredondados para baixo.</p>
-    {wallet.reembolso>0 && <p role="status">A rodada antiga de Voltorb foi encerrada com devolução de {money(wallet.reembolso)} fichas para iniciar as novas regras.</p>}
+    {wallet.reembolso>0 && <p role="status">Uma rodada antiga foi encerrada com devolução de {money(wallet.reembolso)} fichas para iniciar as novas regras.</p>}
     <div className="casino-tabs" role="tablist" aria-label="Jogos e loja do cassino">{games.map(g=><button type="button" role="tab" id={`casino-tab-${g.id}`} aria-controls="casino-game-panel" aria-selected={tab===g.id} tabIndex={tab===g.id ? 0 : -1} disabled={busy} key={g.id} className={tab===g.id ? 'active' : ''} onClick={()=>{setTab(g.id);setResult(null);setError('');}} onKeyDown={event=>{
       if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
       event.preventDefault();const i=games.indexOf(g), next=event.key==='Home' ? 0 : event.key==='End' ? games.length-1 : (i+(event.key==='ArrowRight' ? 1 : -1)+games.length)%games.length;

@@ -37,6 +37,7 @@ model Save {
   eventos      BatalhaEvento[]
   missoesResgatadas MissaoResgatada[]
   cassinoRodada CassinoRodada?
+  lojaPokemonEstoque LojaPokemonEstoque?
   kitEntregue  Boolean @default(false)
 }
 
@@ -131,6 +132,13 @@ model CassinoRodada {
   saveId    String   @id
   estado    Json
   criadoEm  DateTime @default(now())
+  save      Save     @relation(fields: [saveId], references: [id], onDelete: Cascade)
+}
+
+model LojaPokemonEstoque {
+  saveId    String   @id
+  periodo   Int
+  estado    Json
   save      Save     @relation(fields: [saveId], references: [id], onDelete: Cascade)
 }
 

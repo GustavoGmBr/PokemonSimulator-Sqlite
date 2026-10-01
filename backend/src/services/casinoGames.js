@@ -1,11 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { HttpError } from '../lib/errors.js';
-import { CASINO_POKEMON, FORTUNE_SEGMENTS, PIPLUP_MULTIPLIERS, PIPLUP_CHANCES, shuffle, weightedIndex, cardPayout, makeVoltorbBoard, voltorbPayout, blackjackDeck, handScore, blackjackOutcome, raceResult } from './casinoRules.js';
+import { FORTUNE_SEGMENTS, PIPLUP_MULTIPLIERS, PIPLUP_CHANCES, weightedIndex, makeVoltorbBoard, voltorbPayout, blackjackDeck, handScore, blackjackOutcome, raceResult } from './casinoRules.js';
 
 export function publicCasinoRound(state, finished = false) {
   if (!state) return null;
   const base = { id: state.id, versao: state.versao, jogo: state.jogo, aposta: state.aposta };
-  if (state.jogo === 'cartas') return { ...base, apostas: state.apostas, casas: state.tabuleiro.map((card, i) => finished || state.abertas.includes(i) ? card : null), abertas: state.abertas };
   if (state.jogo === 'voltorb') {
     const payout = voltorbPayout(state.tabuleiro, state.abertas, state.aposta);
     return { ...base, casas: state.tabuleiro.map((value, i) => finished || state.abertas.includes(i) ? value : null), abertas: state.abertas, restantes: 5 - state.abertas.length, acumulado: payout.premio, ...payout };
@@ -44,21 +43,6 @@ export function createCasinoGames(db, { saveFor, checkBet, checkBalance, ensureR
     return finish(tx, save, state, blackjackOutcome(state.jogador, state.banca, state.aposta));
   }
   return {
-    async cards(usuarioId, apostas) {
-      return transaction(async tx => {
-        const save = await saveFor(tx, usuarioId), cost = apostas.reduce((sum, bet) => sum + bet.valor, 0);
-        await assertNoRound(tx, save); checkBet(save, cost); ensureRoom(save, cost, 24);
-        return begin(tx, save, initial('cartas', cost, { apostas, abertas: [], tabuleiro: shuffle(CASINO_POKEMON.flatMap(pokemon => Array.from({ length: 6 }, (_, i) => ({ pokemon, numero: i + 1 }))), rng) }));
-      });
-    },
-    async flipCard(usuarioId, request) {
-      return transaction(async tx => {
-        const save = await saveFor(tx, usuarioId), state = await current(tx, save, 'cartas', request);
-        const carta = state.tabuleiro[request.indice]; state.abertas.push(request.indice);
-        const apostas = state.apostas.map(bet => ({ ...bet, premio: cardPayout(carta, bet) }));
-        return finish(tx, save, state, { resultado: 'concluida', carta, escolhida: request.indice, apostas, premio: apostas.reduce((sum, bet) => sum + bet.premio, 0) });
-      });
-    },
     async startVoltorb(usuarioId, aposta) {
       return transaction(async tx => {
         const save = await saveFor(tx, usuarioId); await assertNoRound(tx, save); checkBet(save, aposta); ensureRoom(save, aposta, 28);
@@ -110,15 +94,14 @@ export function createCasinoGames(db, { saveFor, checkBet, checkBalance, ensureR
         return { ...race, aposta, escolhido: pokemon, premio, fichas: save.fichas - aposta + premio };
       });
     },
-    async fortune(usuarioId, apostas) {
+    async fortune(usuarioId, aposta) {
       return transaction(async tx => {
-        const save = await saveFor(tx, usuarioId), cost = apostas.reduce((sum, bet) => sum + bet.valor, 0);
+        const save = await saveFor(tx, usuarioId), cost = aposta;
         await assertNoRound(tx, save); checkBet(save, cost); ensureRoom(save, cost, 10);
         const indice = weightedIndex(FORTUNE_SEGMENTS.map(segment => segment.peso), rng), multiplicador = FORTUNE_SEGMENTS[indice].multiplicador;
-        const details = apostas.map(bet => ({ ...bet, premio: bet.multiplicador === multiplicador ? Math.floor(bet.valor * multiplicador) : 0 }));
-        const premio = details.reduce((sum, bet) => sum + bet.premio, 0);
+        const premio = Math.floor(aposta * multiplicador);
         await tx.save.update({ where: { id: save.id }, data: { fichas: save.fichas - cost + premio } });
-        return { indice, multiplicador, apostas: details, custo: cost, premio, fichas: save.fichas - cost + premio };
+        return { indice, multiplicador, aposta, custo: cost, premio, fichas: save.fichas - cost + premio };
       });
     },
     async startPiplup(usuarioId, aposta) {

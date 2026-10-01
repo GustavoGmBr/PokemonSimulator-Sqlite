@@ -14,7 +14,10 @@ import { createMoveManagementService } from '../services/moveManagement.js';
 import { createJourneyService } from '../services/journey.js';
 import { createMarketService } from '../services/market.js';
 import { createCasinoService } from '../services/casino.js';
-import { buyChipsSchema, buyCasinoItemsSchema, casinoWagerSchema, cardBetsSchema, rouletteSchema, voltorbFlipSchema, cardFlipSchema, roundActionSchema, pokejackActionSchema, piplupActionSchema, raceSchema, fortuneSchema } from '../validators/casino.js';
+import { buyChipsSchema, buyCasinoItemsSchema, casinoWagerSchema, rouletteSchema, voltorbFlipSchema, roundActionSchema, pokejackActionSchema, piplupActionSchema, raceSchema, fortuneSchema } from '../validators/casino.js';
+import { z } from 'zod';
+
+const buyPokemonStockSchema = z.object({ stockId: z.string().uuid() }).strict();
 
 export function createRouter(db, config) {
   const router = Router();
@@ -57,6 +60,12 @@ export function createRouter(db, config) {
   });
   router.post('/jogador/pokemon/vender', validate(sellPokemonSchema), async (req, res, next) => {
     try { res.json({ success: true, data: await market.sell(req.usuarioId, req.body.pokemonIds) }); } catch (error) { next(error); }
+  });
+  router.get('/mercado/pokemon', requireSave, async (req, res, next) => {
+    try { res.json({ success: true, data: await market.pokemon(req.usuarioId) }); } catch (error) { next(error); }
+  });
+  router.post('/mercado/pokemon/comprar', requireSave, validate(buyPokemonStockSchema), async (req, res, next) => {
+    try { res.json({ success: true, data: await market.buyPokemon(req.usuarioId, req.body.stockId) }); } catch (error) { next(error); }
   });
   router.patch('/jogador/pokemon/:id/favorito', validate(favoriteSchema), jogador.favorito);
   router.post('/jogador/pokemon/:id/iv', validate(ivItemSchema), async (req, res, next) => {
@@ -126,9 +135,6 @@ export function createRouter(db, config) {
   router.post('/cassino/slots', requireSave, validate(casinoWagerSchema), async (req, res, next) => {
     try { res.json({ success: true, data: await casino.slots(req.usuarioId, req.body.aposta) }); } catch (error) { next(error); }
   });
-  router.post('/cassino/cartas', requireSave, validate(cardBetsSchema), async (req, res, next) => {
-    try { res.json({ success: true, data: await casino.cards(req.usuarioId, req.body.apostas) }); } catch (error) { next(error); }
-  });
   router.post('/cassino/roleta', requireSave, validate(rouletteSchema), async (req, res, next) => {
     try { res.json({ success: true, data: await casino.roulette(req.usuarioId, req.body.apostas, req.body.pokemonAposta) }); } catch (error) { next(error); }
   });
@@ -141,9 +147,6 @@ export function createRouter(db, config) {
   router.post('/cassino/voltorb/desistir', requireSave, validate(roundActionSchema), async (req, res, next) => {
     try { res.json({ success: true, data: await casino.leaveRound(req.usuarioId, req.body) }); } catch (error) { next(error); }
   });
-  router.post('/cassino/cartas/virar', requireSave, validate(cardFlipSchema), async (req, res, next) => {
-    try { res.json({ success: true, data: await casino.flipCard(req.usuarioId, req.body) }); } catch (error) { next(error); }
-  });
   router.post('/cassino/pokejack', requireSave, validate(casinoWagerSchema), async (req, res, next) => {
     try { res.json({ success: true, data: await casino.startPokejack(req.usuarioId, req.body.aposta) }); } catch (error) { next(error); }
   });
@@ -154,7 +157,7 @@ export function createRouter(db, config) {
     try { res.json({ success: true, data: await casino.race(req.usuarioId, req.body.aposta, req.body.pokemon) }); } catch (error) { next(error); }
   });
   router.post('/cassino/fortune', requireSave, validate(fortuneSchema), async (req, res, next) => {
-    try { res.json({ success: true, data: await casino.fortune(req.usuarioId, req.body.apostas) }); } catch (error) { next(error); }
+    try { res.json({ success: true, data: await casino.fortune(req.usuarioId, req.body.aposta) }); } catch (error) { next(error); }
   });
   router.post('/cassino/piplup', requireSave, validate(casinoWagerSchema), async (req, res, next) => {
     try { res.json({ success: true, data: await casino.startPiplup(req.usuarioId, req.body.aposta) }); } catch (error) { next(error); }

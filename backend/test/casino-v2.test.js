@@ -69,24 +69,6 @@ test('Voltorb oculta cartas, persiste, não encerra com zero e paga só na quint
   assert.equal(end.premio,1300); assert.equal(end.bonusLinha,2); assert.equal(await balance(),11200);
   await assert.rejects(casino.flipVoltorb(user(), { ...token(round), indice:4 }), /rodada mudou/);
 });
-test('cartas são debitadas antes da escolha, ocultas e pagas uma única vez', async () => {
-  const casino = service(() => 0), bets = [{ tipo:'exata', pokemon:'Pikachu', numero:1, valor:5 }];
-  const { rodada } = await casino.cards(user(),bets);
-  assert.equal(rodada.casas.length,24); assert.ok(rodada.casas.every(cell => cell === null)); assert.equal(await balance(),9995);
-  const row = await db.cassinoRodada.findUniqueOrThrow({ where:{ saveId:save.id } });
-  const indice = row.estado.tabuleiro.findIndex(card => card.pokemon === 'Pikachu' && card.numero === 1);
-  const result = await casino.flipCard(user(), { ...token(rodada), indice });
-  assert.equal(result.premio,120); assert.equal(await balance(),10115);
-  await assert.rejects(casino.flipCard(user(), { ...token(rodada), indice }), /rodada mudou/);
-});
-test('escolhas simultâneas da mesma carta creditam o prêmio apenas uma vez', async () => {
-  const casino=service(() => 0), { rodada }=await casino.cards(user(),[{ tipo:'exata',pokemon:'Pikachu',numero:1,valor:5 }]);
-  const row=await db.cassinoRodada.findUniqueOrThrow({where:{saveId:save.id}});
-  const payload={ ...token(rodada),indice:row.estado.tabuleiro.findIndex(card=>card.pokemon==='Pikachu' && card.numero===1) };
-  const results=await Promise.allSettled([casino.flipCard(user(),payload),casino.flipCard(user(),payload)]);
-  assert.equal(results.filter(result=>result.status==='fulfilled').length,1);
-  assert.equal(await balance(),10115);
-});
 test('roleta europeia tem 37 números, 18 vermelhos, 18 pretos e zero verde', () => {
   assert.equal(new Set(ROULETTE_ORDER).size,37);
   const values = Array.from({ length:37 },(_,n) => rouletteResult(n));
@@ -149,11 +131,11 @@ test('corrida move cinco Pokémon e paga 4× apenas ao escolhido vencedor', asyn
   assert.equal((await casino.race(user(),100,1)).premio,0);
   assert.equal(await balance(),10200);
 });
-test('Fortune usa segmentos proporcionais e paga só palpites coincidentes', async () => {
+test('Fortune usa segmentos proporcionais e paga o multiplicador sorteado', async () => {
   assert.equal(FORTUNE_SEGMENTS.reduce((sum,s) => sum+s.peso,0),100);
-  const result = await service(() => 99).fortune(user(),[{ multiplicador:10, valor:100 }, { multiplicador:5, valor:100 }]);
-  assert.equal(result.multiplicador,10); assert.equal(result.premio,1000); assert.equal(await balance(),10800);
-  const fraction = await service(() => 20).fortune(user(),[{ multiplicador:0.25, valor:5 }]);
+  const result = await service(() => 99).fortune(user(),100);
+  assert.equal(result.multiplicador,10); assert.equal(result.premio,1000); assert.equal(await balance(),10900);
+  const fraction = await service(() => 20).fortune(user(),5);
   assert.equal(fraction.premio,1);
 });
 test('rodada ativa bloqueia outras apostas; saldo insuficiente e carteira máxima são atômicos', async () => {
