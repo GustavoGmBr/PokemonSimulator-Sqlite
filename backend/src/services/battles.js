@@ -2,7 +2,7 @@ import { normalizeIvs } from './ivRules.js';
 import { randomInt } from 'node:crypto';
 import { HttpError } from '../lib/errors.js';
 import { getCatalogo, getEspecie } from './catalogo.js';
-import { REGIONS, regionUnlocked, legendaryUnlocked, catchCharmMultiplier, challengesWithStatus, charmMilestones, damage, effectiveness, formFor, levelMovesFor, makeCombatant, rollShiny, rollWild, rollTrainer, shinyRolls, statsFor, wildLevelCap, wildLevelSettings } from './battleRules.js';
+import { REGIONS, regionUnlocked, legendaryUnlocked, catchCharmMultiplier, challengesWithStatus, charmMilestones, completedGenerationsAfterFirst, luckyEggMultiplier, amuletCoinMultiplier, damage, effectiveness, formFor, levelMovesFor, makeCombatant, rollShiny, rollWild, rollTrainer, shinyRolls, statsFor, wildLevelCap, wildLevelSettings } from './battleRules.js';
 import { generationForSpecies, HEALING_ITEMS, healCombatant } from './itemRules.js';
 import { equippedMoves, naturalMoves, unlockedMoves } from './moveRules.js';
 import { TOURNAMENTS, rollTournament } from './tournaments.js';
@@ -90,10 +90,13 @@ export function createBattleService(db) {
   async function finish(tx, save, state, action) {
     const inventory = await tx.itemInventario.findMany({ where: { saveId: save.id, quantidade: { gt: 0 } }, select: { itemId: true } });
     const owned = new Set(inventory.map((entry) => entry.itemId));
+    if (state.resultado === 'vitoria' && state.tipo === 'desafio') await tx.desafioConcluido.upsert({ where: { saveId_desafioId: { saveId: save.id, desafioId: state.desafioId } }, create: { saveId: save.id, desafioId: state.desafioId }, update: {} });
+    const completed = await progress(tx, save.id);
+    const eggMultiplier = owned.has('lucky-egg') ? luckyEggMultiplier(completed) : 1;
+    const coinMultiplier = owned.has('amulet-coin') ? amuletCoinMultiplier(completed) : 1;
     if (state.resultado === 'vitoria') {
-      state.moedasGanhas = (['treinador', 'torneio'].includes(state.tipo) ? state.recompensa.moedas : state.moedasGanhas ?? state.oponente.nivel * 10) * (owned.has('amulet-coin') ? 2 : 1);
+      state.moedasGanhas = Math.floor((['treinador', 'torneio'].includes(state.tipo) ? state.recompensa.moedas : state.moedasGanhas ?? state.oponente.nivel * 10) * coinMultiplier);
       await tx.save.update({ where: { id: save.id }, data: { vitorias: { increment: 1 }, moedas: { increment: state.moedasGanhas } } });
-      if (state.tipo === 'desafio') await tx.desafioConcluido.upsert({ where: { saveId_desafioId: { saveId: save.id, desafioId: state.desafioId } }, create: { saveId: save.id, desafioId: state.desafioId }, update: {} });
       if (['treinador', 'torneio'].includes(state.tipo)) {
         state.itensGanhos = state.recompensa.itens;
         for (const item of state.itensGanhos) await tx.itemInventario.upsert({ where: { saveId_itemId: { saveId: save.id, itemId: item.itemId } }, create: { saveId: save.id, ...item }, update: { quantidade: { increment: item.quantidade } } });
@@ -111,11 +114,11 @@ export function createBattleService(db) {
     await tx.batalhaEvento.create({ data: { saveId: save.id, tipo: 'batalha', especieId: state.oponente.especieId, regiao: state.regiaoEncontro ?? state.regiao, dificuldade: state.dificuldade, torneioId: state.torneio?.id, resultado: state.resultado, shiny: state.oponente.shiny, descricao: `${state.tipo === 'selvagem' ? state.oponente.nome : state.treinador ?? 'Batalha'} · ${state.resultado}` } });
     if (state.resultado === 'captura' && state.jogador) state.xpPorPokemon[state.jogador.pokemonId] = (state.xpPorPokemon[state.jogador.pokemonId] ?? 0) + state.xpGanho;
     const xpEntries = Object.entries(state.xpPorPokemon ?? {});
-    if (owned.has('lucky-egg')) state.xpGanho *= 2;
+    state.xpGanho = Math.floor(state.xpGanho * eggMultiplier);
     for (const [pokemonId, baseXp] of xpEntries) {
       const member = await tx.pokemonCapturado.findFirst({ where: { id: pokemonId, saveId: save.id } });
       if (!member) continue;
-      const earnedXp = owned.has('lucky-egg') ? baseXp * 2 : baseXp;
+      const earnedXp = Math.floor(baseXp * eggMultiplier);
       const species = getEspecie(member.especieId);
       const maxXp = species.experienciaPorNivel.at(-1).experiencia;
       const experience = Math.min(maxXp, member.experiencia + earnedXp);

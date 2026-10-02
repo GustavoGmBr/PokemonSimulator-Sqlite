@@ -839195,7 +839195,7 @@
       "nome": "lucky-egg",
       "nomeExibicao": "Lucky Egg",
       "categoria": "buff",
-      "descricao": "Dobra a experiência recebida nas batalhas enquanto estiver na mochila.",
+      "descricao": "Aumenta em 2× a experiência nas batalhas e soma 25% por geração concluída da 2ª à 9ª, chegando a 4×. Enquanto estiver na mochila.",
       "precoReferencia": null,
       "sprite": "/assets/items/lucky-egg.png",
       "precoLoja": 50000
@@ -839205,7 +839205,7 @@
       "nome": "amulet-coin",
       "nomeExibicao": "Amulet Coin",
       "categoria": "buff",
-      "descricao": "Dobra o dinheiro recebido em vitórias enquanto estiver na mochila.",
+      "descricao": "Aumenta em 2× o dinheiro recebido em vitórias e soma 50% por geração concluída a partir da 2ª, até o limite de 5×. Enquanto estiver na mochila.",
       "precoReferencia": null,
       "sprite": "/assets/items/amulet-coin.png",
       "precoLoja": 50000

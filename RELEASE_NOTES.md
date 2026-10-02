@@ -1,3 +1,8 @@
+## Pokémon Simulator SQLite v0.5.18
+
+- Ovo da Sorte: experiência de batalha passa de 2× para até 4×, somando 25% por geração concluída da 2ª à 9ª.
+- Amuleto da Sorte: dinheiro das vitórias passa de 2× para até 5×, somando 50% por geração concluída a partir da 2ª; o multiplicador tem teto em 5×.
+
 ## Pokémon Simulator SQLite v0.5.17
 
 - Corrigido o caça-níquel: a combinação de dois Dittos com um espaço vazio não paga prêmio.

@@ -303,6 +303,19 @@ export function charmMilestones(completed, generation = 1) {
   }));
 }
 
+export function completedGenerationsAfterFirst(completed) {
+  const beaten = new Set(completed);
+  return new Set(REGIONS.filter((region) => region.geracao > 1 && beaten.has(region.champion.id)).map((region) => region.geracao)).size;
+}
+
+export function luckyEggMultiplier(completed) {
+  return 2 + Math.min(8, completedGenerationsAfterFirst(completed)) * .25;
+}
+
+export function amuletCoinMultiplier(completed) {
+  return Math.min(5, 2 + completedGenerationsAfterFirst(completed) * .5);
+}
+
 export function shinyRolls(completed, generation = 1, hasCharm = false) {
   return hasCharm ? 1 + charmMilestones(completed, generation) : 1;
 }
