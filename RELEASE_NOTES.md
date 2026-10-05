@@ -1,3 +1,8 @@
+## Pokémon Simulator SQLite v0.5.19
+
+- Clique no nome do treinador no menu para consultar o saldo em dinheiro e as fichas do cassino.
+- O botão “Escolher para batalhar” fica acessível na parte inferior da tela enquanto você seleciona a equipe.
+
 ## Pokémon Simulator SQLite v0.5.18
 
 - Ovo da Sorte: experiência de batalha passa de 2× para até 4×, somando 25% por geração concluída da 2ª à 9ª.

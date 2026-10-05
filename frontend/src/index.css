@@ -82,8 +82,15 @@ label > input, label > div { margin-top: 9px; }
 .nav-count { margin-left: auto; font-size: 10px; opacity: .8; }
 .sidebar-bottom { margin-top: auto; display: flex; align-items: center; gap: 9px; padding-top: 22px; border-top: 1px solid #2c3830; }
 .trainer-avatar { display: flex; align-items: center; justify-content: center; border-radius: 50%; width: 35px; height: 35px; background: #bcb49d; color: #233126; font-weight: 700; flex-shrink: 0; }
+.trainer-summary { position: relative; min-width: 0; }
+.trainer-name { display: block; margin-left: 0; padding: 0; text-align: left; color: inherit; }
 .sidebar-bottom strong { display: block; font-size: 12px; max-width: 95px; overflow: hidden; text-overflow: ellipsis; }
 .sidebar-bottom small { font-size: 9px; color: #95a293; }
+.trainer-name:hover small { color: #c9ef87; }
+.trainer-balance { position: absolute; z-index: 10; bottom: calc(100% + 12px); left: -8px; width: 220px; display: grid; gap: 7px; padding: 13px 15px; border: 1px solid #536c45; border-radius: 11px; background: #202d24; box-shadow: 0 12px 30px #0008; }
+.trainer-balance > span { display: flex; align-items: center; gap: 7px; color: #bbd994; font-size: 10px; }
+.trainer-balance > strong { max-width: none; color: #f1f2dc; font-size: 18px; }
+.trainer-balance > small { color: #9eae96; font-size: 10px; }
 .sidebar-bottom button { margin-left: auto; color: #8e9d8f; }
 .workspace { margin-left: 244px; min-height: 100dvh; display: flex; flex-direction: column; }
 .topbar { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 42px; border-bottom: 1px solid #29342e; }
@@ -200,3 +207,5 @@ label > input, label > div { margin-top: 9px; }
 .iv-training > div { display: flex; flex-wrap: wrap; gap: 8px; }
 .iv-training button { font-size: 12px; }
 .battle-life > .iv-stars { display: inline-block; margin: 5px 0; }
+
+@media (max-width: 800px) { .trainer-name small { display: block; } }

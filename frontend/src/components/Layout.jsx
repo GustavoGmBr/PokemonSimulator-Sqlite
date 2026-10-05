@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Home, BookOpen, LogOut, MapPin, CircleDot, Swords, Store, UserRound, Trees, ListChecks, Dices, BadgeDollarSign, Save } from 'lucide-react';
+import { Home, BookOpen, LogOut, MapPin, CircleDot, Swords, Store, UserRound, Trees, ListChecks, Dices, BadgeDollarSign, Save, Coins } from 'lucide-react';
 import { useSession } from '../stores/session';
+import { useSave } from '../lib/queries';
 import { Brand } from './common';
 import { Button } from './ui/button';
 
 export function Layout() {
   const usuario = useSession((state) => state.usuario);
   const navigate = useNavigate();
+  const save = useSave();
+  const [balanceOpen, setBalanceOpen] = useState(false);
   const trainer = usuario?.login ?? 'Treinador';
   return <div className="app-layout">
     <aside className="sidebar">
@@ -24,7 +28,7 @@ export function Layout() {
         <NavLink to="/perfil"><UserRound size={19} /> Perfil</NavLink>
         <NavLink to="/saves"><Save size={19} /> Trocar save</NavLink>
       </nav>
-      <div className="sidebar-bottom"><div className="trainer-avatar">{trainer.slice(0, 1).toUpperCase()}</div><div><strong>{trainer}</strong><small>Save local</small></div><Button variant="ghost" size="icon" onClick={() => navigate('/saves')} aria-label="Trocar save"><LogOut size={18} /></Button></div>
+      <div className="sidebar-bottom"><div className="trainer-avatar">{trainer.slice(0, 1).toUpperCase()}</div><div className="trainer-summary"><button type="button" className="trainer-name" aria-expanded={balanceOpen} aria-controls="trainer-balance" onClick={() => setBalanceOpen(open => !open)}><strong>{trainer}</strong><small>Ver saldo</small></button>{balanceOpen && <div className="trainer-balance" id="trainer-balance" role="status"><span><Coins size={14} /> Dinheiro</span><strong>{save.data ? `${Number(save.data.moedas ?? 0).toLocaleString('pt-BR')} ₽` : 'Carregando…'}</strong>{save.data && <small>{Number(save.data.fichas ?? 0).toLocaleString('pt-BR')} fichas de cassino</small>}</div>}</div><Button variant="ghost" size="icon" onClick={() => navigate('/saves')} aria-label="Trocar save"><LogOut size={18} /></Button></div>
     </aside>
     <div className="workspace">
       <header className="topbar"><span><CircleDot size={14} /> SEU PRÓXIMO CAPÍTULO COMEÇA AQUI</span><span className="edition">NOVE GERAÇÕES <span className="status-dot" /></span></header>
