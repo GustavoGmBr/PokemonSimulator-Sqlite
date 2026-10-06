@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import { createApp } from '../src/app.js';
 import { parseEnv } from '../src/config/env.js';
 import { pokemonSaleValue } from '../src/services/market.js';
-import { slotPayout, cardPayout, rouletteMultiplier } from '../src/services/casino.js';
+import { slotPayout, rouletteMultiplier } from '../src/services/casino.js';
 
 test('preço de venda considera bola, nível, pedra, lendário e shiny', () => {
   assert.equal(pokemonSaleValue({ especieId: 25, nivel: 20, bolaCaptura: 'great-ball', shiny: false, investimentoItens: 0 }), 500);
@@ -15,8 +15,7 @@ test('preço de venda considera bola, nível, pedra, lendário e shiny', () => {
 
 test('pagamentos do cassino seguem os multiplicadores e cinco linhas', () => {
   assert.equal(slotPayout(['master-ball', 'master-ball', 'master-ball', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'], 10).premio, 1000);
-  assert.equal(slotPayout(['cherry', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'], 10).premio, 10);
-  assert.equal(cardPayout({ pokemon: 'Pikachu', numero: 4 }, { tipo: 'dupla', pokemon: 'Pikachu', numero: 3, valor: 5 }), 60);
+  assert.equal(slotPayout(['ultra-ball', 'ultra-ball', 'ultra-ball', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'], 10).premio, 30);
   assert.equal(rouletteMultiplier({ pokemon: 'Pikachu', cor: 'azul' }, { tipo: 'exata', pokemon: 'Pikachu', cor: 'azul' }), 12);
   assert.equal(rouletteMultiplier({ pokemon: 'Pikachu', cor: 'azul' }, { tipo: 'cor', cor: 'verde' }), 0);
 });

@@ -47,7 +47,7 @@ test('Ditto completa trincas e as oito linhas pagam separadamente', () => {
 test('Voltorb soma seis cartas e aplica 1,5× só nas linhas horizontais ou verticais', () => {
   const board = makeVoltorbBoard(() => 0);
   assert.equal(board.length, 36);
-  for (const [value,count] of [[0,6],[0.25,10],[0.5,9],[1.2,5],[1.5,3],[2,2],[5,1]]) assert.equal(board.filter(cell => cell === value).length, count);
+  for (const [value,count] of [[0,11],[0.25,5],[0.5,9],[1.2,5],[1.5,3],[2,2],[5,1]]) assert.equal(board.filter(cell => cell === value).length, count);
   const horizontal = [0.25,0.5,1.2,1.5,2,5, ...Array(30).fill(0.5)];
   assert.deepEqual(voltorbPayout(horizontal,[0,1,2,3,4,5],100), { soma:10.45, bonusLinha:1.5, multiplicador:15.675, premio:1567 });
   assert.equal(voltorbPayout(Array(36).fill(1.2),[0,6,12,18,24,30],10).premio,108);

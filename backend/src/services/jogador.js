@@ -70,7 +70,7 @@ export function createJogadorService(db) {
       return db.pokemonCapturado.findUnique({ where: { id: pokemonId } });
     },
     getInventario(usuarioId) {
-      return db.itemInventario.findMany({ where: { save: { usuarioId }, itemId: { notIn: ['antidote', 'paralyze-heal', 'awakening', 'burn-heal', 'ice-heal', 'full-heal', 'ether', 'elixir'] } }, orderBy: { itemId: 'asc' } });
+      return db.itemInventario.findMany({ where: { save: { usuarioId }, itemId: { notIn: ['ether', 'elixir'] } }, orderBy: { itemId: 'asc' } });
     },
     async getDex(usuarioId) {
       const save = await db.save.findUnique({ where: { usuarioId }, select: { id: true } });

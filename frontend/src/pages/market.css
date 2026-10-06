@@ -17,6 +17,10 @@
 .pokemon-shop-card.sold { opacity:.66; }
 .pokemon-shop-image { position:relative; width:82px; height:82px; display:grid; place-items:center; border-radius:10px; background:#17261e; }
 .pokemon-shop-image img { width:74px; height:74px; object-fit:contain; image-rendering:pixelated; }
+.shop-favorite-button { position:absolute; z-index:2; top:4px; right:4px; display:grid; place-items:center; width:29px; height:29px; padding:0; border:1px solid #566847; border-radius:8px; color:#b6c6a3; background:#1c2d24e8; cursor:pointer; }
+.shop-favorite-button:hover:not(:disabled),.shop-favorite-button.active { color:#f3d36e; border-color:#cfb95f; }
+.shop-favorite-button:disabled { opacity:.45; cursor:not-allowed; }
+.pokemon-shop-card.shop-favorite { border-color:#c8a94b; box-shadow:inset 0 0 0 1px #c8a94b33; }
 .shop-shiny { position:absolute; top:3px; left:3px; padding:2px 4px; border-radius:5px; background:#66572c; color:#ffe995; font-size:.55rem; font-weight:800; z-index:1; }
 .pokemon-shop-info { display:grid; gap:5px; min-width:0; }
 .pokemon-shop-name { display:flex; align-items:baseline; gap:7px; min-width:0; }

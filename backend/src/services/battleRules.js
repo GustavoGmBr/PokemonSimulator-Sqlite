@@ -344,14 +344,82 @@ export function formFor(species, megaForma, gmaxForma = null) {
 }
 
 export function levelMovesFor(species, level, catalog = getCatalogo()) {
-  const damaging = new Map(catalog.golpes.filter((move) => move.poder > 0 && ['physical', 'special'].includes(move.categoria)).map((move) => [move.nome, move]));
+  const disabled = new Set(['self-destruct', 'explosion', 'misty-explosion', 'memento', 'healing-wish', 'lunar-dance', 'final-gambit']);
+  const usable = new Map(catalog.golpes.filter((move) => !disabled.has(move.nome) && (move.categoria === 'status' || move.poder > 0 && ['physical', 'special'].includes(move.categoria))).map((move) => [move.nome, move]));
   const learned = new Map();
   for (const entry of species.golpesAprendidos) {
-    if (entry.metodo !== 'level-up' || entry.nivel > level || !damaging.has(entry.golpe)) continue;
+    if (entry.metodo !== 'level-up' || entry.nivel > level || !usable.has(entry.golpe)) continue;
     learned.set(entry.golpe, Math.max(learned.get(entry.golpe) ?? 0, entry.nivel));
   }
-  const selected = [...learned].sort((a, b) => b[1] - a[1] || Number(species.tipos.includes(damaging.get(b[0]).tipo)) - Number(species.tipos.includes(damaging.get(a[0]).tipo)) || a[0].localeCompare(b[0])).slice(0, 4).map(([name]) => damaging.get(name));
-  return selected.length ? selected : [damaging.get('struggle')].filter(Boolean);
+  const selected = [...learned].sort((a, b) => b[1] - a[1] || Number(usable.get(b[0]).categoria !== 'status') - Number(usable.get(a[0]).categoria !== 'status') || Number(species.tipos.includes(usable.get(b[0]).tipo)) - Number(species.tipos.includes(usable.get(a[0]).tipo)) || a[0].localeCompare(b[0])).slice(0, 4).map(([name]) => usable.get(name));
+  return selected.length ? selected : [usable.get('struggle')].filter(Boolean);
+}
+
+export function recoveryPercent(moveName, weather = null, stockpile = 0) {
+  const sunny = ['sun', 'sunny-day', 'harsh-sunlight'].includes(weather);
+  const storm = ['rain', 'rain-dance', 'heavy-rain', 'sandstorm', 'hail', 'snow', 'snowscape'].includes(weather);
+  if (moveName === 'swallow') return [0, 25, 50, 100][Math.min(3, Math.max(0, stockpile))];
+  if (moveName === 'shore-up' && ['sandstorm'].includes(weather)) return 200 / 3;
+  if (['synthesis', 'moonlight', 'morning-sun'].includes(moveName)) return sunny ? 200 / 3 : storm ? 25 : 50;
+  return null;
+}
+
+export function healByMove(combatant, move, { weather = null, stockpile = 0 } = {}) {
+  if (!combatant || combatant.hp <= 0 || combatant.hp >= combatant.maxHp) return 0;
+  const percentage = recoveryPercent(move.nome, weather, stockpile) ?? move.meta?.healing ?? 0;
+  const amount = Math.ceil(combatant.maxHp * percentage / 100);
+  if (amount <= 0) return 0;
+  const healed = Math.min(amount, combatant.maxHp - combatant.hp);
+  combatant.hp += healed;
+  return healed;
+}
+
+export function currentStatValue(combatant, stat) {
+  const base = combatant?.stats?.[stat] ?? 0;
+  const stage = Math.max(-6, Math.min(6, combatant?.statStages?.[stat] ?? 0));
+  return Math.floor(base * (stage >= 0 ? (2 + stage) / 2 : 2 / (2 - stage)));
+}
+
+export function healByStrengthSap(user, target) {
+  if (!user || !target || user.hp <= 0 || user.hp >= user.maxHp) return 0;
+  const amount = currentStatValue(target, 'attack');
+  const healed = Math.min(amount, user.maxHp - user.hp);
+  user.hp += healed;
+  return healed;
+}
+
+export function healAtTurnEnd(combatant, { aquaRing = false, ingrained = false, grassyTerrain = false } = {}) {
+  if (!combatant || combatant.hp <= 0) return [];
+  const effects = [];
+  for (const [active, source] of [[aquaRing, 'aqua-ring'], [ingrained, 'ingrain'], [grassyTerrain && !combatant.tipos.includes('flying'), 'grassy-terrain']]) {
+    if (!active || combatant.hp >= combatant.maxHp) continue;
+    const healed = Math.min(Math.max(1, Math.floor(combatant.maxHp / 16)), combatant.maxHp - combatant.hp);
+    combatant.hp += healed;
+    effects.push({ source, healed });
+  }
+  return effects;
+}
+
+export function leechSeedTurn(victim, recipient) {
+  if (!victim || victim.hp <= 0) return { damage: 0, healed: 0 };
+  const amount = Math.max(1, Math.floor(victim.maxHp / 8));
+  const damage = Math.min(amount, victim.hp);
+  victim.hp -= damage;
+  const healed = recipient && recipient.hp > 0 ? Math.min(damage, recipient.maxHp - recipient.hp) : 0;
+  if (healed) recipient.hp += healed;
+  return { damage, healed };
+}
+
+export function healByDrain(combatant, damageDealt, drainPercent) {
+  if (!combatant || combatant.hp <= 0 || combatant.hp >= combatant.maxHp || damageDealt <= 0 || drainPercent <= 0) return 0;
+  const amount = Math.max(1, Math.floor(damageDealt * drainPercent / 100));
+  const healed = Math.min(amount, combatant.maxHp - combatant.hp);
+  combatant.hp += healed;
+  return healed;
+}
+
+export function drainPercentForMove(move) {
+  return move?.meta?.drain ?? ({ 'bitter-blade': 50 }[move?.nome] ?? 0);
 }
 
 export function effectiveness(attackType, defenderTypes, types = getCatalogo().tipos) {
@@ -366,11 +434,16 @@ export function effectiveness(attackType, defenderTypes, types = getCatalogo().t
 }
 
 export function damage(attacker, defender, move, rng = randomInt) {
-  if (move.precisao != null && rng(100) >= move.precisao) return { dano: 0, acerto: false, efetividade: 1 };
-  const atk = attacker.stats[move.categoria === 'physical' ? 'attack' : 'special-attack'];
-  const def = Math.max(1, defender.stats[move.categoria === 'physical' ? 'defense' : 'special-defense']);
+  const attackStat = move.categoria === 'physical' ? 'attack' : 'special-attack';
+  const defenseStat = move.categoria === 'physical' ? 'defense' : 'special-defense';
+  const stageMultiplier = stage => stage >= 0 ? (2 + Math.min(6, stage)) / 2 : 2 / (2 + Math.min(6, -stage));
+  const accuracy = Math.max(1, Math.min(100, (move.precisao ?? 100) * stageMultiplier(attacker.statStages?.accuracy ?? 0) / stageMultiplier(defender.statStages?.evasion ?? 0)));
+  if (move.precisao != null && rng(100) >= accuracy) return { dano: 0, acerto: false, efetividade: 1 };
+  const atk = Math.max(1, Math.floor(attacker.stats[attackStat] * stageMultiplier(attacker.statStages?.[attackStat] ?? 0) * (attacker.status === 'burn' && move.categoria === 'physical' ? .5 : 1)));
+  const def = Math.max(1, Math.floor(defender.stats[defenseStat] * stageMultiplier(defender.statStages?.[defenseStat] ?? 0)));
   const stab = attacker.tipos.includes(move.tipo) ? 1.5 : 1;
-  const effect = effectiveness(move.tipo, defender.tipos);
+  let effect = effectiveness(move.tipo, defender.noTypeImmunity && ['normal', 'fighting'].includes(move.tipo) ? defender.tipos.filter(type => type !== 'ghost') : defender.tipos);
+  if (defender.tarShot && move.tipo === 'fire') effect *= 2;
   if (!effect) return { dano: 0, acerto: true, efetividade: 0 };
   const variance = (85 + rng(16)) / 100;
   const crit = rng(16) === 0 ? 1.5 : 1;
@@ -383,6 +456,6 @@ export function makeCombatant(speciesId, level, shiny, moves, id = null, apelido
   const form = formFor(species, megaForma, gmaxForma);
   ivs = normalizeIvs(ivs);
   const stats = statsFor(form, level, shiny, ivs);
-  return { pokemonId: id, especieId: speciesId, megaForma, gmaxForma, ivs, qualidadeIvs: ivQuality(ivs), nome: apelido || form.nomeExibicao, nivel: level, shiny, tipos: form.tipos, stats, hp: stats.hp, maxHp: stats.hp, ataques: moves.map((entry) => ({ ...entry })) };
+  return { pokemonId: id, especieId: speciesId, megaForma, gmaxForma, ivs, qualidadeIvs: ivQuality(ivs), nome: apelido || form.nomeExibicao, nivel: level, shiny, tipos: form.tipos, stats, statStages: {}, status: null, statusTurns: 0, confusionTurns: 0, protegido: false, hp: stats.hp, maxHp: stats.hp, ataques: moves.map((entry) => ({ ...entry })) };
 }
 import { normalizeIvs, rollIvs, ivQuality } from './ivRules.js';

@@ -16,11 +16,12 @@ import './battle-screen.css';
 
 const ballNames = { 'poke-ball': 'Poké Bola', 'great-ball': 'Super Bola', 'ultra-ball': 'Ultra Bola', 'master-ball': 'Master Bola' };
 const rewardNames = { 'rare-candy': 'Doce Raro', 'exp-candy-p': 'Doce EXP P', 'exp-candy-m': 'Doce EXP M', 'exp-candy-g': 'Doce EXP G', 'exp-candy-gg': 'Doce EXP GG' };
-const healNames = { potion: 'Poção', 'super-potion': 'Superpoção', 'hyper-potion': 'Hiperpoção', 'max-potion': 'Poção Máxima', 'full-restore': 'Restauração Total', revive: 'Reviver', 'max-revive': 'Reviver Máximo' };
-const itemEffects = { potion: 'Recupera até 20 HP', 'super-potion': 'Recupera até 50 HP', 'hyper-potion': 'Recupera até 200 HP', 'max-potion': 'Recupera todo o HP', 'full-restore': 'Recupera todo o HP', revive: 'Revive com 50% do HP', 'max-revive': 'Revive com todo o HP', 'poke-ball': 'Captura padrão · 1×', 'great-ball': 'Chance de captura · 1,5×', 'ultra-ball': 'Chance de captura · 2×', 'master-ball': 'Captura garantida' };
+const healNames = { potion: 'Poção', 'super-potion': 'Superpoção', 'hyper-potion': 'Hiperpoção', 'max-potion': 'Poção Máxima', 'full-restore': 'Restauração Total', antidote: 'Antídoto', 'paralyze-heal': 'Antiparalisia', awakening: 'Despertador', 'burn-heal': 'Antiqueimadura', 'ice-heal': 'Antigelo', 'full-heal': 'Cura Total', revive: 'Reviver', 'max-revive': 'Reviver Máximo' };
+const itemEffects = { potion: 'Recupera até 20 HP', 'super-potion': 'Recupera até 50 HP', 'hyper-potion': 'Recupera até 200 HP', 'max-potion': 'Recupera todo o HP', 'full-restore': 'Recupera todo o HP e cura status', antidote: 'Cura envenenamento', 'paralyze-heal': 'Cura paralisia', awakening: 'Acorda o Pokémon', 'burn-heal': 'Cura queimadura', 'ice-heal': 'Cura congelamento', 'full-heal': 'Remove qualquer status', revive: 'Revive com 50% do HP', 'max-revive': 'Revive com todo o HP', 'poke-ball': 'Captura padrão · 1×', 'great-ball': 'Chance de captura · 1,5×', 'ultra-ball': 'Chance de captura · 2×', 'master-ball': 'Captura garantida' };
 function Life({ name, combatant, wildEncounter = false }) {
   const percent = Math.max(0, Math.min(100, combatant.hp / combatant.maxHp * 100));
-  return <div className="battle-life"><div><strong>{name}{combatant.shiny ? <Sparkles size={14} aria-label="Shiny" /> : null}</strong><span>Nv. {combatant.nivel}</span></div><IvStars ivs={combatant.ivs} hideZero={wildEncounter} /><div className="battle-life-types">{combatant.tipos.map((type) => <TypeBadge key={type} type={type} />)}</div><div className="battle-life-track"><span style={{ width: `${percent}%`, background: percent < 20 ? '#e47b6c' : percent < 50 ? '#eac86f' : '#a8db75' }} /></div><small>HP {combatant.hp} / {combatant.maxHp}</small></div>;
+  const statusLabels = { burn: 'Queimado', poison: 'Envenenado', paralysis: 'Paralisado', sleep: 'Dormindo', freeze: 'Congelado' };
+  return <div className="battle-life"><div><strong>{name}{combatant.shiny ? <Sparkles size={14} aria-label="Shiny" /> : null}</strong><span>Nv. {combatant.nivel}</span></div><IvStars ivs={combatant.ivs} hideZero={wildEncounter} />{combatant.status && <span className="battle-status">{statusLabels[combatant.status] ?? combatant.status}</span>}{combatant.confusionTurns > 0 && <span className="battle-status">Confuso</span>}<div className="battle-life-types">{combatant.tipos.map((type) => <TypeBadge key={type} type={type} />)}</div><div className="battle-life-track"><span style={{ width: `${percent}%`, background: percent < 20 ? '#e47b6c' : percent < 50 ? '#eac86f' : '#a8db75' }} /></div><small>HP {combatant.hp} / {combatant.maxHp}</small></div>;
 }
 
 function ItemChoices({ label, items, names, selected, onSelect, busy }) {
@@ -28,9 +29,11 @@ function ItemChoices({ label, items, names, selected, onSelect, busy }) {
 }
 
 function HealingPicker({ healing, chosenHeal, setHealItem, act, busy, combatant }) {
-  const fainted = combatant.hp === 0, hpFull = combatant.hp === combatant.maxHp;
+  const fainted = combatant.hp === 0, hpFull = combatant.hp === combatant.maxHp, statusCure = ['antidote', 'paralyze-heal', 'awakening', 'burn-heal', 'ice-heal', 'full-heal', 'full-restore'].includes(chosenHeal);
   const amount = fainted ? Math.max(1, Math.ceil(combatant.maxHp * (chosenHeal === 'revive' ? .5 : 1))) : Math.min(combatant.maxHp - combatant.hp, ({ potion: 20, 'super-potion': 50, 'hyper-potion': 200 })[chosenHeal] ?? combatant.maxHp);
-  return <section className="battle-healing"><div className="battle-item-heading"><strong>Itens de cura</strong><small>{fainted ? 'Seu Pokémon desmaiou' : `Faltam ${combatant.maxHp - combatant.hp} HP`}</small></div>{healing.length ? <ItemChoices label="Item de cura" items={healing} names={healNames} selected={chosenHeal} onSelect={setHealItem} busy={busy || hpFull} /> : <p>{fainted ? 'Nenhum Reviver disponível. Envie uma reserva ou aceite a derrota.' : 'Nenhum item de cura na bolsa.'}</p>}<p className="battle-item-preview">{hpFull ? 'HP completo: não é necessário gastar um item.' : chosenHeal ? `${healNames[chosenHeal]} recuperará ${amount} HP de ${combatant.nome}.${fainted ? '' : ' Usar um item dá um turno ao adversário.'}` : 'Compre itens de cura no mercado.'}</p><Button variant="outline" disabled={busy || !chosenHeal || hpFull} onClick={() => act('usar-item', { itemId: chosenHeal })}>Usar {healNames[chosenHeal] ?? 'item'}</Button></section>;
+  const hasStatus = Boolean(combatant.status);
+  const canUse = fainted || !hpFull || hasStatus;
+  return <section className="battle-healing"><div className="battle-item-heading"><strong>Itens de cura</strong><small>{fainted ? 'Seu Pokémon desmaiou' : hasStatus ? `Status: ${combatant.status}` : `Faltam ${combatant.maxHp - combatant.hp} HP`}</small></div>{healing.length ? <ItemChoices label="Item de cura" items={healing} names={healNames} selected={chosenHeal} onSelect={setHealItem} busy={busy || !canUse} /> : <p>{fainted ? 'Nenhum Reviver disponível. Envie uma reserva ou aceite a derrota.' : 'Nenhum item de cura disponível para este Pokémon.'}</p>}<p className="battle-item-preview">{chosenHeal && statusCure ? `${healNames[chosenHeal]} removerá a condição de status${chosenHeal === 'full-heal' || chosenHeal === 'full-restore' ? ' e a Restauração Total também recupera HP' : ''} de ${combatant.nome}.` : hpFull ? 'HP completo: não é necessário gastar um item.' : chosenHeal ? `${healNames[chosenHeal]} recuperará ${amount} HP de ${combatant.nome}.${fainted ? '' : ' Usar um item dá um turno ao adversário.'}` : 'Compre itens de cura no mercado.'}</p><Button variant="outline" disabled={busy || !chosenHeal || !canUse} onClick={() => act('usar-item', { itemId: chosenHeal })}>Usar {healNames[chosenHeal] ?? 'item'}</Button></section>;
 }
 
 function BallPicker({ balls, selected, setBall, act, busy }) {
@@ -43,7 +46,7 @@ function ReservePicker({ members, byId, act, busy, fainted }) {
 
 function AttackOption({ move, defenderTypes, types, busy, onAttack }) {
   const multiplier = effectiveness(move.tipo, defenderTypes, types);
-  return <button type="button" disabled={busy} onClick={() => onAttack(move.nome)}><strong>{displayName(move.nome)}</strong><TypeBadge type={move.tipo} /><small>{move.categoria === 'physical' ? 'Físico' : 'Especial'} · Poder {move.poder}</small><span className={`effectiveness effectiveness-${multiplier > 1 ? 'super' : multiplier < 1 ? 'weak' : 'neutral'}`}>{effectivenessLabel(multiplier)}</span></button>;
+  return <button type="button" disabled={busy} onClick={() => onAttack(move.nome)}><strong>{displayName(move.nome)}</strong><TypeBadge type={move.tipo} /><small>{move.categoria === 'status' ? 'Golpe de efeito' : `${move.categoria === 'physical' ? 'Físico' : 'Especial'} · Poder ${move.poder}`}</small><span className={`effectiveness effectiveness-${multiplier > 1 ? 'super' : multiplier < 1 ? 'weak' : 'neutral'}`}>{effectivenessLabel(multiplier)}</span></button>;
 }
 
 function BattleMemberCard({ member, species, opponent, types, selected, position, onSelect, levelCap, disabled }) {
@@ -111,7 +114,15 @@ export function BattlePage({ area = 'batalhas' }) {
     return species && (!type || form.tipos.includes(type)) && (!shinyFilter || member.shiny === (shinyFilter === 'shiny')) && (starFilter === '' || ivQuality(member.ivs).stars === Number(starFilter)) && (!levelFilter || (member.nivel >= minimumLevel && member.nivel <= maximumLevel)) && (!term || species.nomeExibicao.toLowerCase().includes(term) || form.nomeExibicao.toLowerCase().includes(term) || member.apelido?.toLowerCase().includes(term) || String(species.id) === term.replace(/^#0*/, ''));
   });
   const balls = (inventory.data ?? []).filter((item) => ballNames[item.itemId] && item.quantidade > 0);
-  const healing = (inventory.data ?? []).filter((item) => healNames[item.itemId] && item.quantidade > 0 && (active?.jogador?.hp === 0 ? ['revive', 'max-revive'].includes(item.itemId) : !['revive', 'max-revive'].includes(item.itemId)));
+  const healing = (inventory.data ?? []).filter((item) => {
+    const combatant = active?.jogador;
+    if (!healNames[item.itemId] || item.quantidade <= 0) return false;
+    if (combatant?.hp === 0) return ['revive', 'max-revive'].includes(item.itemId);
+    if (['revive', 'max-revive'].includes(item.itemId)) return false;
+    if (['antidote', 'paralyze-heal', 'awakening', 'burn-heal', 'ice-heal'].includes(item.itemId)) return combatant?.status === ({ antidote: 'poison', 'paralyze-heal': 'paralysis', awakening: 'sleep', 'burn-heal': 'burn', 'ice-heal': 'freeze' })[item.itemId];
+    if (item.itemId === 'full-heal') return Boolean(combatant?.status);
+    return !combatant || combatant.hp < combatant.maxHp || item.itemId === 'full-restore' && Boolean(combatant.status);
+  });
   const chosenHeal = healing.some((item) => item.itemId === healItem) ? healItem : healing[0]?.itemId;
   const chosenBall = balls.some((item) => item.itemId === ball) ? ball : balls[0]?.itemId;
   const hasShinyCharm = (inventory.data ?? []).some((item) => item.itemId === 'shiny-charm' && item.quantidade > 0);
@@ -139,4 +150,3 @@ export function BattlePage({ area = 'batalhas' }) {
     </div> : <BattleSetup area={area} catalog={catalog.data} challenges={challenges.data} choice={choice} setChoice={setChoice} start={start} busy={busy} collectionCount={collection.data.length} hasShinyCharm={hasShinyCharm} coins={save.data.moedas} />}
   </>;
 }
-

@@ -33,7 +33,7 @@ export function nextEvolutions(node, speciesId) {
 export function movesKnownAtLevel(species, level) {
   const learned = new Map();
   for (const move of species.golpesAprendidos) {
-    if (move.metodo !== 'level-up' || move.nivel > level || !(move.poder > 0)) continue;
+    if (move.metodo !== 'level-up' || move.nivel > level || !(move.poder > 0 || move.categoria === 'status')) continue;
     const previous = learned.get(move.golpe);
     if (!previous || move.nivel > previous.nivel) learned.set(move.golpe, move);
   }

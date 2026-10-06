@@ -4,6 +4,8 @@ import { REGIONS, regionUnlocked } from './battleRules.js';
 import { IV_ITEMS } from './ivRules.js';
 
 export const MISSION_DURATION_MS = 2 * 60 * 60 * 1000;
+export const MISSION_COMPLETION_REWARD = Object.freeze({ moedas: 5_000, fichas: 500, itens: [{ itemId: 'rare-candy', quantidade: 1 }] });
+const MISSION_COMPLETION_INDEX = -1;
 export const missionPeriod = (now = Date.now()) => Math.floor(now / MISSION_DURATION_MS);
 
 export function generateMissions(save, completed, period = missionPeriod()) {
@@ -41,10 +43,6 @@ export function generateMissions(save, completed, period = missionPeriod()) {
   return missions;
 }
 
-function eventWhere(saveId, mission, startedAt) {
-  return { saveId, tipo: mission.tipo, criadoEm: { gte: startedAt }, ...(mission.regiao ? { regiao: mission.regiao } : {}), ...(mission.dificuldade ? { dificuldade: mission.dificuldade } : {}), ...(mission.torneioId ? { torneioId: mission.torneioId } : {}) };
-}
-
 function progressFor(mission, events) {
   const matching = events.filter((event) => event.tipo === mission.tipo && (!mission.regiao || event.regiao === mission.regiao) && (!mission.dificuldade || event.dificuldade === mission.dificuldade) && (!mission.torneioId || event.torneioId === mission.torneioId));
   return mission.tipo === 'capturar' ? new Set(matching.map((event) => event.especieId)).size : matching.length;
@@ -63,11 +61,12 @@ export function createJourneyService(db) {
     async missions(usuarioId) {
       const { save, period, startedAt, missions } = await context(db, usuarioId);
       const [events, claimed] = await Promise.all([
-        db.batalhaEvento.findMany({ where: { saveId: save.id, criadoEm: { gte: startedAt } }, select: { tipo: true, especieId: true, regiao: true, dificuldade: true, torneioId: true } }),
+        db.batalhaEvento.findMany({ where: { saveId: save.id, criadoEm: { gte: startedAt } } }),
         db.missaoResgatada.findMany({ where: { saveId: save.id, periodo: period }, select: { indice: true } }),
       ]);
       const claimedIds = new Set(claimed.map((entry) => entry.indice));
-      return { periodo: period, expiraEm: new Date((period + 1) * MISSION_DURATION_MS), missoes: missions.map((mission) => ({ ...mission, progresso: progressFor(mission, events), resgatada: claimedIds.has(mission.indice) })) };
+      const allComplete = missions.every((mission) => progressFor(mission, events) >= mission.alvo);
+      return { periodo: period, expiraEm: new Date((period + 1) * MISSION_DURATION_MS), todasConcluidas: allComplete, recompensaCompleta: MISSION_COMPLETION_REWARD, bonusResgatado: claimedIds.has(MISSION_COMPLETION_INDEX), missoes: missions.map((mission) => ({ ...mission, progresso: progressFor(mission, events), resgatada: claimedIds.has(mission.indice) })) };
     },
     async claim(usuarioId, period, index) {
       try {
@@ -78,12 +77,20 @@ export function createJourneyService(db) {
           if (!mission) throw new HttpError(404, 'Missão não encontrada.');
           const already = await tx.missaoResgatada.findUnique({ where: { saveId_periodo_indice: { saveId: current.save.id, periodo: period, indice: index } } });
           if (already) throw new HttpError(409, 'Recompensa já resgatada.');
-          const progress = mission.tipo === 'capturar' ? new Set((await tx.batalhaEvento.findMany({ where: eventWhere(current.save.id, mission, current.startedAt), select: { especieId: true } })).map((event) => event.especieId)).size : await tx.batalhaEvento.count({ where: eventWhere(current.save.id, mission, current.startedAt) });
-          if (progress < mission.alvo) throw new HttpError(409, 'Missão ainda não concluída.');
+          const events = await tx.batalhaEvento.findMany({ where: { saveId: current.save.id, criadoEm: { gte: current.startedAt } } });
+          if (progressFor(mission, events) < mission.alvo) throw new HttpError(409, 'Missão ainda não concluída.');
+          const allComplete = current.missions.every((entry) => progressFor(entry, events) >= entry.alvo);
+          const completionClaim = allComplete ? await tx.missaoResgatada.findUnique({ where: { saveId_periodo_indice: { saveId: current.save.id, periodo: period, indice: MISSION_COMPLETION_INDEX } } }) : null;
           await tx.missaoResgatada.create({ data: { saveId: current.save.id, periodo: period, indice: index } });
           await tx.save.update({ where: { id: current.save.id }, data: { moedas: { increment: mission.recompensa.moedas }, fichas: { increment: mission.recompensa.fichas } } });
           for (const item of mission.recompensa.itens) await tx.itemInventario.upsert({ where: { saveId_itemId: { saveId: current.save.id, itemId: item.itemId } }, create: { saveId: current.save.id, ...item }, update: { quantidade: { increment: item.quantidade } } });
-          return { recompensa: mission.recompensa };
+          const bonusCompleto = allComplete && !completionClaim;
+          if (bonusCompleto) {
+            await tx.missaoResgatada.create({ data: { saveId: current.save.id, periodo: period, indice: MISSION_COMPLETION_INDEX } });
+            await tx.save.update({ where: { id: current.save.id }, data: { moedas: { increment: MISSION_COMPLETION_REWARD.moedas }, fichas: { increment: MISSION_COMPLETION_REWARD.fichas } } });
+            for (const item of MISSION_COMPLETION_REWARD.itens) await tx.itemInventario.upsert({ where: { saveId_itemId: { saveId: current.save.id, itemId: item.itemId } }, create: { saveId: current.save.id, ...item }, update: { quantidade: { increment: item.quantidade } } });
+          }
+          return { recompensa: mission.recompensa, bonusCompleto: bonusCompleto ? MISSION_COMPLETION_REWARD : null, todasConcluidas: allComplete };
         }, { isolationLevel: 'Serializable' });
       } catch (error) {
         if (error.code === 'P2002') throw new HttpError(409, 'Recompensa já resgatada.');

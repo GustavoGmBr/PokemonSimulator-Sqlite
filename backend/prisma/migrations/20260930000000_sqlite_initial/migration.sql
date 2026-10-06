@@ -174,4 +174,3 @@ CREATE INDEX "BatalhaEvento_saveId_tipo_regiao_criadoEm_idx" ON "BatalhaEvento"(
 
 -- CreateIndex
 CREATE UNIQUE INDEX "MissaoResgatada_saveId_periodo_indice_key" ON "MissaoResgatada"("saveId", "periodo", "indice");
-

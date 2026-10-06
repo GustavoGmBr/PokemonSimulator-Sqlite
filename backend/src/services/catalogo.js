@@ -3,11 +3,12 @@ import { HttpError } from '../lib/errors.js';
 import { levelMovesFor, statsFor } from './battleRules.js';
 import { naturalMoves } from './moveRules.js';
 import { IV_ITEMS, perfectIvs } from './ivRules.js';
+import { STATUS_CURE_ITEMS } from './itemRules.js';
 
 let cached;
 export function getCatalogo() {
   if (!cached) {
-    try { cached = JSON.parse(readFileSync(new URL('../../data/catalogo.json', import.meta.url), 'utf8')); cached.itens.push(...IV_ITEMS); }
+    try { cached = JSON.parse(readFileSync(new URL('../../data/catalogo.json', import.meta.url), 'utf8')); cached.itens.push(...IV_ITEMS, ...STATUS_CURE_ITEMS); }
     catch { throw new HttpError(503, 'Catalogo indisponivel. Execute npm run catalog:import no backend.'); }
   }
   return cached;
@@ -30,8 +31,8 @@ export function getDetalhesEspecie(id) {
   return {
     ...especie,
     golpesAprendidos: especie.golpesAprendidos.map((learned) => {
-      const { tipo, categoria, poder, precisao, pp, prioridade } = moves.get(learned.golpe);
-      return { ...learned, tipo, categoria, poder, precisao, pp, prioridade };
+      const { tipo, categoria, poder, precisao, pp, prioridade, meta, efeitoId } = moves.get(learned.golpe);
+      return { ...learned, tipo, categoria, poder, precisao, pp, prioridade, meta, efeitoId };
     }),
   };
 }

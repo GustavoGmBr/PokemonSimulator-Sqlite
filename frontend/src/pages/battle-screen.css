@@ -9,6 +9,7 @@
 .battle-workspace .battle-life > div:first-child { flex-wrap:wrap; gap:4px; font-size:12px; }
 .battle-workspace .battle-life strong { min-width:0; overflow-wrap:anywhere; }
 .battle-workspace .battle-life .iv-stars { display:block; font-size:13px; margin:5px 0; }
+.battle-status { display:inline-flex; margin:4px 5px 0 0; padding:3px 6px; border:1px solid #9a6952; border-radius:6px; color:#8e3d33; background:#f2d3b7; font-size:9px; font-weight:700; }
 .battle-workspace .battle-life-types { flex-wrap:wrap; }
 .battle-workspace .battle-life-types .type-badge { padding:3px 5px; font-size:8px; }
 .battle-workspace .battle-empty-player { grid-column:1/-1; min-width:0; min-height:145px; display:flex; border-radius:12px; border:1px dashed #bcd69a77; background:#102d2760; gap:8px; }

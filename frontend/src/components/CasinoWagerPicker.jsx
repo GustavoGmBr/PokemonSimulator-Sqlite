@@ -41,4 +41,3 @@ export function PokemonWagerPicker({ members, market, catalog, selectedId, onSel
     {selected && !selected.favorito && <p className="casino-selected-wager">Selecionado: {selected.apelido || ownedForm(speciesById.get(selected.especieId), selected).nomeExibicao} · valor base {money(market.get(selected.id))} ₽{selection ? ` · palpite: ${betLabel(selection)}` : ''}</p>}
   </div>;
 }
-

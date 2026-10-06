@@ -59,7 +59,9 @@ export function createMarketService(db, { rng = randomInt, now = Date.now } = {}
     const charm = await tx.itemInventario.findUnique({ where: { saveId_itemId: { saveId: save.id, itemId: 'shiny-charm' } }, select: { quantidade: true } });
     let record = await tx.lojaPokemonEstoque.findUnique({ where: { saveId: save.id } });
     if (!record || record.periodo !== period) {
-      const estado = makeStock(completed, charm?.quantidade > 0, period);
+      const favorites = (record?.estado?.pokemons ?? []).filter(entry => entry.favorito && entry.disponivel);
+      const replenished = makeStock(completed, charm?.quantidade > 0, period, Math.max(0, SHOP_SIZE - favorites.length), favorites.map(entry => entry.especieId));
+      const estado = { pokemons: [...favorites, ...replenished.pokemons] };
       record = await tx.lojaPokemonEstoque.upsert({ where: { saveId: save.id }, create: { saveId: save.id, periodo: period, estado }, update: { periodo: period, estado } });
     } else if (record.estado.pokemons.length < SHOP_SIZE) {
       const existing = record.estado.pokemons;
@@ -92,6 +94,7 @@ export function createMarketService(db, { rng = randomInt, now = Date.now } = {}
         const estado = structuredClone(record.estado);
         const item = estado.pokemons.find(entry => entry.id === stockId);
         item.disponivel = false;
+        item.favorito = false;
         const charged = await tx.save.updateMany({ where: { id: save.id, moedas: { gte: pokemon.preco } }, data: { moedas: { decrement: pokemon.preco } } });
         if (charged.count !== 1) throw new HttpError(409, 'Pokédólares insuficientes.');
         await tx.lojaPokemonEstoque.update({ where: { saveId: save.id }, data: { estado } });
@@ -107,9 +110,25 @@ export function createMarketService(db, { rng = randomInt, now = Date.now } = {}
         const { record, completed, hasCharm } = await stockFor(tx, save);
         const charged = await tx.save.updateMany({ where: { id: save.id, moedas: { gte: SHOP_REFRESH_PRICE } }, data: { moedas: { decrement: SHOP_REFRESH_PRICE } } });
         if (charged.count !== 1) throw new HttpError(409, 'São necessários 3.000 Pokédólares para atualizar o estoque.');
-        const estado = makeStock(completed, hasCharm, record.periodo);
+        const favorites = record.estado.pokemons.filter(entry => entry.favorito && entry.disponivel);
+        const replenished = makeStock(completed, hasCharm, record.periodo, Math.max(0, SHOP_SIZE - favorites.length), favorites.map(entry => entry.especieId));
+        const estado = { pokemons: [...favorites, ...replenished.pokemons] };
         await tx.lojaPokemonEstoque.update({ where: { saveId: save.id }, data: { estado } });
         return { moedas: save.moedas - SHOP_REFRESH_PRICE, pokemons: estado.pokemons.map(({ golpes, golpesDesbloqueados, experiencia, atributos, hpAtual, ...entry }) => entry), custo: SHOP_REFRESH_PRICE };
+      }, { isolationLevel: 'Serializable', timeout: 20_000 });
+    },
+    async favoritePokemon(usuarioId, stockId, favorito) {
+      return db.$transaction(async tx => {
+        const save = await tx.save.findUnique({ where: { usuarioId } });
+        if (!save?.inicialEspecieId) throw new HttpError(409, 'Inicie sua jornada antes de usar o Mercado Pokémon.');
+        const { record } = await stockFor(tx, save);
+        const estado = structuredClone(record.estado);
+        const pokemon = estado.pokemons.find(entry => entry.id === stockId);
+        if (!pokemon) throw new HttpError(404, 'Este Pokémon não está mais no estoque. Atualize o mercado.');
+        if (!pokemon.disponivel) throw new HttpError(409, 'Um Pokémon comprado não pode ser fixado no estoque.');
+        pokemon.favorito = favorito;
+        await tx.lojaPokemonEstoque.update({ where: { saveId: save.id }, data: { estado } });
+        return { favorito, pokemonId: stockId };
       }, { isolationLevel: 'Serializable', timeout: 20_000 });
     },
     async values(usuarioId) {

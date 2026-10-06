@@ -2216,7 +2216,8 @@
             "animatedShiny": "/assets/pokemon/10033-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10033-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10033-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -2251,7 +2252,8 @@
             "animatedShiny": "/assets/pokemon/10195-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10195-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10195-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -4582,7 +4584,8 @@
             "animatedShiny": "/assets/pokemon/10034-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10034-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10034-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "charizard-mega-y",
@@ -4613,7 +4616,8 @@
             "animatedShiny": "/assets/pokemon/10035-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10035-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10035-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -4648,7 +4652,8 @@
             "animatedShiny": "/assets/pokemon/10196-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10196-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10196-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -6967,7 +6972,8 @@
             "animatedShiny": "/assets/pokemon/10036-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10036-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10036-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -7001,7 +7007,8 @@
             "animatedShiny": "/assets/pokemon/10197-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10197-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10197-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -8796,7 +8803,8 @@
             "animatedShiny": "/assets/pokemon/10198-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10198-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10198-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -10570,7 +10578,8 @@
             "animatedShiny": "/assets/pokemon/10090-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10090-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10090-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -12652,7 +12661,8 @@
             "animatedShiny": "/assets/pokemon/10073-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10073-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10073-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -17621,7 +17631,8 @@
             "animatedShiny": "/assets/pokemon/10199-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10199-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10199-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -18375,7 +18386,8 @@
             "animatedShiny": "/assets/pokemon/10304-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10304-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10304-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "raichu-mega-y",
@@ -18405,7 +18417,8 @@
             "animatedShiny": "/assets/pokemon/10305-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10305-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10305-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -26075,7 +26088,8 @@
             "animatedShiny": "/assets/pokemon/10278-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10278-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10278-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -37547,7 +37561,8 @@
             "animatedShiny": "/assets/pokemon/10200-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10200-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10200-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -47412,7 +47427,8 @@
             "animatedShiny": "/assets/pokemon/10037-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10037-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10037-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -49743,7 +49759,8 @@
             "animatedShiny": "/assets/pokemon/10201-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10201-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10201-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -51856,7 +51873,8 @@
             "animatedShiny": "/assets/pokemon/10279-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10279-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10279-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -53906,7 +53924,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "mega-punch",
           "metodo": "level-up",
           "nivel": 21
         },
@@ -53916,12 +53934,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "level-up",
           "nivel": 41
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -54696,7 +54714,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "mega-punch",
           "metodo": "level-up",
           "nivel": 21
         },
@@ -54706,12 +54724,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "level-up",
           "nivel": 53
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -55496,7 +55514,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "mega-punch",
           "metodo": "level-up",
           "nivel": 21
         },
@@ -55506,12 +55524,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "level-up",
           "nivel": 53
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -58732,7 +58750,8 @@
             "animatedShiny": "/assets/pokemon/10071-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10071-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10071-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -64368,12 +64387,12 @@
           "nivel": 34
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "egg",
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -64458,7 +64477,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "level-up",
           "nivel": 53
         },
@@ -65114,7 +65133,7 @@
           "nivel": 34
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -65194,7 +65213,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "level-up",
           "nivel": 61
         },
@@ -65820,7 +65839,7 @@
           "nivel": 43
         },
         {
-          "golpe": "explosion",
+          "golpe": "take-down",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -66467,7 +66486,7 @@
           "nivel": 43
         },
         {
-          "golpe": "explosion",
+          "golpe": "double-edge",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -67134,12 +67153,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "egg",
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -67861,7 +67880,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -68623,7 +68642,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -68809,7 +68828,8 @@
             "animatedShiny": "/assets/pokemon/10038-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10038-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10038-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -68844,7 +68864,8 @@
             "animatedShiny": "/assets/pokemon/10202-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10202-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10202-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -69425,12 +69446,12 @@
           "nivel": 19
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "egg",
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -72542,7 +72563,8 @@
             "animatedShiny": "/assets/pokemon/10203-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10203-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10203-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -73112,7 +73134,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 27
         },
@@ -73127,12 +73149,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "secret-power",
           "metodo": "level-up",
           "nivel": 46
         },
         {
-          "golpe": "explosion",
+          "golpe": "hidden-power",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -73808,7 +73830,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 27
         },
@@ -73823,12 +73845,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "secret-power",
           "metodo": "level-up",
           "nivel": 54
         },
         {
-          "golpe": "explosion",
+          "golpe": "hidden-power",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -74536,7 +74558,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -75249,7 +75271,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -79808,7 +79830,7 @@
           "nivel": 33
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 17
         },
@@ -79843,12 +79865,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "secret-power",
           "metodo": "level-up",
           "nivel": 41
         },
         {
-          "golpe": "explosion",
+          "golpe": "hidden-power",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -79938,7 +79960,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "level-up",
           "nivel": 49
         },
@@ -80529,12 +80551,12 @@
           "nivel": 33
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 1
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "secret-power",
           "metodo": "level-up",
           "nivel": 17
         },
@@ -80569,12 +80591,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "hidden-power",
           "metodo": "level-up",
           "nivel": 44
         },
         {
-          "golpe": "explosion",
+          "golpe": "hyper-beam",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -80649,7 +80671,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "level-up",
           "nivel": 58
         },
@@ -84667,7 +84689,8 @@
             "animatedShiny": "/assets/pokemon/10039-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10039-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10039-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -88802,7 +88825,8 @@
             "animatedShiny": "/assets/pokemon/10280-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10280-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10280-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -93328,7 +93352,8 @@
             "animatedShiny": "/assets/pokemon/10040-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10040-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10040-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -95263,7 +95288,8 @@
             "animatedShiny": "/assets/pokemon/10041-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10041-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10041-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -96032,7 +96058,8 @@
             "animatedShiny": "/assets/pokemon/10204-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10204-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10204-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -97308,7 +97335,8 @@
             "animatedShiny": "/assets/pokemon/10205-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10205-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10205-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -104022,7 +104050,8 @@
             "animatedShiny": "/assets/pokemon/10042-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10042-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10042-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -104857,7 +104886,8 @@
             "animatedShiny": "/assets/pokemon/10206-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10206-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10206-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -109108,7 +109138,8 @@
             "animatedShiny": "/assets/pokemon/10281-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10281-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10281-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -109929,7 +109960,8 @@
             "animatedShiny": "/assets/pokemon/10043-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10043-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10043-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "mewtwo-mega-y",
@@ -109959,7 +109991,8 @@
             "animatedShiny": "/assets/pokemon/10044-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10044-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10044-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -110615,7 +110648,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "tutor",
           "nivel": 0
         },
@@ -113321,7 +113354,8 @@
             "animatedShiny": "/assets/pokemon/10282-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10282-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10282-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -118548,7 +118582,8 @@
             "animatedShiny": "/assets/pokemon/10283-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10283-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10283-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -136006,7 +136041,8 @@
             "animatedShiny": "/assets/pokemon/10045-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10045-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10045-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -139060,12 +139096,12 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "strength",
           "metodo": "egg",
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -140836,7 +140872,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "seed-bomb",
           "metodo": "level-up",
           "nivel": 43
         },
@@ -141641,7 +141677,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "seed-bomb",
           "metodo": "level-up",
           "nivel": 52
         },
@@ -142436,7 +142472,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "seed-bomb",
           "metodo": "level-up",
           "nivel": 52
         },
@@ -151845,7 +151881,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "dark-pulse",
           "metodo": "egg",
           "nivel": 0
         },
@@ -154441,7 +154477,7 @@
           "nivel": 20
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "strength",
           "metodo": "level-up",
           "nivel": 6
         },
@@ -154451,12 +154487,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 34
         },
         {
-          "golpe": "explosion",
+          "golpe": "headbutt",
           "metodo": "machine",
           "nivel": 0
         },
@@ -155239,22 +155275,22 @@
           "nivel": 20
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "strength",
           "metodo": "level-up",
           "nivel": 1
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 6
         },
         {
-          "golpe": "explosion",
+          "golpe": "headbutt",
           "metodo": "level-up",
           "nivel": 38
         },
         {
-          "golpe": "explosion",
+          "golpe": "secret-power",
           "metodo": "machine",
           "nivel": 0
         },
@@ -157899,7 +157935,7 @@
           "nivel": 1
         },
         {
-          "golpe": "explosion",
+          "golpe": "rock-climb",
           "metodo": "machine",
           "nivel": 0
         },
@@ -158210,7 +158246,8 @@
             "animatedShiny": "/assets/pokemon/10072-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10072-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10072-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -160620,7 +160657,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -161750,7 +161787,8 @@
             "animatedShiny": "/assets/pokemon/10046-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10046-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10046-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -163340,7 +163378,8 @@
             "animatedShiny": "/assets/pokemon/10047-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10047-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10047-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -166794,7 +166833,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "facade",
           "metodo": "egg",
           "nivel": 0
         },
@@ -167451,7 +167490,7 @@
           "nivel": 31
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -169933,7 +169972,7 @@
           "nivel": 8
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -174286,7 +174325,8 @@
             "animatedShiny": "/assets/pokemon/10284-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10284-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10284-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -175997,7 +176037,8 @@
             "animatedShiny": "/assets/pokemon/10048-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10048-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10048-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -186499,7 +186540,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "zen-headbutt",
           "metodo": "level-up",
           "nivel": 42
         },
@@ -191521,7 +191562,8 @@
             "animatedShiny": "/assets/pokemon/10049-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10049-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10049-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -194028,7 +194070,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "zen-headbutt",
           "metodo": "level-up",
           "nivel": 73
         },
@@ -196839,7 +196881,8 @@
             "animatedShiny": "/assets/pokemon/10065-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10065-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10065-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -199513,7 +199556,8 @@
             "animatedShiny": "/assets/pokemon/10050-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10050-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10050-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -202152,7 +202196,8 @@
             "animatedShiny": "/assets/pokemon/10064-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10064-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10064-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -212371,12 +212416,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "take-down",
           "metodo": "level-up",
           "nivel": 33
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -213176,7 +213221,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -214006,7 +214051,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -218178,7 +218223,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "egg",
           "nivel": 0
         },
@@ -220177,7 +220222,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "psyshock",
           "metodo": "level-up",
           "nivel": 1
         },
@@ -220333,7 +220378,8 @@
             "animatedShiny": "/assets/pokemon/10051-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10051-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10051-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -226936,7 +226982,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "shadow-ball",
           "metodo": "egg",
           "nivel": 0
         },
@@ -234335,7 +234381,7 @@
           "nivel": 4
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -237282,7 +237328,8 @@
             "animatedShiny": "/assets/pokemon/10066-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10066-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10066-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -238263,7 +238310,8 @@
             "animatedShiny": "/assets/pokemon/10052-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10052-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10052-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -241054,7 +241102,8 @@
             "animatedShiny": "/assets/pokemon/10053-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10053-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10053-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -242912,7 +242961,8 @@
             "animatedShiny": "/assets/pokemon/10054-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10054-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10054-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -244535,7 +244585,8 @@
             "animatedShiny": "/assets/pokemon/10055-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10055-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10055-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -249191,7 +249242,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -250027,7 +250078,7 @@
           "nivel": 8
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -251924,7 +251975,8 @@
             "animatedShiny": "/assets/pokemon/10070-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10070-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10070-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -254986,7 +255038,7 @@
           "nivel": 19
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -255242,7 +255294,8 @@
             "animatedShiny": "/assets/pokemon/10087-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10087-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10087-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -255801,7 +255854,7 @@
           "nivel": 40
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -264726,7 +264779,8 @@
             "animatedShiny": "/assets/pokemon/10067-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10067-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10067-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -265636,7 +265690,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "focus-blast",
           "metodo": "egg",
           "nivel": 0
         },
@@ -266445,7 +266499,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "rock-smash",
           "metodo": "egg",
           "nivel": 0
         },
@@ -267031,12 +267085,12 @@
           "nivel": 13
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 45
         },
         {
-          "golpe": "explosion",
+          "golpe": "secret-power",
           "metodo": "machine",
           "nivel": 0
         },
@@ -267877,12 +267931,12 @@
           "nivel": 13
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 45
         },
         {
-          "golpe": "explosion",
+          "golpe": "secret-power",
           "metodo": "machine",
           "nivel": 0
         },
@@ -272033,7 +272087,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 28
         },
@@ -272048,12 +272102,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "secret-power",
           "metodo": "level-up",
           "nivel": 46
         },
         {
-          "golpe": "explosion",
+          "golpe": "hidden-power",
           "metodo": "machine",
           "nivel": 0
         },
@@ -272902,7 +272956,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "strength",
           "metodo": "level-up",
           "nivel": 28
         },
@@ -272917,12 +272971,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 58
         },
         {
-          "golpe": "explosion",
+          "golpe": "secret-power",
           "metodo": "machine",
           "nivel": 0
         },
@@ -281567,7 +281621,8 @@
             "animatedShiny": "/assets/pokemon/10056-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10056-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10056-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -282298,7 +282353,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "dark-pulse",
           "metodo": "egg",
           "nivel": 0
         },
@@ -285025,12 +285080,12 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "psyshock",
           "metodo": "level-up",
           "nivel": 1
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "zen-headbutt",
           "metodo": "level-up",
           "nivel": 57
         },
@@ -285141,7 +285196,8 @@
             "animatedShiny": "/assets/pokemon/10306-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10306-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10306-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -286175,7 +286231,8 @@
             "animatedShiny": "/assets/pokemon/10057-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10057-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10057-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "absol-mega-z",
@@ -286206,7 +286263,8 @@
             "animatedShiny": "/assets/pokemon/10307-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10307-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10307-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -288115,7 +288173,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -288375,7 +288433,8 @@
             "animatedShiny": "/assets/pokemon/10074-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10074-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10074-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -297218,7 +297277,8 @@
             "animatedShiny": "/assets/pokemon/10089-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10089-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10089-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -298371,7 +298431,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -299242,7 +299302,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -299548,7 +299608,8 @@
             "animatedShiny": "/assets/pokemon/10076-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10076-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10076-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -300093,12 +300154,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "level-up",
           "nivel": 1
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -300907,12 +300968,12 @@
           "nivel": 37
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "level-up",
           "nivel": 1
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -301696,12 +301757,12 @@
           "nivel": 37
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "level-up",
           "nivel": 1
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -302767,12 +302828,12 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "psyshock",
           "metodo": "level-up",
           "nivel": 1
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "dream-eater",
           "metodo": "level-up",
           "nivel": 61
         },
@@ -302928,7 +302989,8 @@
             "animatedShiny": "/assets/pokemon/10062-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10062-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10062-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -303610,12 +303672,12 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "dive",
           "metodo": "level-up",
           "nivel": 1
         },
         {
-          "golpe": "memento",
+          "golpe": "dragon-claw",
           "metodo": "level-up",
           "nivel": 61
         },
@@ -303856,7 +303918,8 @@
             "animatedShiny": "/assets/pokemon/10063-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10063-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10063-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -304652,7 +304715,8 @@
             "animatedShiny": "/assets/pokemon/10077-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10077-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10077-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasMega": [],
@@ -305524,7 +305588,8 @@
             "animatedShiny": "/assets/pokemon/10078-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10078-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10078-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasMega": [],
@@ -306442,7 +306507,8 @@
             "animatedShiny": "/assets/pokemon/10079-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10079-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10079-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -307194,7 +307260,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "psyshock",
           "metodo": "level-up",
           "nivel": 50
         },
@@ -318187,7 +318253,8 @@
             "animatedShiny": "/assets/pokemon/10308-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10308-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10308-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -336311,7 +336378,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "dive",
           "metodo": "egg",
           "nivel": 0
         },
@@ -338626,12 +338693,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "level-up",
           "nivel": 43
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -338771,7 +338838,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "sucker-punch",
           "metodo": "egg",
           "nivel": 0
         },
@@ -339468,12 +339535,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 51
         },
         {
-          "golpe": "explosion",
+          "golpe": "secret-power",
           "metodo": "machine",
           "nivel": 0
         },
@@ -340514,7 +340581,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "dig",
           "metodo": "level-up",
           "nivel": 53
         },
@@ -341350,7 +341417,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "dig",
           "metodo": "level-up",
           "nivel": 53
         },
@@ -341431,7 +341498,8 @@
             "animatedShiny": "/assets/pokemon/10088-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10088-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10088-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -345979,12 +346047,12 @@
           "nivel": 4
         },
         {
-          "golpe": "explosion",
+          "golpe": "double-edge",
           "metodo": "level-up",
           "nivel": 44
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -346119,7 +346187,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "crunch",
           "metodo": "level-up",
           "nivel": 38
         },
@@ -346786,12 +346854,12 @@
           "nivel": 4
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "level-up",
           "nivel": 52
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -346911,7 +346979,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "dark-pulse",
           "metodo": "level-up",
           "nivel": 42
         },
@@ -348355,7 +348423,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -349176,12 +349244,12 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "egg",
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -350286,7 +350354,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "dream-eater",
           "metodo": "egg",
           "nivel": 0
         },
@@ -352534,7 +352602,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "level-up",
           "nivel": 43
         },
@@ -355218,7 +355286,8 @@
             "animatedShiny": "/assets/pokemon/10058-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10058-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10058-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "garchomp-mega-z",
@@ -355248,7 +355317,8 @@
             "animatedShiny": "/assets/pokemon/10309-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10309-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10309-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -357869,7 +357939,8 @@
             "animatedShiny": "/assets/pokemon/10059-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10059-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10059-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "lucario-mega-z",
@@ -357900,7 +357971,8 @@
             "animatedShiny": "/assets/pokemon/10310-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10310-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10310-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -367544,7 +367616,8 @@
             "animatedShiny": "/assets/pokemon/10060-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10060-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10060-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -369185,7 +369258,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -370011,7 +370084,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "rock-climb",
           "metodo": "machine",
           "nivel": 0
         },
@@ -380730,7 +380803,8 @@
             "animatedShiny": "/assets/pokemon/10068-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10068-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10068-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -381413,7 +381487,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -383469,7 +383543,8 @@
             "animatedShiny": "/assets/pokemon/10285-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10285-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10285-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -384866,7 +384941,7 @@
           "nivel": 36
         },
         {
-          "golpe": "memento",
+          "golpe": "knock-off",
           "metodo": "level-up",
           "nivel": 76
         },
@@ -385726,7 +385801,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "zen-headbutt",
           "metodo": "level-up",
           "nivel": 76
         },
@@ -386351,12 +386426,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 76
         },
         {
-          "golpe": "explosion",
+          "golpe": "secret-power",
           "metodo": "machine",
           "nivel": 0
         },
@@ -388811,7 +388886,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "rock-climb",
           "metodo": "machine",
           "nivel": 0
         },
@@ -389092,7 +389167,8 @@
             "animatedShiny": "/assets/pokemon/10311-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10311-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10311-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -391438,7 +391514,7 @@
           "nivel": 0
         },
         {
-          "golpe": "lunar-dance",
+          "golpe": "zen-headbutt",
           "metodo": "level-up",
           "nivel": 84
         }
@@ -393817,7 +393893,8 @@
             "animatedShiny": "/assets/pokemon/10312-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10312-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10312-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -394453,7 +394530,7 @@
           "nivel": 10
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "zen-headbutt",
           "metodo": "level-up",
           "nivel": 91
         },
@@ -396289,7 +396366,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "focus-blast",
           "metodo": "level-up",
           "nivel": 81
         },
@@ -401102,7 +401179,8 @@
             "animatedShiny": "/assets/pokemon/10286-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10286-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10286-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -418974,12 +419052,12 @@
           "nivel": 4
         },
         {
-          "golpe": "explosion",
+          "golpe": "take-down",
           "metodo": "level-up",
           "nivel": 40
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -419733,12 +419811,12 @@
           "nivel": 4
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "level-up",
           "nivel": 55
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -420472,12 +420550,12 @@
           "nivel": 4
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "level-up",
           "nivel": 55
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -423755,7 +423833,8 @@
             "animatedShiny": "/assets/pokemon/10287-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10287-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10287-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -424469,7 +424548,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "psyshock",
           "metodo": "egg",
           "nivel": 0
         },
@@ -424600,7 +424679,8 @@
             "animatedShiny": "/assets/pokemon/10069-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10069-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10069-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -435074,7 +435154,8 @@
             "animatedShiny": "/assets/pokemon/10288-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10288-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10288-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -435717,7 +435798,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "facade",
           "metodo": "egg",
           "nivel": 0
         },
@@ -437165,7 +437246,7 @@
           "nivel": 19
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "dream-eater",
           "metodo": "egg",
           "nivel": 0
         },
@@ -438627,7 +438708,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "revenge",
           "metodo": "level-up",
           "nivel": 51
         }
@@ -446628,7 +446709,8 @@
             "animatedShiny": "/assets/pokemon/10289-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10289-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10289-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -448068,7 +448150,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "egg",
           "nivel": 0
         },
@@ -452546,7 +452628,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "egg",
           "nivel": 0
         },
@@ -452566,12 +452648,12 @@
           "nivel": 1
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 47
         },
         {
-          "golpe": "explosion",
+          "golpe": "hidden-power",
           "metodo": "machine",
           "nivel": 0
         },
@@ -453287,12 +453369,12 @@
           "nivel": 1
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 59
         },
         {
-          "golpe": "explosion",
+          "golpe": "giga-impact",
           "metodo": "machine",
           "nivel": 0
         },
@@ -453490,7 +453572,8 @@
             "animatedShiny": "/assets/pokemon/10207-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10207-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10207-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -454147,7 +454230,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "dark-pulse",
           "metodo": "egg",
           "nivel": 0
         },
@@ -459603,7 +459686,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -460402,7 +460485,7 @@
           "nivel": 1
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -461206,7 +461289,7 @@
           "nivel": 1
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -463409,7 +463492,7 @@
           "nivel": 31
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -464158,7 +464241,7 @@
           "nivel": 31
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -464882,7 +464965,7 @@
           "nivel": 31
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -472377,7 +472460,7 @@
           "nivel": 29
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "psychic",
           "metodo": "level-up",
           "nivel": 57
         },
@@ -474425,7 +474508,7 @@
           "nivel": 1
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 38
         },
@@ -474435,12 +474518,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "rock-climb",
           "metodo": "level-up",
           "nivel": 55
         },
         {
-          "golpe": "explosion",
+          "golpe": "hidden-power",
           "metodo": "machine",
           "nivel": 0
         },
@@ -475178,7 +475261,7 @@
           "nivel": 1
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "strength",
           "metodo": "level-up",
           "nivel": 38
         },
@@ -475188,12 +475271,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 67
         },
         {
-          "golpe": "explosion",
+          "golpe": "cut",
           "metodo": "machine",
           "nivel": 0
         },
@@ -479538,7 +479621,8 @@
             "animatedShiny": "/assets/pokemon/10290-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10290-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10290-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -481836,7 +481920,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "level-up",
           "nivel": 33
         },
@@ -482636,7 +482720,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "level-up",
           "nivel": 33
         },
@@ -483487,7 +483571,8 @@
             "animatedShiny": "/assets/pokemon/10291-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10291-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10291-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -488047,7 +488132,7 @@
           "nivel": 29
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -488858,7 +488943,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "energy-ball",
           "metodo": "level-up",
           "nivel": 56
         },
@@ -489554,7 +489639,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "focus-blast",
           "metodo": "level-up",
           "nivel": 56
         },
@@ -494273,7 +494358,8 @@
             "animatedShiny": "/assets/pokemon/10313-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10313-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10313-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -510663,7 +510749,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "machine",
           "nivel": 0
         },
@@ -513652,7 +513738,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 77
         },
@@ -513662,7 +513748,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "giga-impact",
           "metodo": "machine",
           "nivel": 0
         },
@@ -516459,7 +516545,8 @@
             "animatedShiny": "/assets/pokemon/10292-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10292-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10292-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -518917,7 +519004,8 @@
             "animatedShiny": "/assets/pokemon/10293-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10293-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10293-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -521365,7 +521453,8 @@
             "animatedShiny": "/assets/pokemon/10294-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10294-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10294-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -530936,7 +531025,8 @@
             "animatedShiny": "/assets/pokemon/10295-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10295-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10295-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -532742,7 +532832,8 @@
             "animatedShiny": "/assets/pokemon/10296-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10296-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10296-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -539127,7 +539218,8 @@
             "animatedShiny": "/assets/pokemon/10314-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10314-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10314-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "meowstic-female-mega",
@@ -539157,7 +539249,8 @@
             "animatedShiny": "/assets/pokemon/10326-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10326-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10326-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -545967,7 +546060,8 @@
             "animatedShiny": "/assets/pokemon/10297-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10297-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10297-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -547738,7 +547832,8 @@
             "animatedShiny": "/assets/pokemon/10298-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10298-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10298-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -549239,7 +549334,8 @@
             "animatedShiny": "/assets/pokemon/10299-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10299-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10299-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -557068,7 +557164,8 @@
             "animatedShiny": "/assets/pokemon/10300-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10300-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10300-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -558318,7 +558415,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -563741,7 +563838,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -564583,17 +564680,17 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 1
         },
         {
-          "golpe": "explosion",
+          "golpe": "giga-impact",
           "metodo": "level-up",
           "nivel": 75
         },
         {
-          "golpe": "explosion",
+          "golpe": "hidden-power",
           "metodo": "machine",
           "nivel": 0
         },
@@ -570197,7 +570294,8 @@
             "animatedShiny": "/assets/pokemon/10301-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10301-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10301-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -570719,7 +570817,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -570955,7 +571053,8 @@
             "animatedShiny": "/assets/pokemon/10075-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10075-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10075-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -572258,12 +572357,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "strength",
           "metodo": "level-up",
           "nivel": 76
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -588069,7 +588168,8 @@
             "animatedShiny": "/assets/pokemon/10315-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10315-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10315-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -610229,7 +610329,8 @@
             "animatedShiny": "/assets/pokemon/10316-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10316-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10316-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -612415,11 +612516,6 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
-          "metodo": "level-up",
-          "nivel": 49
-        },
-        {
           "golpe": "taunt",
           "metodo": "level-up",
           "nivel": 9
@@ -613836,7 +613932,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -614707,7 +614803,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 22
         },
@@ -614717,12 +614813,12 @@
           "nivel": 15
         },
         {
-          "golpe": "explosion",
+          "golpe": "last-resort",
           "metodo": "level-up",
           "nivel": 50
         },
         {
-          "golpe": "explosion",
+          "golpe": "giga-impact",
           "metodo": "machine",
           "nivel": 0
         },
@@ -616203,12 +616299,12 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 53
         },
         {
-          "golpe": "explosion",
+          "golpe": "giga-impact",
           "metodo": "machine",
           "nivel": 0
         },
@@ -619902,7 +619998,8 @@
             "animatedShiny": "/assets/pokemon/10302-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10302-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10302-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -633191,7 +633288,7 @@
           "nivel": 53
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -635840,7 +635937,8 @@
             "animatedShiny": "/assets/pokemon/10155-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10155-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10155-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "necrozma-dawn",
@@ -635874,7 +635972,8 @@
             "animatedShiny": "/assets/pokemon/10156-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10156-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10156-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "necrozma-ultra",
@@ -635909,7 +636008,8 @@
             "animatedShiny": "/assets/pokemon/10157-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10157-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10157-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ]
     },
@@ -636428,7 +636528,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "last-resort",
           "metodo": "machine",
           "nivel": 0
         },
@@ -636724,7 +636824,8 @@
             "animatedShiny": "/assets/pokemon/10317-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10317-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10317-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "magearna-original-mega",
@@ -636755,7 +636856,8 @@
             "animatedShiny": "/assets/pokemon/10318-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10318-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10318-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -640396,7 +640498,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -641456,7 +641558,8 @@
             "animatedShiny": "/assets/pokemon/10319-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10319-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10319-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -642643,7 +642746,7 @@
           "nivel": 1
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "body-slam",
           "metodo": "machine",
           "nivel": 0
         },
@@ -642841,7 +642944,8 @@
             "animatedShiny": "/assets/pokemon/10208-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10208-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10208-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -645298,7 +645402,8 @@
             "animatedShiny": "/assets/pokemon/10209-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10209-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10209-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -647710,7 +647815,8 @@
             "animatedShiny": "/assets/pokemon/10210-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10210-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10210-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -650022,7 +650128,8 @@
             "animatedShiny": "/assets/pokemon/10211-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10211-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10211-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -653807,7 +653914,8 @@
             "animatedShiny": "/assets/pokemon/10212-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10212-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10212-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -655969,7 +656077,8 @@
             "animatedShiny": "/assets/pokemon/10213-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10213-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10213-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -661756,7 +661865,8 @@
             "animatedShiny": "/assets/pokemon/10214-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10214-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10214-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -663733,12 +663843,12 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "facade",
           "metodo": "egg",
           "nivel": 0
         },
@@ -664463,7 +664573,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -665273,7 +665383,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "mega-punch",
           "metodo": "machine",
           "nivel": 0
         },
@@ -665547,7 +665657,8 @@
             "animatedShiny": "/assets/pokemon/10215-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10215-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10215-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -667033,7 +667144,8 @@
             "animatedShiny": "/assets/pokemon/10216-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10216-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10216-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -667915,7 +668027,8 @@
             "animatedShiny": "/assets/pokemon/10217-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10217-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10217-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -669384,7 +669497,8 @@
             "animatedShiny": "/assets/pokemon/10218-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10218-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10218-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -673046,7 +673160,8 @@
             "animatedShiny": "/assets/pokemon/10219-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10219-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10219-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "toxtricity-low-key-gmax",
@@ -673078,7 +673193,8 @@
             "animatedShiny": "/assets/pokemon/10228-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10228-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10228-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -674540,7 +674656,8 @@
             "animatedShiny": "/assets/pokemon/10220-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10220-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10220-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -676635,7 +676752,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "dark-pulse",
           "metodo": "level-up",
           "nivel": 54
         },
@@ -677292,7 +677409,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -677367,7 +677484,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "dark-pulse",
           "metodo": "level-up",
           "nivel": 54
         },
@@ -678146,7 +678263,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "expanding-force",
           "metodo": "level-up",
           "nivel": 45
         },
@@ -678890,7 +679007,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "expanding-force",
           "metodo": "level-up",
           "nivel": 51
         },
@@ -679650,7 +679767,7 @@
           "nivel": 0
         },
         {
-          "golpe": "healing-wish",
+          "golpe": "expanding-force",
           "metodo": "level-up",
           "nivel": 55
         },
@@ -679795,7 +679912,7 @@
           "nivel": 0
         },
         {
-          "golpe": "misty-explosion",
+          "golpe": "draining-kiss",
           "metodo": "tutor",
           "nivel": 0
         }
@@ -679834,7 +679951,8 @@
             "animatedShiny": "/assets/pokemon/10221-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10221-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10221-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -682297,7 +682415,8 @@
             "animatedShiny": "/assets/pokemon/10222-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10222-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10222-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -684731,7 +684850,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "body-slam",
           "metodo": "machine",
           "nivel": 0
         },
@@ -685693,7 +685812,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "revenge",
           "metodo": "level-up",
           "nivel": 60
         },
@@ -691558,7 +691677,7 @@
           "nivel": 1
         },
         {
-          "golpe": "misty-explosion",
+          "golpe": "play-rough",
           "metodo": "tutor",
           "nivel": 0
         }
@@ -691596,7 +691715,8 @@
             "animatedShiny": "/assets/pokemon/10223-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10223-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10223-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -692344,7 +692464,8 @@
             "animatedShiny": "/assets/pokemon/10303-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10303-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10303-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -692869,7 +692990,7 @@
           "nivel": 30
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -692934,7 +693055,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "throat-chop",
           "metodo": "egg",
           "nivel": 0
         },
@@ -694905,7 +695026,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "machine",
           "nivel": 0
         },
@@ -698982,7 +699103,8 @@
             "animatedShiny": "/assets/pokemon/10224-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10224-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10224-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -702773,7 +702895,8 @@
             "animatedShiny": "/assets/pokemon/10225-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10225-animatedBack.gif",
             "animatedBackShiny": "/assets/pokemon/10225-animatedBackShiny.gif"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -709094,7 +709217,8 @@
             "animatedShiny": "/assets/pokemon/10226-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10226-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10226-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "urshifu-rapid-strike-gmax",
@@ -709126,7 +709250,8 @@
             "animatedShiny": "/assets/pokemon/10227-animatedShiny.gif",
             "animatedBack": "/assets/pokemon/10227-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10227-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasFusao": []
@@ -710486,7 +710611,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "body-slam",
           "metodo": "machine",
           "nivel": 0
         },
@@ -710496,7 +710621,7 @@
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "level-up",
           "nivel": 78
         },
@@ -711156,12 +711281,12 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "body-slam",
           "metodo": "machine",
           "nivel": 0
         },
         {
-          "golpe": "explosion",
+          "golpe": "body-slam",
           "metodo": "level-up",
           "nivel": 78
         },
@@ -717574,11 +717699,6 @@
           "golpe": "pin-missile",
           "metodo": "level-up",
           "nivel": 9
-        },
-        {
-          "golpe": "self-destruct",
-          "metodo": "level-up",
-          "nivel": 57
         },
         {
           "golpe": "spikes",
@@ -727523,7 +727643,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "sucker-punch",
           "metodo": "egg",
           "nivel": 0
         },
@@ -736171,7 +736291,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "tera-blast",
           "metodo": "egg",
           "nivel": 0
         },
@@ -738487,7 +738607,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "tera-blast",
           "metodo": "egg",
           "nivel": 0
         },
@@ -740664,7 +740784,7 @@
           "nivel": 1
         },
         {
-          "golpe": "explosion",
+          "golpe": "take-down",
           "metodo": "level-up",
           "nivel": 60
         },
@@ -754871,7 +754991,8 @@
             "animatedShiny": "/assets/pokemon/10320-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10320-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10320-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -755454,7 +755575,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "egg",
           "nivel": 0
         },
@@ -760995,7 +761116,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "foul-play",
           "metodo": "egg",
           "nivel": 0
         },
@@ -761050,7 +761171,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "tera-blast",
           "metodo": "egg",
           "nivel": 0
         },
@@ -762420,7 +762541,7 @@
           "nivel": 24
         },
         {
-          "golpe": "memento",
+          "golpe": "dark-pulse",
           "metodo": "level-up",
           "nivel": 1
         },
@@ -764719,7 +764840,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "body-slam",
           "metodo": "egg",
           "nivel": 0
         },
@@ -767784,7 +767905,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 29
         },
@@ -767794,7 +767915,7 @@
           "nivel": 41
         },
         {
-          "golpe": "explosion",
+          "golpe": "tera-blast",
           "metodo": "egg",
           "nivel": 0
         },
@@ -767869,7 +767990,7 @@
           "nivel": 11
         },
         {
-          "golpe": "memento",
+          "golpe": "dazzling-gleam",
           "metodo": "egg",
           "nivel": 0
         },
@@ -768532,7 +768653,7 @@
           "nivel": 0
         },
         {
-          "golpe": "self-destruct",
+          "golpe": "facade",
           "metodo": "level-up",
           "nivel": 29
         },
@@ -768803,7 +768924,8 @@
             "animatedShiny": "/assets/pokemon/10321-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10321-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10321-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -769476,7 +769598,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "egg",
           "nivel": 0
         },
@@ -773339,7 +773461,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "expanding-force",
           "metodo": "level-up",
           "nivel": 55
         },
@@ -774712,7 +774834,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "lunge",
           "metodo": "level-up",
           "nivel": 34
         },
@@ -774853,7 +774975,8 @@
             "animatedShiny": "/assets/pokemon/10322-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10322-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10322-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "tatsugiri-droopy-mega",
@@ -774884,7 +775007,8 @@
             "animatedShiny": "/assets/pokemon/10323-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10323-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10323-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         },
         {
           "nome": "tatsugiri-stretchy-mega",
@@ -774915,7 +775039,8 @@
             "animatedShiny": "/assets/pokemon/10324-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10324-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10324-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -775801,7 +775926,7 @@
           "nivel": 0
         },
         {
-          "golpe": "final-gambit",
+          "golpe": "focus-blast",
           "metodo": "level-up",
           "nivel": 57
         },
@@ -781095,7 +781220,7 @@
           "nivel": 0
         },
         {
-          "golpe": "misty-explosion",
+          "golpe": "dazzling-gleam",
           "metodo": "machine",
           "nivel": 0
         },
@@ -782442,7 +782567,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "dark-pulse",
           "metodo": "level-up",
           "nivel": 21
         },
@@ -791234,7 +791359,8 @@
             "animatedShiny": "/assets/pokemon/10325-animatedShiny.png",
             "animatedBack": "/assets/pokemon/10325-animatedBack.png",
             "animatedBackShiny": "/assets/pokemon/10325-animatedBackShiny.png"
-          }
+          },
+          "golpesAprendidos": []
         }
       ],
       "formasPrimal": [],
@@ -792432,7 +792558,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "thief",
           "metodo": "level-up",
           "nivel": 70
         },
@@ -794635,7 +794761,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "lash-out",
           "metodo": "level-up",
           "nivel": 65
         },
@@ -795376,7 +795502,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "crunch",
           "metodo": "level-up",
           "nivel": 70
         },
@@ -801904,7 +802030,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "scald",
           "metodo": "level-up",
           "nivel": 54
         },
@@ -802632,7 +802758,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "scald",
           "metodo": "level-up",
           "nivel": 54
         },
@@ -812058,7 +812184,7 @@
           "nivel": 0
         },
         {
-          "golpe": "memento",
+          "golpe": "foul-play",
           "metodo": "level-up",
           "nivel": 1
         },

@@ -67,6 +67,9 @@ export function createRouter(db, config) {
   router.post('/mercado/pokemon/atualizar', requireSave, async (req, res, next) => {
     try { res.json({ success: true, data: await market.refreshPokemon(req.usuarioId) }); } catch (error) { next(error); }
   });
+  router.patch('/mercado/pokemon/:id/favorito', requireSave, validate(favoriteSchema), async (req, res, next) => {
+    try { res.json({ success: true, data: await market.favoritePokemon(req.usuarioId, req.params.id, req.body.favorito) }); } catch (error) { next(error); }
+  });
   router.post('/mercado/pokemon/comprar', requireSave, validate(buyPokemonStockSchema), async (req, res, next) => {
     try { res.json({ success: true, data: await market.buyPokemon(req.usuarioId, req.body.stockId) }); } catch (error) { next(error); }
   });

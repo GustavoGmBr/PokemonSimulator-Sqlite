@@ -1,3 +1,9 @@
+## Pokémon Simulator SQLite v1.0.0
+
+- Bônus por concluir as dez missões do ciclo antes da renovação: 5.000 ₽, 500 fichas de cassino e um Doce Raro.
+- O bônus é creditado uma única vez quando todas as tarefas estão concluídas e o jogador resgata uma missão; o painel informa progresso, valor do prêmio e se o bônus já foi recebido.
+- Primeira versão principal estável do Pokémon Simulator SQLite, com saves locais e cliente para Windows.
+
 ## Pokémon Simulator SQLite v0.5.19
 
 - Clique no nome do treinador no menu para consultar o saldo em dinheiro e as fichas do cassino.

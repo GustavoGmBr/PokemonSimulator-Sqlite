@@ -10,7 +10,7 @@ export function MissionsPage() {
   if (!save.data?.iniciadoEm) return <Navigate to="/saves" replace />;
   if (!save.data.inicialEspecieId) return <Navigate to="/inicial" replace />;
   return <>
-    <PageTitle label="OBJETIVOS DA JORNADA" title="Missões">Dez objetivos são renovados a cada duas horas. Complete-os e resgate as recompensas.</PageTitle>
+    <PageTitle label="OBJETIVOS DA JORNADA" title="Missões">Dez objetivos são renovados a cada duas horas. Complete todas antes do reset para receber um bônus de 5.000 ₽, 500 fichas e um Doce Raro.</PageTitle>
     <MissionsPanel saveId={save.data.id} />
   </>;
 }

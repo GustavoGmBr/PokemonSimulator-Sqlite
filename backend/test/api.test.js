@@ -88,13 +88,21 @@ test('excluir um save remove seus dados e preserva os outros', async () => {
 });
 
 test('catalogo publico retorna itens, especies e sprites locais', async () => {
-  assert.equal((await request(app).get('/api/catalogo/itens').expect(200)).body.data.length, 151);
+  assert.equal((await request(app).get('/api/catalogo/itens').expect(200)).body.data.length, 157);
   const species = await request(app).get('/api/catalogo/25').expect(200);
   assert.equal(species.body.data.nomeExibicao, 'Pikachu');
   assert.ok(species.body.data.sprites.animatedShiny);
   assert.ok(species.body.data.golpesAprendidos[0].pp > 0);
   await request(app).get('/assets/pokemon/1-front.png').expect('Content-Type', /image/).expect(200);
   await request(app).get('/api/catalogo/not-an-id').expect(404);
+
+  await request(app).post('/api/jogador/inicial').set('X-Save-Id', second.id).send({ saveId: second.id, especieId: 4 }).expect(201);
+  await db.save.update({ where: { id: second.id }, data: { moedas: 100_000 } });
+  const stock = (await request(app).get('/api/mercado/pokemon').set('X-Save-Id', second.id).expect(200)).body.data;
+  const fixed = stock.pokemons[0];
+  await request(app).patch(`/api/mercado/pokemon/${fixed.id}/favorito`).set('X-Save-Id', second.id).send({ favorito: true }).expect(200);
+  const refreshed = (await request(app).post('/api/mercado/pokemon/atualizar').set('X-Save-Id', second.id).send({}).expect(200)).body.data;
+  assert.ok(refreshed.pokemons.some(entry => entry.id === fixed.id && entry.favorito));
 });
 
 test('health distingue o processo do banco indisponivel', async () => {

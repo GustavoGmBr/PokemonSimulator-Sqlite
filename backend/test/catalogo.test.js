@@ -39,8 +39,23 @@ test('catalogo local tem os 1025 IDs de Kanto a Paldea, sprites e golpes resolvi
   for (const species of catalogo.pokemon) for (const form of species.formasGmax) for (const sprite of Object.values(form.sprites)) assert.ok(readFileSync(new URL(`../public/${sprite.replace('/assets/', '')}`, import.meta.url)).length > 8);
 });
 
+test('todos os golpes de dano aprendidos por nível existem e autodestruição não é aprendida', () => {
+  const catalogo = getCatalogo();
+  const moves = new Map(catalogo.golpes.map(move => [move.nome, move]));
+  const banned = new Set(['self-destruct', 'explosion', 'misty-explosion', 'memento', 'healing-wish', 'lunar-dance', 'final-gambit']);
+  let damagingEntries = 0;
+  for (const species of catalogo.pokemon) for (const learned of species.golpesAprendidos) {
+    const move = moves.get(learned.golpe);
+    assert.ok(move, `golpe ausente: ${learned.golpe} (#${species.id})`);
+    if (learned.metodo !== 'level-up') continue;
+    assert.equal(banned.has(learned.golpe), false, `${learned.golpe} ainda aparece no aprendizado de ${species.nomeExibicao}`);
+    if (move.poder > 0 && ['physical', 'special'].includes(move.categoria)) damagingEntries++;
+  }
+  assert.ok(damagingEntries > 8_000, `apenas ${damagingEntries} ocorrências de golpes de dano no catálogo`);
+});
+
 test('itens e Mega Pedras tem sprites locais e detalhes de golpes mantem poder', () => {
-  assert.equal(getCatalogo().itens.length, 151);
+  assert.equal(getCatalogo().itens.length, 157);
   assert.equal(getCatalogo().itens.find((item) => item.nome === 'ultra-burst-stone').precoLoja, 150000);
   for (const id of ['master-ball', 'rare-candy', 'exp-candy-p', 'exp-candy-m', 'exp-candy-g', 'exp-candy-gg']) assert.equal(getCatalogo().itens.find((item) => item.nome === id).precoLoja, null);
   assert.equal(getCatalogo().itens.find((item) => item.nome === 'gmax-stone').precoLoja, 75000);
@@ -74,7 +89,7 @@ test('iniciais possuem nivel 5, HP cheio, experiencia e golpes aprendidos ate es
     assert.ok(initial.hpAtual >= 19);
     assert.ok(initial.golpes.length >= 1 && initial.golpes.length <= 4);
     for (const move of initial.golpes) {
-      assert.ok(getCatalogo().golpes.find((entry) => entry.nome === move.nome && entry.poder > 0));
+      assert.ok(getCatalogo().golpes.find((entry) => entry.nome === move.nome && (entry.poder > 0 || entry.categoria === 'status')));
       assert.equal(move.ppAtual, undefined);
     }
   }

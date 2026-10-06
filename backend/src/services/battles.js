@@ -2,7 +2,7 @@ import { normalizeIvs } from './ivRules.js';
 import { randomInt } from 'node:crypto';
 import { HttpError } from '../lib/errors.js';
 import { getCatalogo, getEspecie } from './catalogo.js';
-import { REGIONS, regionUnlocked, legendaryUnlocked, catchCharmMultiplier, challengesWithStatus, charmMilestones, completedGenerationsAfterFirst, luckyEggMultiplier, amuletCoinMultiplier, damage, effectiveness, formFor, levelMovesFor, makeCombatant, rollShiny, rollWild, rollTrainer, shinyRolls, statsFor, wildLevelCap, wildLevelSettings } from './battleRules.js';
+import { REGIONS, regionUnlocked, legendaryUnlocked, catchCharmMultiplier, challengesWithStatus, charmMilestones, completedGenerationsAfterFirst, luckyEggMultiplier, amuletCoinMultiplier, damage, drainPercentForMove, effectiveness, formFor, healAtTurnEnd, healByDrain, healByMove, healByStrengthSap, leechSeedTurn, levelMovesFor, makeCombatant, rollShiny, rollWild, rollTrainer, shinyRolls, statsFor, wildLevelCap, wildLevelSettings } from './battleRules.js';
 import { generationForSpecies, HEALING_ITEMS, healCombatant } from './itemRules.js';
 import { equippedMoves, naturalMoves, unlockedMoves } from './moveRules.js';
 import { TOURNAMENTS, rollTournament } from './tournaments.js';
@@ -11,6 +11,11 @@ const CAPTURE_MULTIPLIER = { 'poke-ball': 1, 'great-ball': 1.5, 'ultra-ball': 2,
 function displayName(name) { return name.replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
 
 export function createBattleService(db) {
+  const catalogMoves = new Map(getCatalogo().golpes.map(move => [move.nome, move]));
+  function battleMove(move) {
+    const source = catalogMoves.get(move.nome) ?? {};
+    return { ...move, alvo: source.alvo, chanceEfeito: source.chanceEfeito, meta: source.meta, alteracoesAtributos: source.alteracoesAtributos ?? [] };
+  }
   function wildRange(completed, regionId, requested) {
     const settings = wildLevelSettings(completed, regionId);
     if (!settings) throw new HttpError(403, 'Região ainda bloqueada.');
@@ -22,38 +27,266 @@ export function createBattleService(db) {
   }
   async function movesFor(tx, speciesId, level) {
     const names = levelMovesFor(getEspecie(speciesId), level).map((move) => move.nome);
-    const rows = await tx.especieAtaque.findMany({ where: { especieId: speciesId, nivelAprendido: { lte: level } }, include: { golpe: true } });
-    const byName = new Map(rows.map((row) => [row.golpe.nome, row.golpe]));
-    if (names.includes('struggle')) byName.set('struggle', await tx.golpeBatalha.findUnique({ where: { nome: 'struggle' } }));
-    if (names.some((name) => !byName.get(name))) throw new HttpError(503, 'Golpes de batalha nao preparados. Execute npm run catalog:seed-moves.');
-    return names.map((name) => { const move = byName.get(name); return { nome: move.nome, tipo: move.tipo, categoria: move.categoria, poder: move.poder, precisao: move.precisao, prioridade: move.prioridade }; });
+    const moves = names.map(name => catalogMoves.get(name)).filter(Boolean);
+    if (moves.length !== names.length) throw new HttpError(503, 'Um ou mais golpes não estão definidos no catálogo local.');
+    return moves.map(battleMove);
   }
-  async function playerMovesFor(tx, member) {
+  async function playerMovesFor(_tx, member) {
     const names = equippedMoves(member, getEspecie(member.especieId));
-    const rows = await tx.golpeBatalha.findMany({ where: { nome: { in: names } } });
-    const byName = new Map(rows.map((move) => [move.nome, move]));
-    if (names.some((name) => !byName.has(name))) throw new HttpError(503, 'Golpes de batalha não preparados. Execute npm run catalog:seed-moves.');
-    return names.map((name) => byName.get(name));
+    return names.map(name => catalogMoves.get(name)).filter(Boolean).map(battleMove);
   }
   async function progress(tx, saveId) {
     return (await tx.desafioConcluido.findMany({ where: { saveId }, select: { desafioId: true } })).map((entry) => entry.desafioId);
   }
   function log(state, message) { state.logs = [...state.logs.slice(-24), message]; }
+  function battleSpeed(combatant) {
+    const stage = Math.max(-6, Math.min(6, combatant.statStages?.speed ?? 0));
+    const multiplier = stage >= 0 ? (2 + stage) / 2 : 2 / (2 - stage);
+    return combatant.stats.speed * multiplier * (combatant.status === 'paralysis' ? .5 : 1);
+  }
+  function normalizeBattleState(state) {
+    state.weather ??= null;
+    state.weatherTurns ??= 0;
+    state.grassyTerrainTurns ??= 0;
+    for (const combatant of [state.jogador, state.oponente, ...(state.reservas ?? []), ...(state.fila ?? [])]) {
+      if (!combatant) continue;
+      combatant.statStages ??= {};
+      combatant.status ??= null;
+      combatant.statusTurns ??= 0;
+      combatant.confusionTurns ??= 0;
+      combatant.protegido ??= false;
+    }
+    return state;
+  }
+  const CURE_MOVES = new Set(['aromatherapy', 'heal-bell', 'jungle-healing', 'purify']);
+  const PROTECT_MOVES = new Set(['protect', 'detect', 'king-s-shield', 'spiky-shield', 'baneful-bunker']);
+  function statusCureMove(move) { return CURE_MOVES.has(move.nome); }
+  function cureWithMove(combatant, move) { if (statusCureMove(move)) combatant.status = null; }
+  function applyRecoveryMove(state, user, target, move) {
+    if (move.nome === 'rest') {
+      const recovered = user.maxHp - user.hp;
+      user.hp = user.maxHp;
+      user.status = 'sleep'; user.statusTurns = 2; user.toxic = false; user.toxicTurns = 0;
+      return { healed: recovered, text: 'curou suas condições e adormeceu por 2 turnos' };
+    }
+    if (move.nome === 'wish') {
+      state.wish = { lado: user === state.jogador ? 'jogador' : 'oponente', turnos: 2, quantidade: Math.ceil(user.maxHp / 2) };
+      return { healed: 0, text: 'fez um pedido de cura para o próximo turno' };
+    }
+    if (move.nome === 'pain-split') {
+      const shared = Math.floor((user.hp + target.hp) / 2);
+      const before = user.hp;
+      user.hp = Math.min(user.maxHp, shared);
+      target.hp = Math.min(target.maxHp, shared);
+      return { healed: user.hp - before, text: 'dividiu os HP atuais entre os dois Pokémon' };
+    }
+    if (move.nome === 'strength-sap') return { healed: healByStrengthSap(user, target), text: `drenou o Ataque de ${target.nome}` };
+    if (move.nome === 'stockpile') {
+      user.stockpile = Math.min(3, (user.stockpile ?? 0) + 1);
+      for (const stat of ['defense', 'special-defense']) user.statStages[stat] = Math.min(6, (user.statStages[stat] ?? 0) + 1);
+      return { healed: 0, text: `acumulou energia (${user.stockpile}/3)` };
+    }
+    if (move.nome === 'swallow') {
+      const stored = user.stockpile ?? 0;
+      const healed = stored ? healByMove(user, move, { weather: state.weather, stockpile: stored }) : 0;
+      user.stockpile = 0;
+      for (const stat of ['defense', 'special-defense']) user.statStages[stat] = Math.max(-6, (user.statStages[stat] ?? 0) - stored);
+      return { healed, text: stored ? `consumiu ${stored} acúmulo(s)` : 'falhou por não ter energia acumulada' };
+    }
+    if (move.nome === 'aqua-ring') { user.aquaRing = true; return { healed: 0, text: 'ficou envolto por um anel de água' }; }
+    if (move.nome === 'roost' && user.tipos.includes('flying')) {
+      user.roostedTypes ??= [...user.tipos];
+      user.tipos = user.tipos.filter(type => type !== 'flying'); user.roosted = true;
+      return { healed: 0, text: 'perdeu o tipo Voador até o fim do turno' };
+    }
+    if (['sunny-day', 'rain-dance', 'sandstorm', 'hail', 'snowscape'].includes(move.nome)) {
+      state.weather = move.nome; state.weatherTurns = 5;
+      return { healed: 0, text: `o clima mudou para ${displayName(move.nome)}` };
+    }
+    if (move.nome === 'grassy-terrain') { state.grassyTerrainTurns = 5; return { healed: 0, text: 'o campo ficou coberto por Grassy Terrain' }; }
+    return { healed: 0, text: '' };
+  }
+  function applyStatChanges(target, move, chance = null) {
+    const changes = move.alteracoesAtributos ?? [];
+    if (!changes.length) return '';
+    const odds = chance ?? (move.categoria === 'status' ? 100 : 0);
+    if (odds < 100 && randomInt(100) >= odds) return '';
+    const applied = [];
+    for (const { atributo, mudanca } of changes) {
+      if (!['attack', 'defense', 'special-attack', 'special-defense', 'speed', 'accuracy', 'evasion'].includes(atributo)) continue;
+      const old = target.statStages[atributo] ?? 0;
+      const next = Math.max(-6, Math.min(6, old + mudanca));
+      if (next === old) continue;
+      target.statStages[atributo] = next;
+      const label = { attack: 'Ataque', defense: 'Defesa', 'special-attack': 'Ataque especial', 'special-defense': 'Defesa especial', speed: 'Velocidade', accuracy: 'Precisão', evasion: 'Esquiva' }[atributo];
+      applied.push(`${label} ${next > old ? 'subiu' : 'caiu'}`);
+    }
+    return applied.join(' e ');
+  }
+  function applyMoveAilment(state, attacker, target, move) {
+    const ailment = move.meta?.ailment?.name;
+    if (!ailment || ailment === 'none') return '';
+    const odds = move.meta?.ailment_chance > 0 ? move.meta.ailment_chance : move.categoria === 'status' ? 100 : move.chanceEfeito ?? 0;
+    if (odds < 100 && randomInt(100) >= odds) return '';
+    if (ailment === 'confusion') {
+      if (target.confusionTurns > 0) return '';
+      target.confusionTurns = 1 + randomInt(4);
+      return `${target.nome} ficou confuso`;
+    }
+    if (ailment === 'yawn') { target.yawnTurns = 1; return `${target.nome} ficou sonolento`; }
+    if (ailment === 'leech-seed') { target.leechSeededBy = attacker === state.jogador ? 'jogador' : 'oponente'; return `${target.nome} foi semeado`; }
+    if (ailment === 'nightmare') { if (target.status !== 'sleep') return ''; target.nightmare = true; return `${target.nome} está preso em um pesadelo`; }
+    if (ailment === 'disable') { target.disabledMove = target.lastMoveName ?? target.ataques.at(-1)?.nome; target.disableTurns = 4; return `${target.nome} teve um golpe bloqueado`; }
+    if (ailment === 'protect') { attacker.protegido = true; return `${attacker.nome} se protegeu`; }
+    if (ailment === 'perish-song') { target.perishTurns = 3; return `${target.nome} ouviu o Canto Mortal`; }
+    if (ailment === 'infatuation') { target.infatuated = true; return `${target.nome} ficou apaixonado`; }
+    if (ailment === 'torment') { target.tormented = true; return `${target.nome} foi atormentado`; }
+    if (ailment === 'ingrain') { attacker.ingrained = true; return `${attacker.nome} criou raízes`; }
+    if (ailment === 'no-type-immunity') { target.noTypeImmunity = true; return `${target.nome} ficou exposto`; }
+    if (ailment === 'embargo') { target.embargoed = true; return `${target.nome} não pode usar itens`; }
+    if (ailment === 'heal-block') { target.healBlocked = true; return `${target.nome} não pode se curar`; }
+    if (ailment === 'tar-shot') { target.tarShot = true; return `${target.nome} foi coberto de piche`; }
+    const status = ailment;
+    if (target.status) return '';
+    const immunities = {
+      burn: target.tipos.includes('fire'),
+      poison: target.tipos.some(type => ['poison', 'steel'].includes(type)),
+      paralysis: target.tipos.includes('electric'),
+      freeze: target.tipos.includes('ice'),
+    };
+    if (immunities[status]) return '';
+    target.status = status;
+    target.statusTurns = status === 'sleep' ? 1 + randomInt(3) : 0;
+    if (move.nome === 'toxic') target.toxic = true;
+    return `${target.nome} recebeu ${({ burn: 'queimadura', poison: 'envenenamento', paralysis: 'paralisia', sleep: 'sono', freeze: 'congelamento' })[status] ?? status}`;
+  }
+  function canAct(state, combatant, move) {
+    if (combatant.disabledMove === move.nome && combatant.disableTurns > 0) { log(state, `${combatant.nome} não pode usar ${displayName(move.nome)}.`); return false; }
+    if (combatant.tormented && combatant.lastMoveName === move.nome) { log(state, `${combatant.nome} não pode repetir esse golpe por causa do tormento.`); return false; }
+    if (combatant.healBlocked && (move.meta?.healing ?? 0) > 0) { log(state, `${combatant.nome} está impedido de se curar.`); return false; }
+    if (combatant.infatuated && randomInt(2) === 0) { log(state, `${combatant.nome} está apaixonado e não conseguiu agir.`); return false; }
+    if (combatant.status === 'sleep') {
+      combatant.statusTurns -= 1;
+      if (combatant.statusTurns <= 0) { combatant.status = null; log(state, `${combatant.nome} acordou, mas perdeu este turno.`); }
+      else log(state, `${combatant.nome} está dormindo e não pode agir.`);
+      return false;
+    }
+    if (combatant.status === 'freeze') {
+      if (randomInt(100) < 20) { combatant.status = null; log(state, `${combatant.nome} descongelou.`); }
+      else { log(state, `${combatant.nome} está congelado e não pode agir.`); return false; }
+    }
+    if (combatant.status === 'paralysis' && randomInt(100) < 25) { log(state, `${combatant.nome} está paralisado e não conseguiu agir.`); return false; }
+    if (combatant.confusionTurns > 0) {
+      combatant.confusionTurns -= 1;
+      if (randomInt(3) === 0) {
+        const damage = Math.max(1, Math.floor(combatant.maxHp / 8));
+        combatant.hp = Math.max(0, combatant.hp - damage);
+        log(state, `${combatant.nome} se confundiu e causou ${damage} de dano em si mesmo.`);
+        return false;
+      }
+      if (!combatant.confusionTurns) log(state, `${combatant.nome} saiu da confusão.`);
+    }
+    return true;
+  }
+  function endTurn(state) {
+    const grassyTerrain = state.grassyTerrainTurns > 0;
+    for (const combatant of [state.jogador, state.oponente]) {
+      if (!combatant || combatant.hp <= 0) continue;
+      if (combatant.status === 'poison' || combatant.status === 'burn') {
+        combatant.toxicTurns = combatant.status === 'poison' && combatant.toxicTurns ? combatant.toxicTurns + 1 : combatant.toxic ? 1 : 0;
+        const amount = Math.max(1, Math.floor(combatant.maxHp * (combatant.status === 'burn' ? 1 / 16 : combatant.toxic ? combatant.toxicTurns / 16 : 1 / 8)));
+        combatant.hp = Math.max(0, combatant.hp - amount);
+        log(state, `${combatant.nome} perdeu ${amount} HP por ${combatant.status === 'poison' ? 'envenenamento' : 'queimadura'}.`);
+      }
+      if (combatant.yawnTurns > 0 && --combatant.yawnTurns === 0 && !combatant.status) { combatant.status = 'sleep'; combatant.statusTurns = 1 + randomInt(3); log(state, `${combatant.nome} adormeceu.`); }
+      if (combatant.perishTurns > 0 && --combatant.perishTurns === 0) { combatant.hp = 0; log(state, `${combatant.nome} desmaiou após o Canto Mortal.`); }
+      if (combatant.leechSeededBy) {
+        const recipient = combatant.leechSeededBy === 'jogador' ? state.jogador : state.oponente;
+        const { damage, healed } = leechSeedTurn(combatant, recipient);
+        log(state, `${combatant.nome} perdeu ${damage} HP para as sementes${healed ? `; ${recipient.nome} recuperou ${healed} HP` : ''}.`);
+      }
+      for (const { source, healed } of healAtTurnEnd(combatant, { aquaRing: combatant.aquaRing, ingrained: combatant.ingrained, grassyTerrain }))
+        log(state, `${combatant.nome} recuperou ${healed} HP com ${displayName(source)}.`);
+      if (combatant.status === 'sleep' && combatant.nightmare) { const amount = Math.max(1, Math.floor(combatant.maxHp / 4)); combatant.hp = Math.max(0, combatant.hp - amount); log(state, `${combatant.nome} perdeu ${amount} HP no pesadelo.`); }
+      if (combatant.disableTurns > 0 && --combatant.disableTurns === 0) combatant.disabledMove = null;
+      if (combatant.perishTurns) log(state, `Canto Mortal: ${combatant.nome} desmaiará em ${combatant.perishTurns} turno(s).`);
+      combatant.protegido = false;
+      if (combatant.roosted) {
+        combatant.tipos = combatant.roostedTypes; combatant.roostedTypes = null; combatant.roosted = false;
+      }
+    }
+    if (state.wish) {
+      state.wish.turnos -= 1;
+      if (state.wish.turnos <= 0) {
+        const target = state.wish.lado === 'jogador' ? state.jogador : state.oponente;
+        const healed = target?.hp > 0 ? Math.min(state.wish.quantidade, target.maxHp - target.hp) : 0;
+        if (healed) target.hp += healed;
+        if (target) log(state, healed ? `${target.nome} recuperou ${healed} HP com Wish.` : 'Wish não encontrou um Pokémon ativo para curar.');
+        state.wish = null;
+      }
+    }
+    if (state.weatherTurns > 0 && --state.weatherTurns === 0) state.weather = null;
+    if (state.grassyTerrainTurns > 0) state.grassyTerrainTurns -= 1;
+  }
   function attack(state, attacker, defender, move) {
+    if (!canAct(state, attacker, move)) return;
+    attacker.lastMoveName = move.nome;
+    if (attacker !== defender && defender.protegido) { log(state, `${defender.nome} bloqueou ${displayName(move.nome)}.`); return; }
+    if (move.categoria === 'status') {
+      const hitChance = Math.max(1, Math.min(100, move.precisao ?? 100));
+      if (move.precisao != null && randomInt(100) >= hitChance) { log(state, `${attacker.nome} usou ${displayName(move.nome)}, mas errou.`); return; }
+      const target = move.alvo?.startsWith('user') || move.nome === 'heal-pulse' ? attacker : defender;
+      const special = applyRecoveryMove(state, attacker, target, move);
+      const healed = special.healed || healByMove(attacker, move, { weather: state.weather, stockpile: attacker.stockpile });
+      const stages = move.nome === 'stockpile' ? '' : applyStatChanges(target, move);
+      const ailment = applyMoveAilment(state, attacker, target, move);
+      cureWithMove(attacker, move);
+      if (PROTECT_MOVES.has(move.nome)) attacker.protegido = true;
+      const effects = [healed ? `recuperou ${healed} HP` : '', special.text, stages, ailment, statusCureMove(move) ? 'removeu condições de status' : ''].filter(Boolean);
+      log(state, `${attacker.nome} usou ${displayName(move.nome)}${effects.length ? `: ${effects.join('; ')}.` : ', mas não teve efeito.'}`);
+      return;
+    }
+    if (defender.protegido) { log(state, `${defender.nome} bloqueou ${displayName(move.nome)}.`); return; }
+    if (move.nome === 'dream-eater' && defender.status !== 'sleep') { log(state, `${attacker.nome} tentou usar Dream Eater, mas ${defender.nome} não está dormindo.`); return; }
     const result = damage(attacker, defender, move);
     if (!result.acerto) { log(state, `${attacker.nome} usou ${displayName(move.nome)}, mas errou.`); return; }
     defender.hp = Math.max(0, defender.hp - result.dano);
-    log(state, `${attacker.nome} usou ${displayName(move.nome)} e causou ${result.dano} de dano.${result.critico ? ' Acerto crítico!' : ''}${result.efetividade > 1 ? ' Super eficaz!' : result.efetividade < 1 ? ' Pouco eficaz.' : ''}`);
+    const healing = healByDrain(attacker, result.dano, drainPercentForMove(move));
+    const ailment = applyMoveAilment(state, attacker, defender, move);
+    const statChance = move.meta?.stat_chance > 0 ? move.meta.stat_chance : move.chanceEfeito ?? 0;
+    const stages = applyStatChanges(move.alvo?.startsWith('user') ? attacker : defender, move, statChance);
+    log(state, `${attacker.nome} usou ${displayName(move.nome)} e causou ${result.dano} de dano.${result.critico ? ' Acerto crítico!' : ''}${result.efetividade > 1 ? ' Super eficaz!' : result.efetividade < 1 ? ' Pouco eficaz.' : ''}${healing ? ` Recuperou ${healing} HP.` : ''}${ailment ? ` ${ailment}` : ''}${stages ? ` ${stages}` : ''}`);
   }
   function aiMove(enemy, player) {
-    const best = enemy.ataques.map((move) => ({ move, score: move.poder * (enemy.tipos.includes(move.tipo) ? 1.5 : 1) * effectiveness(move.tipo, player.tipos) * (move.precisao ?? 100) / 100 }));
+    const best = enemy.ataques.map((move) => {
+      if (move.categoria !== 'status') return { move, score: move.poder * (enemy.tipos.includes(move.tipo) ? 1.5 : 1) * effectiveness(move.tipo, player.tipos) * (move.precisao ?? 100) / 100 };
+      let score = .05;
+      if ((move.meta?.healing ?? 0) > 0 && enemy.hp < enemy.maxHp * .7) score = 30;
+      if (move.meta?.ailment?.name && move.meta.ailment.name !== 'none' && !player.status && move.meta.ailment.name !== 'confusion' && !player.confusionTurns) score = Math.max(score, 15);
+      if (move.meta?.ailment?.name === 'confusion' && !player.confusionTurns) score = Math.max(score, 8);
+      if (move.alvo?.startsWith('user') && move.alteracoesAtributos?.some(change => change.mudanca > 0) && (enemy.statStages?.attack ?? 0) < 3) score = Math.max(score, 5);
+      if (!move.alvo?.startsWith('user') && move.alteracoesAtributos?.some(change => change.mudanca < 0) && Object.values(player.statStages ?? {}).some(stage => stage > 0)) score = Math.max(score, 4);
+      return { move, score };
+    });
     best.sort((a, b) => b.score - a.score);
     return best[Math.min(randomInt(Math.min(2, best.length)), best.length - 1)].move;
   }
-  function opponentTurn(state) {
+  async function resolveTurnEnd(tx, saveId, state) {
+    endTurn(state);
+    if (state.oponente?.hp === 0 && !state.resultado) {
+      await recordWildDefeat(tx, saveId, state);
+      afterFaint(state);
+      if (state.tipo === 'torneio' && !state.jogador && !state.resultado) await loadTournamentRound(tx, state);
+    }
+    if (state.jogador?.hp === 0 && !state.aguardandoReviver && !state.resultado) {
+      state.aguardandoReviver = true;
+      log(state, `${state.jogador.nome} desmaiou. ${state.reservas?.length ? 'Escolha outro Pokémon ou use um Reviver.' : 'Use um Reviver ou aceite a derrota.'}`);
+    }
+  }
+  async function opponentTurn(tx, saveId, state) {
     const move = aiMove(state.oponente, state.jogador);
     attack(state, state.oponente, state.jogador, move);
-    if (state.jogador.hp === 0) { state.aguardandoReviver = true; log(state, `${state.jogador.nome} desmaiou. ${state.reservas?.length ? 'Escolha outro Pokémon ou use um Reviver.' : 'Use um Reviver ou aceite a derrota.'}`); }
+    await resolveTurnEnd(tx, saveId, state);
   }
   function afterFaint(state) {
     const fallen = state.oponente;
@@ -146,7 +379,7 @@ export function createBattleService(db) {
       const save = await db.save.findUnique({ where: { usuarioId } });
       if (!save) return null;
       const active = await db.batalha.findUnique({ where: { saveId: save.id } });
-      return active ? { id: active.id, versao: active.versao, ...active.estado } : null;
+      return active ? { id: active.id, versao: active.versao, ...normalizeBattleState(structuredClone(active.estado)) } : null;
     },
     async start(usuarioId, { tipo, desafioId, dificuldade, torneioId, regiao, selvagem, intervaloNivel }) {
       return db.$transaction(async (tx) => {
@@ -197,7 +430,7 @@ export function createBattleService(db) {
         if (!save) throw new HttpError(404, 'Save nao encontrado.');
         const battle = await tx.batalha.findUnique({ where: { saveId: save.id } });
         if (!battle || battle.id !== action.batalhaId || battle.versao !== action.versao) throw new HttpError(409, 'A batalha mudou. Recarregue seu estado.');
-        const state = structuredClone(battle.estado);
+        const state = normalizeBattleState(structuredClone(battle.estado));
         if (state.resultado) throw new HttpError(409, 'Esta batalha ja terminou.');
         if (action.acao === 'abandonar') {
           if (state.tipo !== 'torneio') throw new HttpError(400, 'Só é possível abandonar um torneio.');
@@ -219,6 +452,7 @@ export function createBattleService(db) {
           log(state, `${state.jogador.nome} entrou em batalha!`);
         } else if (action.acao === 'trocar') {
           if (!state.jogador) throw new HttpError(409, 'Escolha sua equipe primeiro.');
+          if (state.jogador.ingrained) throw new HttpError(409, 'Este Pokémon criou raízes com Ingrain e não pode ser trocado.');
           const index = (state.reservas ?? []).findIndex((member) => member.pokemonId === action.pokemonId);
           if (index < 0) throw new HttpError(404, 'Pokémon não está entre as reservas.');
           const [next] = state.reservas.splice(index, 1);
@@ -227,7 +461,7 @@ export function createBattleService(db) {
           state.jogador = next;
           state.aguardandoReviver = false;
           log(state, `${next.nome} entrou em batalha!`);
-          if (!freeSwitch) opponentTurn(state);
+          if (!freeSwitch) await opponentTurn(tx, save.id, state);
         } else if (action.acao === 'procurar') {
           if (state.tipo !== 'selvagem' || state.jogador) throw new HttpError(409, 'A nova busca só está disponível antes de escolher o Pokémon para um encontro selvagem.');
           const completed = await progress(tx, save.id);
@@ -258,13 +492,16 @@ export function createBattleService(db) {
           const item = HEALING_ITEMS[action.itemId];
           if (!item) throw new HttpError(400, 'Item de cura inválido.');
           const missing = state.jogador.maxHp - state.jogador.hp;
-          if (item.revive ? state.jogador.hp !== 0 : state.jogador.hp === 0 || missing === 0) throw new HttpError(409, 'Este item não pode ser usado agora.');
+          const curesCurrentStatus = item.cureAll ? Boolean(state.jogador.status) : item.cure?.includes(state.jogador.status) ?? false;
+          if (item.revive ? state.jogador.hp !== 0 : state.jogador.hp === 0 || missing === 0 && !curesCurrentStatus) throw new HttpError(409, 'Este item não pode ser usado agora.');
           const used = await tx.itemInventario.updateMany({ where: { saveId: save.id, itemId: action.itemId, quantidade: { gt: 0 } }, data: { quantidade: { decrement: 1 } } });
           if (used.count !== 1) throw new HttpError(409, 'Item de cura indisponível.');
+          const previousStatus = state.jogador.status;
           const healed = healCombatant(state.jogador, action.itemId);
-          log(state, `${state.jogador.nome} recuperou ${healed} HP com ${displayName(action.itemId)}.`);
+          const cured = previousStatus && !state.jogador.status;
+          log(state, `${state.jogador.nome} ${healed ? `recuperou ${healed} HP` : cured ? `teve ${previousStatus} curado` : 'foi reanimado'} com ${displayName(action.itemId)}.`);
           if (state.aguardandoReviver) state.aguardandoReviver = false;
-          else opponentTurn(state);
+          else await opponentTurn(tx, save.id, state);
         } else if (action.acao === 'capturar') {
           if (state.aguardandoReviver) throw new HttpError(409, 'Reviva seu Pokémon antes de capturar.');
           if (state.tipo !== 'selvagem') throw new HttpError(400, 'Nao e possivel capturar o Pokemon do treinador.');
@@ -277,21 +514,21 @@ export function createBattleService(db) {
           const multiplier = catchCharmMultiplier(completed, generationForSpecies(species.id), charm?.quantidade > 0);
           const chance = action.itemId === 'master-ball' ? 1 : Math.min(.95, species.taxaCaptura / 255 * CAPTURE_MULTIPLIER[action.itemId] * (3 - 2 * state.oponente.hp / state.oponente.maxHp) / 3 * multiplier);
           if (randomInt(10000) < chance * 10000) { state.resultado = 'captura'; log(state, `${state.oponente.nome} foi capturado!`); }
-          else { log(state, `${state.oponente.nome} escapou da Poké Bola.`); opponentTurn(state); }
+          else { log(state, `${state.oponente.nome} escapou da Poké Bola.`); await opponentTurn(tx, save.id, state); }
         } else {
           if (state.aguardandoReviver) throw new HttpError(409, 'Reviva seu Pokémon antes de atacar.');
           const move = state.jogador.ataques.find((entry) => entry.nome === action.golpe);
           if (!move) throw new HttpError(400, 'Ataque indisponivel para este Pokemon.');
           const enemyMove = aiMove(state.oponente, state.jogador);
-          const first = move.prioridade !== enemyMove.prioridade ? move.prioridade > enemyMove.prioridade : state.jogador.stats.speed !== state.oponente.stats.speed ? state.jogador.stats.speed > state.oponente.stats.speed : randomInt(2) === 0;
+          const first = move.prioridade !== enemyMove.prioridade ? move.prioridade > enemyMove.prioridade : battleSpeed(state.jogador) !== battleSpeed(state.oponente) ? battleSpeed(state.jogador) > battleSpeed(state.oponente) : randomInt(2) === 0;
           if (first) {
             attack(state, state.jogador, state.oponente, move);
             if (state.oponente.hp === 0) { await recordWildDefeat(tx, save.id, state); afterFaint(state); if (state.tipo === 'torneio' && !state.jogador && !state.resultado) await loadTournamentRound(tx, state); }
-            else opponentTurn(state);
+            else await opponentTurn(tx, save.id, state);
           } else {
             attack(state, state.oponente, state.jogador, enemyMove);
             if (state.jogador.hp === 0) { state.aguardandoReviver = true; log(state, `${state.jogador.nome} desmaiou. ${state.reservas?.length ? 'Escolha outro Pokémon ou use um Reviver.' : 'Use um Reviver ou aceite a derrota.'}`); }
-            else { attack(state, state.jogador, state.oponente, move); if (state.oponente.hp === 0) { await recordWildDefeat(tx, save.id, state); afterFaint(state); if (state.tipo === 'torneio' && !state.jogador && !state.resultado) await loadTournamentRound(tx, state); } }
+            else { attack(state, state.jogador, state.oponente, move); if (state.oponente.hp === 0) { await recordWildDefeat(tx, save.id, state); afterFaint(state); if (state.tipo === 'torneio' && !state.jogador && !state.resultado) await loadTournamentRound(tx, state); } else await resolveTurnEnd(tx, save.id, state); }
           }
         }
         if (!['escolher', 'procurar'].includes(action.acao)) state.rodada++;

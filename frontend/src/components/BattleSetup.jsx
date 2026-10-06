@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CheckCircle2, CircleDot, LockKeyhole, Search, Swords, Trophy } from 'lucide-react';
 import { TypeBadge } from './common';
 import { Button } from './ui/button';
@@ -15,19 +15,22 @@ export function BattleSetup({ area, catalog, challenges, choice, setChoice, star
   const [section, setSection] = useState('treinadores');
   const [custom, setCustom] = useState(false);
   const [speciesId, setSpeciesId] = useState(1);
-  const [level, setLevel] = useState(100);
   const [search, setSearch] = useState('');
-  const [region, setRegion] = useState('kanto');
-  const [interval, setInterval] = useState(null);
+  const [region, setRegion] = useState(() => localStorage.getItem('wild-region') || 'kanto');
+  const [intervals, setIntervals] = useState(() => { try { return JSON.parse(localStorage.getItem('wild-level-intervals') || '{}'); } catch { return {}; } });
+  const [level, setLevel] = useState(() => { const saved = Number(localStorage.getItem('wild-custom-level')); return Number.isInteger(saved) && saved >= 1 && saved <= 100 ? saved : 100; });
   const regions = challenges.regioes ?? [];
   const latestRegion = regions.filter(entry => entry.desbloqueada).at(-1);
   const levels = region === 'todas' ? challenges.niveisTodasGeracoes : regions.find(entry => entry.id === region)?.niveisSelvagens;
   const selectedRegion = region === 'todas'
     ? { id: 'todas', nome: 'todas as gerações liberadas', desbloqueada: Boolean(latestRegion), escolhaSelvagem: false, nivelMaximoSelvagem: levels?.maximo, especieInicial: 1, especieFinal: catalog.pokemon.length }
     : regions.find((entry) => entry.id === region);
-  const chosenInterval = interval?.regiao === region && interval?.referencia === levels?.regiao ? interval : { minimo: 2, maximo: levels?.maximo };
+  const chosenInterval = intervals[region]?.referencia === levels?.regiao ? intervals[region] : { minimo: 2, maximo: levels?.maximo };
   const validInterval = levels && Number.isInteger(Number(chosenInterval.minimo)) && Number.isInteger(Number(chosenInterval.maximo)) && Number(chosenInterval.minimo) >= levels.minimo && Number(chosenInterval.minimo) <= Number(chosenInterval.maximo) && Number(chosenInterval.maximo) <= levels.maximo;
-  function changeInterval(field, value) { setInterval({ ...chosenInterval, regiao: region, referencia: levels?.regiao, [field]: value }); }
+  function changeInterval(field, value) { setIntervals(current => ({ ...current, [region]: { ...chosenInterval, referencia: levels?.regiao, [field]: value } })); }
+  useEffect(() => { localStorage.setItem('wild-region', region); }, [region]);
+  useEffect(() => { localStorage.setItem('wild-level-intervals', JSON.stringify(intervals)); }, [intervals]);
+  useEffect(() => { localStorage.setItem('wild-custom-level', String(level)); }, [level]);
   const shinyRolls = hasShinyCharm ? 1 + (selectedRegion?.marcosCharm ?? 0) : 1;
   const shinyOdds = Math.round(1 / (1 - (1 - 1 / 4096) ** shinyRolls));
   const selectedChallenge = challenges.lideres.find((entry) => entry.id === choice.desafioId);
@@ -38,7 +41,6 @@ export function BattleSetup({ area, catalog, challenges, choice, setChoice, star
   function chooseRegion(next) {
     setRegion(next.id);
     setCustom(false);
-    setInterval(null);
     setSearch('');
     setSpeciesId(next.especieInicial ?? 1);
     setChoice({ tipo: 'desafio', desafioId: challenges.lideres.find((leader) => leader.regiao === next.id && leader.desbloqueado)?.id ?? null });
@@ -60,7 +62,7 @@ export function BattleSetup({ area, catalog, challenges, choice, setChoice, star
       {!validInterval && <p className="battle-error" role="alert">Escolha níveis inteiros entre {levels.minimo} e {levels.maximo}, com mínimo menor ou igual ao máximo.</p>}
     </fieldset>}
     {region !== 'todas' && <button className={`challenge-row ${custom ? 'chosen' : ''}`} disabled={!selectedRegion?.escolhaSelvagem} onClick={() => setCustom(true)}><Trophy size={19} /><span><strong>Escolher Pokémon e nível</strong><small>{selectedRegion?.escolhaSelvagem ? `Região concluída · espécies de ${selectedRegion.nome}, nível 1–100` : `Derrote o campeão de ${selectedRegion?.nome} para liberar`}</small></span></button>}
-    {custom && selectedRegion?.escolhaSelvagem && <div className="wild-selector"><label className="search-field"><Search size={16} /><input aria-label="Buscar Pokémon selvagem" placeholder="Nº, nome ou tipo" value={search} onChange={(event) => setSearch(event.target.value)} /></label><div className="wild-species-list">{species.map((entry) => <button key={entry.id} type="button" className={speciesId === entry.id ? 'chosen' : ''} onClick={() => setSpeciesId(entry.id)}><span>#{String(entry.id).padStart(3, '0')} {entry.nomeExibicao}</span><span>{entry.tipos.map((type) => <TypeBadge key={type} type={type} />)}</span></button>)}</div><label className="wild-level">Nível desejado <input type="number" min="1" max="100" value={level} onChange={(event) => setLevel(event.target.value)} /></label></div>}
+    {custom && selectedRegion?.escolhaSelvagem && <div className="wild-selector"><label className="search-field"><Search size={16} /><input aria-label="Buscar Pokémon selvagem" placeholder="Nº, nome ou tipo" value={search} onChange={(event) => setSearch(event.target.value)} /></label><div className="wild-species-list">{species.map((entry) => <button key={entry.id} type="button" className={speciesId === entry.id ? 'chosen' : ''} onClick={() => setSpeciesId(entry.id)}><span>#{String(entry.id).padStart(3, '0')} {entry.nomeExibicao}</span><span>{entry.tipos.map((type) => <TypeBadge key={type} type={type} />)}</span></button>)}</div><label className="wild-level">Nível desejado <input type="number" min="1" max="100" value={level} onChange={(event) => setLevel(Number(event.target.value))} /></label></div>}
   </section><section className="battle-picker"><div className="section-heading"><h2>Pronto para procurar?</h2><span>{collectionCount} NA COLEÇÃO</span></div><p className="panel-hint">O encontro começa antes da escolha do seu Pokémon. Você poderá capturar ou fugir.</p>{!custom && validInterval && <p className="panel-hint">Os encontros serão entre os níveis {Number(chosenInterval.minimo)} e {Number(chosenInterval.maximo)}.</p>}<Button className="battle-start" disabled={busy || !selectedRegion?.desbloqueada || (!custom && !validInterval) || (custom && (!Number.isInteger(Number(level)) || Number(level) < 1 || Number(level) > 100))} onClick={() => start({ tipo: 'selvagem', regiao: region, ...(custom ? { selvagem: { regiao: region, especieId: speciesId, nivel: Number(level) } } : { intervaloNivel: { minimo: Number(chosenInterval.minimo), maximo: Number(chosenInterval.maximo) } }) })}>{busy ? 'Procurando…' : 'Procurar Pokémon'}</Button><p className="battle-footnote">Ao escolher o inicial, você recebe 10 Poké Bolas e 5 Poções.</p></section></div>;
 
   const tabs = <div className="battle-sections">

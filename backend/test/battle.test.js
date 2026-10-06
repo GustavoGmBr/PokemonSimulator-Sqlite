@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { getCatalogo } from '../src/services/catalogo.js';
-import { CHAMPION, ELITE, GYMS, JOHTO_CHAMPION, JOHTO_ELITE, JOHTO_GYMS, HOENN_CHAMPION, HOENN_ELITE, HOENN_GYMS, SINNOH_CHAMPION, SINNOH_ELITE, SINNOH_GYMS, UNOVA1_CHAMPION, UNOVA1_ELITE, UNOVA1_GYMS, UNOVA2_CHAMPION, UNOVA2_ELITE, UNOVA2_GYMS, KALOS_GYMS, KALOS_CHAMPION, ALOLA_TRIALS, ALOLA_CHAMPION, GALAR_GYMS, GALAR_CHAMPION, PALDEA_GYMS, PALDEA_CHAMPION, REGIONS, TRAINER_DIFFICULTIES, catchCharmMultiplier, challengesWithStatus, charmMilestones, damage, effectiveness, formFor, legendaryUnlocked, levelMovesFor, regionUnlocked, rollShiny, rollTrainer, rollWild, shinyRolls, statsFor, wildLevelCap, wildWeight } from '../src/services/battleRules.js';
+import { CHAMPION, ELITE, GYMS, JOHTO_CHAMPION, JOHTO_ELITE, JOHTO_GYMS, HOENN_CHAMPION, HOENN_ELITE, HOENN_GYMS, SINNOH_CHAMPION, SINNOH_ELITE, SINNOH_GYMS, UNOVA1_CHAMPION, UNOVA1_ELITE, UNOVA1_GYMS, UNOVA2_CHAMPION, UNOVA2_ELITE, UNOVA2_GYMS, KALOS_GYMS, KALOS_CHAMPION, ALOLA_TRIALS, ALOLA_CHAMPION, GALAR_GYMS, GALAR_CHAMPION, PALDEA_GYMS, PALDEA_CHAMPION, REGIONS, TRAINER_DIFFICULTIES, catchCharmMultiplier, challengesWithStatus, charmMilestones, damage, drainPercentForMove, effectiveness, formFor, healAtTurnEnd, healByDrain, healByMove, healByStrengthSap, legendaryUnlocked, leechSeedTurn, levelMovesFor, recoveryPercent, regionUnlocked, rollShiny, rollTrainer, rollWild, shinyRolls, statsFor, wildLevelCap, wildWeight } from '../src/services/battleRules.js';
 import { healCombatant } from '../src/services/itemRules.js';
 import { evolutionOptions } from '../src/services/evolutions.js';
 import { TOURNAMENTS, rollTournament } from '../src/services/tournaments.js';
@@ -195,23 +195,86 @@ test('itens de cura respeitam HP atual e estado de desmaio', () => {
   pokemon.hp = 0;
   assert.equal(healCombatant(pokemon, 'potion'), null);
   assert.equal(healCombatant(pokemon, 'revive'), 50);
+  pokemon.status = 'poison';
+  pokemon.hp = 50;
+  assert.equal(healCombatant(pokemon, 'antidote'), 0);
+  assert.equal(pokemon.status, null);
+  pokemon.status = 'burn';
+  assert.equal(healCombatant(pokemon, 'full-heal'), 0);
+  assert.equal(pokemon.status, null);
+  assert.equal(healByMove(pokemon, { meta: { healing: 50 } }), 50);
+  assert.equal(pokemon.hp, 100);
 });
 
-test('golpes ofensivos respeitam aprendizado por nivel e shiny ganha 20% de cada atributo', () => {
+test('Absorb e golpes drenadores recuperam HP proporcional ao dano na batalha', () => {
+  const attacker = { hp: 20, maxHp: 100 };
+  const absorb = getCatalogo().golpes.find(move => move.nome === 'absorb');
+  assert.equal(absorb.meta.drain, 50);
+  assert.equal(healByDrain(attacker, 34, absorb.meta.drain), 17);
+  assert.equal(attacker.hp, 37);
+  assert.equal(healByDrain(attacker, 1, absorb.meta.drain), 1);
+  assert.equal(attacker.hp, 38);
+  assert.equal(healByDrain({ hp: 100, maxHp: 100 }, 34, absorb.meta.drain), 0);
+  for (const name of ['mega-drain', 'giga-drain', 'drain-punch', 'horn-leech', 'leech-life', 'dream-eater', 'parabolic-charge']) {
+    const move = getCatalogo().golpes.find(entry => entry.nome === name);
+    assert.equal(healByDrain({ hp: 0, maxHp: 100 }, 20, drainPercentForMove(move)), 0);
+    assert.equal(drainPercentForMove(move), 50, `${name} deve drenar 50%`);
+  }
+  for (const name of ['draining-kiss', 'oblivion-wing']) {
+    const move = getCatalogo().golpes.find(entry => entry.nome === name);
+    assert.equal(drainPercentForMove(move), 75, `${name} deve drenar 75%`);
+  }
+  assert.equal(drainPercentForMove(getCatalogo().golpes.find(entry => entry.nome === 'bitter-blade')), 50);
+});
+
+test('golpes de recuperação aplicam porcentagens e clima corretos', () => {
+  const catalog = getCatalogo();
+  const user = { hp: 10, maxHp: 120 };
+  for (const name of ['recover', 'slack-off', 'heal-order', 'roost', 'soft-boiled', 'milk-drink', 'shore-up']) {
+    const move = catalog.golpes.find(entry => entry.nome === name);
+    assert.equal(healByMove(user, move), 60, `${name} deve curar 50% do HP máximo`);
+    user.hp = 10;
+  }
+  assert.equal(recoveryPercent('shore-up', 'sandstorm'), 200 / 3);
+  assert.equal(recoveryPercent('synthesis', 'sunny-day'), 200 / 3);
+  assert.equal(recoveryPercent('moonlight', 'rain-dance'), 25);
+  assert.equal(recoveryPercent('morning-sun', null), 50);
+  assert.equal(recoveryPercent('swallow', null, 0), 0);
+  assert.equal(recoveryPercent('swallow', null, 1), 25);
+  assert.equal(recoveryPercent('swallow', null, 2), 50);
+  assert.equal(recoveryPercent('swallow', null, 3), 100);
+});
+
+test('Strength Sap, Aqua Ring, Ingrain, Grassy Terrain e Leech Seed recuperam HP', () => {
+  const user = { hp: 10, maxHp: 100 };
+  const target = { hp: 100, maxHp: 100, stats: { attack: 40 }, statStages: { attack: 1 } };
+  assert.equal(healByStrengthSap(user, target), 60);
+  assert.equal(user.hp, 70);
+  const periodic = { hp: 50, maxHp: 100, tipos: ['grass'] };
+  const recovery = healAtTurnEnd(periodic, { aquaRing: true, ingrained: true, grassyTerrain: true });
+  assert.deepEqual(recovery.map(({ source, healed }) => [source, healed]), [['aqua-ring', 6], ['ingrain', 6], ['grassy-terrain', 6]]);
+  assert.equal(periodic.hp, 68);
+  const seeded = { hp: 100, maxHp: 100 }, seeder = { hp: 20, maxHp: 100 };
+  assert.deepEqual(leechSeedTurn(seeded, seeder), { damage: 12, healed: 12 });
+  assert.equal(seeded.hp, 88);
+  assert.equal(seeder.hp, 32);
+});
+
+test('golpes de dano e efeito respeitam aprendizado por nivel e shiny ganha 20% de cada atributo', () => {
   for (const species of getCatalogo().pokemon) {
     for (const level of [5, 20, 50, 100]) {
       const moves = levelMovesFor(species, level);
       assert.ok(moves.length >= 1 && moves.length <= 4);
       assert.equal(new Set(moves.map((move) => move.nome)).size, moves.length);
-      assert.ok(moves.every((move) => move.poder > 0 && ['physical', 'special'].includes(move.categoria)));
+      assert.ok(moves.every((move) => move.categoria === 'status' || move.poder > 0 && ['physical', 'special'].includes(move.categoria)));
       assert.ok(moves.every((move) => move.nome === 'struggle' || species.golpesAprendidos.some((entry) => entry.golpe === move.nome && entry.metodo === 'level-up' && entry.nivel <= level)));
     }
     const normal = statsFor(species, 50);
     const shiny = statsFor(species, 50, true);
     for (const key of Object.keys(normal)) assert.equal(shiny[key], Math.floor(normal[key] * 1.2));
   }
-  assert.deepEqual(levelMovesFor(getCatalogo().pokemon[3], 5).map((move) => move.nome), ['scratch']);
-  assert.deepEqual(levelMovesFor(getCatalogo().pokemon[3], 7).map((move) => move.nome), ['ember', 'scratch']);
+  assert.deepEqual(levelMovesFor(getCatalogo().pokemon[3], 5).map((move) => move.nome), ['scratch', 'growl']);
+  assert.deepEqual(levelMovesFor(getCatalogo().pokemon[3], 7).map((move) => move.nome), ['ember', 'scratch', 'growl']);
   const mega = formFor(getCatalogo().pokemon[5], 'charizard-mega-x');
   assert.equal(mega.tipos[1], 'dragon');
   assert.ok(statsFor(mega, 60).attack > statsFor(getCatalogo().pokemon[5], 60).attack);

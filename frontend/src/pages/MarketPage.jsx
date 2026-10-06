@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Star } from 'lucide-react';
 import { api } from '../lib/api';
 import { useCatalogo, useSave } from '../lib/queries';
 import { Failure, Loading, PageTitle, PokemonImage, TypeBadge } from '../components/common';
@@ -46,6 +47,17 @@ export function MarketPage() {
     } finally { setBusyId(''); }
   }
 
+  async function toggleFavorite(item) {
+    setBusyId(item.id); setError('');
+    try {
+      await api(`/mercado/pokemon/${item.id}/favorito`, { method: 'PATCH', body: { favorito: !item.favorito } });
+      await client.invalidateQueries({ queryKey: [SHOP_KEY, save.data?.id] });
+    } catch (caught) {
+      setError(caught.message);
+      await client.invalidateQueries({ queryKey: [SHOP_KEY, save.data?.id] });
+    } finally { setBusyId(''); }
+  }
+
   if (save.isPending || catalog.isPending || (save.data?.inicialEspecieId && shop.isPending)) return <Loading label="Abrindo o mercado…" />;
   if (save.error || catalog.error || shop.error) return <Failure error={save.error || catalog.error || shop.error} retry={() => { save.refetch(); catalog.refetch(); shop.refetch(); }} />;
   if (!save.data?.iniciadoEm) return <Navigate to="/saves" replace />;
@@ -77,8 +89,8 @@ export function MarketPage() {
         const species = speciesById.get(item.especieId);
         if (!species) return null;
         const saving = busyId === item.id;
-        return <article className={`pokemon-shop-card ${!item.disponivel ? 'sold' : ''}`} key={item.id}>
-          <div className="pokemon-shop-image">{item.shiny && <span className="shop-shiny">✨ SHINY</span>}<PokemonImage pokemon={species} variant={item.shiny ? 'frontShiny' : 'front'} loading="lazy" /></div>
+        return <article className={`pokemon-shop-card ${!item.disponivel ? 'sold' : ''} ${item.favorito ? 'shop-favorite' : ''}`} key={item.id}>
+          <div className="pokemon-shop-image"><button type="button" className={`shop-favorite-button ${item.favorito ? 'active' : ''}`} aria-label={item.favorito ? `Desafixar ${species.nomeExibicao} do estoque` : `Favoritar ${species.nomeExibicao} no estoque`} aria-pressed={Boolean(item.favorito)} disabled={!item.disponivel || Boolean(busyId)} onClick={() => toggleFavorite(item)}><Star size={18} fill={item.favorito ? 'currentColor' : 'none'} /></button>{item.shiny && <span className="shop-shiny">✨ SHINY</span>}<PokemonImage pokemon={species} variant={item.shiny ? 'frontShiny' : 'front'} loading="lazy" /></div>
           <div className="pokemon-shop-info"><div className="pokemon-shop-name"><strong>{species.nomeExibicao}</strong><span>#{String(item.especieId).padStart(3, '0')}</span></div>
             <div className="pokemon-shop-tags"><span>Geração {item.geracao}</span>{!item.geracaoDesbloqueada && <span>Geração bloqueada · 2×</span>}{item.shiny && <span>Brilhante · 5×</span>}</div>
             <div className="pokemon-shop-types">{species.tipos.map(type => <TypeBadge key={type} type={type} />)}</div>
