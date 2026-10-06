@@ -1,0 +1,2 @@
+ALTER TABLE "PokemonCapturado" ADD COLUMN "sexo" TEXT;
+ALTER TABLE "PokemonCapturado" ADD COLUMN "amizade" INTEGER NOT NULL DEFAULT 70;

@@ -28,7 +28,7 @@ export const STATUS_CURE_ITEMS = [
 
 export const PASSIVE_ITEMS = new Set(['lucky-egg', 'amulet-coin', 'shiny-charm', 'catching-charm']);
 export const EXP_CANDIES = { 'exp-candy-p': 800, 'exp-candy-m': 3000, 'exp-candy-g': 10000, 'exp-candy-gg': 30000 };
-export const REWARD_ONLY_ITEMS = new Set(['master-ball', 'rare-candy', ...Object.keys(EXP_CANDIES)]);
+export const REWARD_ONLY_ITEMS = new Set(['master-ball', 'premier-ball', 'rare-candy', ...Object.keys(EXP_CANDIES)]);
 
 export function generationForSpecies(speciesId) {
   if (speciesId <= 151) return 1;

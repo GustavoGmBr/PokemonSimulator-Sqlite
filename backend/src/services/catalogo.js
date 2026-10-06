@@ -1,14 +1,22 @@
 import { readFileSync } from 'node:fs';
+import { randomInt } from 'node:crypto';
 import { HttpError } from '../lib/errors.js';
 import { levelMovesFor, statsFor } from './battleRules.js';
 import { naturalMoves } from './moveRules.js';
 import { IV_ITEMS, perfectIvs } from './ivRules.js';
 import { STATUS_CURE_ITEMS } from './itemRules.js';
+import { CAPTURE_BALL_ITEMS, rollPokemonSex } from './captureBalls.js';
 
 let cached;
 export function getCatalogo() {
   if (!cached) {
-    try { cached = JSON.parse(readFileSync(new URL('../../data/catalogo.json', import.meta.url), 'utf8')); cached.itens.push(...IV_ITEMS, ...STATUS_CURE_ITEMS); }
+    try {
+      cached = JSON.parse(readFileSync(new URL('../../data/catalogo.json', import.meta.url), 'utf8'));
+      const extraItems = [...IV_ITEMS, ...STATUS_CURE_ITEMS, ...CAPTURE_BALL_ITEMS.map((ball, index) => ({ id: 2400 + index, nome: ball.id, nomeExibicao: ball.name, categoria: 'captura', descricao: ball.description, precoReferencia: null, sprite: `/assets/items/${ball.id}.png`, precoLoja: ball.price }))];
+      const itemsByName = new Map(cached.itens.map((item) => [item.nome, item]));
+      for (const item of extraItems) itemsByName.set(item.nome, item);
+      cached.itens = [...itemsByName.values()];
+    }
     catch { throw new HttpError(503, 'Catalogo indisponivel. Execute npm run catalog:import no backend.'); }
   }
   return cached;
@@ -45,6 +53,6 @@ export function criarDadosInicial(especieId) {
   const golpes = levelMovesFor(especie, nivel).map((move) => ({ nome: move.nome }));
   return {
     especieId, nivel, experiencia: especie.experienciaPorNivel.find((entry) => entry.nivel === nivel).experiencia,
-    hpAtual: atributos.hp, atributos, ivs, golpes, golpesDesbloqueados: naturalMoves(especie, nivel),
+    hpAtual: atributos.hp, atributos, ivs, golpes, sexo: rollPokemonSex(especie, randomInt), amizade: especie.felicidadeBase ?? 70, golpesDesbloqueados: naturalMoves(especie, nivel),
   };
 }

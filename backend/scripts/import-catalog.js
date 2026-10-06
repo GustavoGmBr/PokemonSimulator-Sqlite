@@ -290,6 +290,22 @@ const itemDefinitions = [
   ['great-ball', 'Grande Bola', 'captura', 'Uma bola com maior eficiência de captura.'],
   ['ultra-ball', 'Ultra Bola', 'captura', 'Uma bola com alta eficiência de captura.'],
   ['master-ball', 'Master Bola', 'captura', 'Uma bola que garante a captura de um Pokémon selvagem.'],
+  ['fast-ball', 'Bola Rápida', 'captura', 'Multiplica a captura por 5× no primeiro turno.'],
+  ['timer-ball', 'Bola do Tempo', 'captura', 'Ganha 0,3× por turno, até 4×.'],
+  ['dusk-ball', 'Bola do Crepúsculo', 'captura', 'Multiplica a captura por 3,5× à noite ou em cavernas.'],
+  ['dive-ball', 'Bola Aquática', 'captura', 'Multiplica a captura por 3,5× na água, pescando ou contra Pokémon de Água.'],
+  ['net-ball', 'Bola de Rede', 'captura', 'Multiplica a captura por 3× contra Pokémon de Água ou Inseto.'],
+  ['nest-ball', 'Bola do Ninho', 'captura', 'Quanto menor o nível selvagem, maior a captura, até 4×.'],
+  ['repeat-ball', 'Bola de Repetição', 'captura', 'Multiplica a captura por 3× contra espécies já registradas.'],
+  ['heavy-ball', 'Bola Pesada', 'captura', 'Pokémon com 100 kg ou mais recebem bônus crescente, até 4×.'],
+  ['moon-ball', 'Bola Lunar', 'captura', 'Multiplica a captura por 4× contra Pokémon que evoluem com Pedra da Lua.'],
+  ['level-ball', 'Bola de Nível', 'captura', 'Bônus de 2×, 4× ou 8× conforme seu nível supera o selvagem.'],
+  ['love-ball', 'Bola do Amor', 'captura', 'Multiplica a captura por 8× se os Pokémon forem de sexos opostos.'],
+  ['dream-ball', 'Bola dos Sonhos', 'captura', 'Multiplica a captura por 4× contra Pokémon adormecidos.'],
+  ['heal-ball', 'Bola de Cura', 'captura', 'Captura e restaura todo o HP, curando condições de status.'],
+  ['luxury-ball', 'Bola de Luxo', 'captura', 'A amizade cresce duas vezes mais rápido após batalhas.'],
+  ['friend-ball', 'Bola Amiga', 'captura', 'O Pokémon capturado começa com amizade 200.'],
+  ['premier-ball', 'Bola Premier', 'captura', 'Visual especial. Ganhe uma ao comprar 10 Poké Bolas de uma vez.'],
   ['potion', 'Poção', 'cura', 'Recupera parte do HP de um Pokémon.'],
   ['super-potion', 'Superpoção', 'cura', 'Recupera mais HP que uma Poção.'],
   ['hyper-potion', 'Hiperpoção', 'cura', 'Recupera uma grande quantidade de HP.'],
@@ -344,8 +360,8 @@ const itens = await pool(itemDefinitions, async ([nome, nomeExibicao, categoria,
     if (buffer.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') throw new Error(`Item invalido: ${nome}`);
     await writeFile(destination, buffer);
   }
-  const prices = { 'poke-ball': 200, 'great-ball': 600, 'ultra-ball': 1200, potion: 300, 'super-potion': 700, 'hyper-potion': 1200, 'max-potion': 2500, 'full-restore': 3000, revive: 1500, 'max-revive': 4000, 'lucky-egg': 50000, 'amulet-coin': 50000, 'shiny-charm': 150000, 'catching-charm': 100000 };
-  return { id: item?.id ?? nome, nome, nomeExibicao, categoria, descricao: ['evolucao', 'mega', 'primal'].includes(categoria) && !descricao.includes('uso único') ? `${descricao} Consumido ao usar.` : descricao, precoReferencia: item?.cost ?? null, sprite: nome === 'rayquazatrite' ? '/assets/items/rayquazatrite.svg' : item?.sprites.default ? `/assets/items/${nome}.png` : `/assets/items/mega-stone.svg`, precoLoja: ['master-ball', 'rare-candy'].includes(nome) ? null : prices[nome] ?? (['red-orb', 'blue-orb'].includes(nome) ? 100000 : Object.values(megaStoneByForm).includes(nome) ? 50000 : 500) };
+  const prices = { 'poke-ball': 200, 'great-ball': 600, 'ultra-ball': 1200, 'fast-ball': 1000, 'timer-ball': 1000, 'dusk-ball': 1000, 'dive-ball': 1000, 'net-ball': 1000, 'nest-ball': 1000, 'repeat-ball': 1000, 'heavy-ball': 1000, 'moon-ball': 1000, 'level-ball': 1000, 'love-ball': 1000, 'dream-ball': 1000, 'heal-ball': 1000, 'luxury-ball': 1000, 'friend-ball': 1000, 'premier-ball': null, potion: 300, 'super-potion': 700, 'hyper-potion': 1200, 'max-potion': 2500, 'full-restore': 3000, revive: 1500, 'max-revive': 4000, 'lucky-egg': 50000, 'amulet-coin': 50000, 'shiny-charm': 150000, 'catching-charm': 100000 };
+  return { id: item?.id ?? nome, nome, nomeExibicao, categoria, descricao: ['evolucao', 'mega', 'primal'].includes(categoria) && !descricao.includes('uso único') ? `${descricao} Consumido ao usar.` : descricao, precoReferencia: item?.cost ?? null, sprite: nome === 'rayquazatrite' ? '/assets/items/rayquazatrite.svg' : item?.sprites.default ? `/assets/items/${nome}.png` : `/assets/items/mega-stone.svg`, precoLoja: ['master-ball', 'premier-ball', 'rare-candy'].includes(nome) ? null : prices[nome] ?? (['red-orb', 'blue-orb'].includes(nome) ? 100000 : Object.values(megaStoneByForm).includes(nome) ? 50000 : 500) };
 });
 for (const [nome, nomeExibicao, experiencia] of [['exp-candy-p', 'Doce de EXP P', 800], ['exp-candy-m', 'Doce de EXP M', 3000], ['exp-candy-g', 'Doce de EXP G', 10000], ['exp-candy-gg', 'Doce de EXP GG', 30000]]) {
   itens.push({ id: nome, nome, nomeExibicao, categoria: 'treino', descricao: `Concede ${experiencia.toLocaleString('pt-BR')} XP a um Pokémon da coleção.`, precoReferencia: null, sprite: '/assets/items/exp-candy.svg', precoLoja: null });

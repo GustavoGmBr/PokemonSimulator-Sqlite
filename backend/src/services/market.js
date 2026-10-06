@@ -6,6 +6,7 @@ import { REGIONS, legendaryUnlocked, regionUnlocked, shinyRolls, statsFor } from
 import { generationForSpecies } from './itemRules.js';
 import { levelMovesFor } from './battleRules.js';
 import { naturalMoves } from './moveRules.js';
+import { baseFriendship, rollPokemonSex } from './captureBalls.js';
 
 const ballPrices = { 'poke-ball': 200, 'great-ball': 600, 'ultra-ball': 1200 };
 const SHOP_REFRESH_MS = 60 * 60 * 1000;
@@ -47,7 +48,7 @@ export function createMarketService(db, { rng = randomInt, now = Date.now } = {}
       price = Math.floor(price);
       const level = 1;
       const atributos = statsFor(species, level, shiny, ivs);
-      list.push({ id: randomUUID(), especieId: species.id, nome: species.nomeExibicao, geracao: generation, geracaoDesbloqueada: unlocked, nivel: level, shiny, ivs, estrelas: stars, preco: price, disponivel: true, experiencia: species.experienciaPorNivel.find(entry => entry.nivel === level)?.experiencia ?? 0, hpAtual: atributos.hp, atributos, golpes: levelMovesFor(species, level).map(move => ({ nome: move.nome })), golpesDesbloqueados: naturalMoves(species, level) });
+      list.push({ id: randomUUID(), especieId: species.id, nome: species.nomeExibicao, geracao: generation, geracaoDesbloqueada: unlocked, nivel: level, shiny, ivs, estrelas: stars, preco: price, disponivel: true, experiencia: species.experienciaPorNivel.find(entry => entry.nivel === level)?.experiencia ?? 0, hpAtual: atributos.hp, atributos, sexo: rollPokemonSex(species, rng), amizade: baseFriendship(species), golpes: levelMovesFor(species, level).map(move => ({ nome: move.nome })), golpesDesbloqueados: naturalMoves(species, level) });
     }
     return { periodo: period, pokemons: list };
   }
@@ -99,7 +100,7 @@ export function createMarketService(db, { rng = randomInt, now = Date.now } = {}
         if (charged.count !== 1) throw new HttpError(409, 'Pokédólares insuficientes.');
         await tx.lojaPokemonEstoque.update({ where: { saveId: save.id }, data: { estado } });
         const { golpes, golpesDesbloqueados, experiencia, atributos, hpAtual } = pokemon;
-        const owned = await tx.pokemonCapturado.create({ data: { saveId: save.id, especieId: pokemon.especieId, nivel: pokemon.nivel, experiencia, hpAtual, shiny: pokemon.shiny, bolaCaptura: 'poke-ball', ivs: pokemon.ivs, atributos, golpes, golpesDesbloqueados } });
+        const owned = await tx.pokemonCapturado.create({ data: { saveId: save.id, especieId: pokemon.especieId, nivel: pokemon.nivel, experiencia, hpAtual, shiny: pokemon.shiny, bolaCaptura: 'poke-ball', sexo: pokemon.sexo, amizade: pokemon.amizade, ivs: pokemon.ivs, atributos, golpes, golpesDesbloqueados } });
         return { pokemon: owned, preco: pokemon.preco, moedas: save.moedas - pokemon.preco };
       }, { isolationLevel: 'Serializable', timeout: 20_000 });
     },

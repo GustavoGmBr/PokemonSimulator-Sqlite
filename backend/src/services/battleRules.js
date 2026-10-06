@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto';
 import { getCatalogo, getEspecie } from './catalogo.js';
+import { rollPokemonSex } from './captureBalls.js';
 
 export const GYMS = [
   { id: 'brock', nome: 'Brock', tipo: 'rock', nivel: 15, pokemon: [74, 95] },
@@ -456,6 +457,6 @@ export function makeCombatant(speciesId, level, shiny, moves, id = null, apelido
   const form = formFor(species, megaForma, gmaxForma);
   ivs = normalizeIvs(ivs);
   const stats = statsFor(form, level, shiny, ivs);
-  return { pokemonId: id, especieId: speciesId, megaForma, gmaxForma, ivs, qualidadeIvs: ivQuality(ivs), nome: apelido || form.nomeExibicao, nivel: level, shiny, tipos: form.tipos, stats, statStages: {}, status: null, statusTurns: 0, confusionTurns: 0, protegido: false, hp: stats.hp, maxHp: stats.hp, ataques: moves.map((entry) => ({ ...entry })) };
+  return { pokemonId: id, especieId: speciesId, megaForma, gmaxForma, ivs, qualidadeIvs: ivQuality(ivs), nome: apelido || form.nomeExibicao, nivel: level, shiny, sexo: rollPokemonSex(species, randomInt), tipos: form.tipos, stats, statStages: {}, status: null, statusTurns: 0, confusionTurns: 0, protegido: false, hp: stats.hp, maxHp: stats.hp, ataques: moves.map((entry) => ({ ...entry })) };
 }
 import { normalizeIvs, rollIvs, ivQuality } from './ivRules.js';

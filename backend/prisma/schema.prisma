@@ -53,6 +53,8 @@ model PokemonCapturado {
   hpAtual       Int
   shiny         Boolean  @default(false)
   bolaCaptura   String?
+  sexo          String?
+  amizade       Int      @default(70)
   investimentoItens Int  @default(0)
   favorito      Boolean  @default(false)
   megaForma     String?

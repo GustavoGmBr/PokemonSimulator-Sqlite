@@ -6,8 +6,9 @@ import { REGIONS, regionUnlocked, legendaryUnlocked, catchCharmMultiplier, chall
 import { generationForSpecies, HEALING_ITEMS, healCombatant } from './itemRules.js';
 import { equippedMoves, naturalMoves, unlockedMoves } from './moveRules.js';
 import { TOURNAMENTS, rollTournament } from './tournaments.js';
+import { CAPTURE_BALL_IDS, baseFriendship, captureBallMultiplier, evolvesWithMoonStone, happinessGain } from './captureBalls.js';
 
-const CAPTURE_MULTIPLIER = { 'poke-ball': 1, 'great-ball': 1.5, 'ultra-ball': 2, 'master-ball': Infinity };
+const BASE_CAPTURE_MULTIPLIER = { 'poke-ball': 1, 'great-ball': 1.5, 'ultra-ball': 2, 'master-ball': Infinity };
 function displayName(name) { return name.replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
 
 export function createBattleService(db) {
@@ -338,7 +339,8 @@ export function createBattleService(db) {
     if (state.resultado === 'captura') {
       const foe = state.oponente;
       state.xpGanho += Math.max(1, Math.floor((getEspecie(foe.especieId).experienciaBase ?? 50) * foe.nivel / 7));
-      await tx.pokemonCapturado.create({ data: { saveId: save.id, especieId: foe.especieId, nivel: foe.nivel, experiencia: getEspecie(foe.especieId).experienciaPorNivel.find((entry) => entry.nivel === foe.nivel).experiencia, hpAtual: foe.maxHp, shiny: foe.shiny, bolaCaptura: action.itemId, ivs: normalizeIvs(foe.ivs), atributos: foe.stats, golpes: foe.ataques.map((move) => ({ nome: move.nome })), golpesDesbloqueados: naturalMoves(getEspecie(foe.especieId), foe.nivel) } });
+      const species = getEspecie(foe.especieId);
+      await tx.pokemonCapturado.create({ data: { saveId: save.id, especieId: foe.especieId, nivel: foe.nivel, experiencia: species.experienciaPorNivel.find((entry) => entry.nivel === foe.nivel).experiencia, hpAtual: foe.maxHp, shiny: foe.shiny, bolaCaptura: action.itemId, sexo: foe.sexo, amizade: action.itemId === 'friend-ball' ? 200 : baseFriendship(species), ivs: normalizeIvs(foe.ivs), atributos: foe.stats, golpes: foe.ataques.map((move) => ({ nome: move.nome })), golpesDesbloqueados: naturalMoves(species, foe.nivel) } });
       await tx.especieRegistrada.upsert({ where: { saveId_especieId: { saveId: save.id, especieId: foe.especieId } }, create: { saveId: save.id, especieId: foe.especieId }, update: {} });
       await tx.batalhaEvento.create({ data: { saveId: save.id, tipo: 'capturar', especieId: foe.especieId, regiao: state.regiaoEncontro, shiny: foe.shiny, descricao: `${foe.nome}${foe.shiny ? ' shiny' : ''} capturado` } });
     }
@@ -346,6 +348,10 @@ export function createBattleService(db) {
     if (state.resultado === 'vitoria' && state.tipo === 'torneio') await tx.batalhaEvento.create({ data: { saveId: save.id, tipo: 'vencer_torneio', torneioId: state.torneio.id, descricao: `Torneio ${state.torneio.nome} vencido` } });
     await tx.batalhaEvento.create({ data: { saveId: save.id, tipo: 'batalha', especieId: state.oponente.especieId, regiao: state.regiaoEncontro ?? state.regiao, dificuldade: state.dificuldade, torneioId: state.torneio?.id, resultado: state.resultado, shiny: state.oponente.shiny, descricao: `${state.tipo === 'selvagem' ? state.oponente.nome : state.treinador ?? 'Batalha'} · ${state.resultado}` } });
     if (state.resultado === 'captura' && state.jogador) state.xpPorPokemon[state.jogador.pokemonId] = (state.xpPorPokemon[state.jogador.pokemonId] ?? 0) + state.xpGanho;
+    for (const combatant of [state.jogador, ...(state.reservas ?? [])].filter((entry) => entry?.pokemonId)) {
+      const member = await tx.pokemonCapturado.findFirst({ where: { id: combatant.pokemonId, saveId: save.id }, select: { amizade: true, bolaCaptura: true } });
+      if (member) await tx.pokemonCapturado.update({ where: { id: combatant.pokemonId }, data: { amizade: happinessGain(member.bolaCaptura, member.amizade) } });
+    }
     const xpEntries = Object.entries(state.xpPorPokemon ?? {});
     state.xpGanho = Math.floor(state.xpGanho * eggMultiplier);
     for (const [pokemonId, baseXp] of xpEntries) {
@@ -381,7 +387,7 @@ export function createBattleService(db) {
       const active = await db.batalha.findUnique({ where: { saveId: save.id } });
       return active ? { id: active.id, versao: active.versao, ...normalizeBattleState(structuredClone(active.estado)) } : null;
     },
-    async start(usuarioId, { tipo, desafioId, dificuldade, torneioId, regiao, selvagem, intervaloNivel }) {
+    async start(usuarioId, { tipo, desafioId, dificuldade, torneioId, regiao, selvagem, intervaloNivel, ambiente }) {
       return db.$transaction(async (tx) => {
         const save = await tx.save.findUnique({ where: { usuarioId } });
         if (!save?.inicialEspecieId) throw new HttpError(409, 'Escolha seu inicial antes de batalhar.');
@@ -413,7 +419,7 @@ export function createBattleService(db) {
           const paid = await tx.save.updateMany({ where: { id: save.id, moedas: { gte: tournament.entrada } }, data: { moedas: { decrement: tournament.entrada } } });
           if (paid.count !== 1) throw new HttpError(409, 'Pokédólares insuficientes para entrar no torneio.');
         }
-        const state = { tipo, regiao: tipo === 'selvagem' ? requestedRegion : leader?.regiao ?? null, regiaoEncontro: tipo === 'selvagem' ? encounterRegion.id : null, desafioId: leader?.id ?? null, treinador: leader?.nome ?? trainer?.nome ?? tournament?.treinadores[0].nome ?? null, dificuldade: trainer?.dificuldade ?? null, recompensa: trainer?.recompensa ?? tournament?.recompensa ?? null, torneio: tournament ? { id: tournament.id, nome: tournament.nome, entrada: tournament.entrada, rodada: 1, treinadores: tournament.treinadores } : null, xpPorPokemon: {}, itensGanhos: [], limiteNivel: leader?.nivel ?? null, totalOponentes: opponents.length, jogador: null, reservas: [], oponente: opponents.shift(), fila: opponents, rodada: 1, xpGanho: 0, moedasGanhas: 0, resultado: null, aguardandoReviver: false, logs: [leader ? `${leader.nome} desafiou você!` : trainer ? `${trainer.nome} desafiou você!` : tournament ? `Torneio ${tournament.nome}: rodada 1 de 8 contra ${tournament.treinadores[0].nome}.` : 'Um Pokémon selvagem apareceu! Escolha quem vai enfrentá-lo.'] };
+        const state = { tipo, regiao: tipo === 'selvagem' ? requestedRegion : leader?.regiao ?? null, regiaoEncontro: tipo === 'selvagem' ? encounterRegion.id : null, ambiente: tipo === 'selvagem' ? ambiente ?? 'field' : null, desafioId: leader?.id ?? null, treinador: leader?.nome ?? trainer?.nome ?? tournament?.treinadores[0].nome ?? null, dificuldade: trainer?.dificuldade ?? null, recompensa: trainer?.recompensa ?? tournament?.recompensa ?? null, torneio: tournament ? { id: tournament.id, nome: tournament.nome, entrada: tournament.entrada, rodada: 1, treinadores: tournament.treinadores } : null, xpPorPokemon: {}, itensGanhos: [], limiteNivel: leader?.nivel ?? null, totalOponentes: opponents.length, jogador: null, reservas: [], oponente: opponents.shift(), fila: opponents, rodada: 1, xpGanho: 0, moedasGanhas: 0, resultado: null, aguardandoReviver: false, logs: [leader ? `${leader.nome} desafiou você!` : trainer ? `${trainer.nome} desafiou você!` : tournament ? `Torneio ${tournament.nome}: rodada 1 de 8 contra ${tournament.treinadores[0].nome}.` : 'Um Pokémon selvagem apareceu! Escolha quem vai enfrentá-lo.'] };
         if (wildLevels) Object.assign(state, wildLevels);
         if (tipo === 'selvagem' && state.oponente.shiny) await tx.batalhaEvento.create({ data: { saveId: save.id, tipo: 'shiny_encontrado', especieId: wild.id, regiao: encounterRegion.id, shiny: true, descricao: `${state.oponente.nome} shiny encontrado` } });
         if (!save.kitEntregue) {
@@ -445,7 +451,7 @@ export function createBattleService(db) {
           for (const id of ids) {
             const member = members.find((entry) => entry.id === id);
             const level = state.limiteNivel ? Math.min(member.nivel, state.limiteNivel) : member.nivel;
-            combatants.push(makeCombatant(member.especieId, level, member.shiny, await playerMovesFor(tx, member), member.id, member.apelido, member.megaForma, member.gmaxForma, member.ivs));
+            combatants.push({ ...makeCombatant(member.especieId, level, member.shiny, await playerMovesFor(tx, member), member.id, member.apelido, member.megaForma, member.gmaxForma, member.ivs), sexo: member.sexo });
           }
           state.jogador = combatants.shift();
           state.reservas = combatants;
@@ -505,15 +511,18 @@ export function createBattleService(db) {
         } else if (action.acao === 'capturar') {
           if (state.aguardandoReviver) throw new HttpError(409, 'Reviva seu Pokémon antes de capturar.');
           if (state.tipo !== 'selvagem') throw new HttpError(400, 'Nao e possivel capturar o Pokemon do treinador.');
-          if (!Object.hasOwn(CAPTURE_MULTIPLIER, action.itemId)) throw new HttpError(400, 'Poké Bola inválida.');
+          if (!CAPTURE_BALL_IDS.has(action.itemId)) throw new HttpError(400, 'Poké Bola inválida.');
           const item = await tx.itemInventario.updateMany({ where: { saveId: save.id, itemId: action.itemId, quantidade: { gt: 0 } }, data: { quantidade: { decrement: 1 } } });
           if (item.count !== 1) throw new HttpError(409, 'Poké Bola indisponivel.');
           const species = getEspecie(state.oponente.especieId);
           const charm = await tx.itemInventario.findUnique({ where: { saveId_itemId: { saveId: save.id, itemId: 'catching-charm' } } });
           const completed = charm?.quantidade > 0 ? await progress(tx, save.id) : [];
           const multiplier = catchCharmMultiplier(completed, generationForSpecies(species.id), charm?.quantidade > 0);
-          const chance = action.itemId === 'master-ball' ? 1 : Math.min(.95, species.taxaCaptura / 255 * CAPTURE_MULTIPLIER[action.itemId] * (3 - 2 * state.oponente.hp / state.oponente.maxHp) / 3 * multiplier);
-          if (randomInt(10000) < chance * 10000) { state.resultado = 'captura'; log(state, `${state.oponente.nome} foi capturado!`); }
+          const previouslyCaptured = action.itemId === 'repeat-ball' && Boolean(await tx.especieRegistrada.findUnique({ where: { saveId_especieId: { saveId: save.id, especieId: species.id } } }));
+          const opponent = { ...state.oponente, species: { types: species.tipos, weight: species.peso, evolvesWithMoonStone: evolvesWithMoonStone(species.evolucao, species.id) } };
+          const conditionalMultiplier = captureBallMultiplier(action.itemId, { round: state.rodada, opponent, player: state.jogador, previouslyCaptured, environment: state.ambiente });
+          const chance = action.itemId === 'master-ball' ? 1 : Math.min(.95, species.taxaCaptura / 255 * (BASE_CAPTURE_MULTIPLIER[action.itemId] ?? 1) * conditionalMultiplier * (3 - 2 * state.oponente.hp / state.oponente.maxHp) / 3 * multiplier);
+          if (randomInt(10000) < chance * 10000) { state.resultado = 'captura'; if (action.itemId === 'heal-ball') state.oponente.status = null; log(state, `${state.oponente.nome} foi capturado${action.itemId === 'heal-ball' ? ' e recuperou todo o HP e status com a Bola de Cura' : ''}!`); }
           else { log(state, `${state.oponente.nome} escapou da Poké Bola.`); await opponentTurn(tx, save.id, state); }
         } else {
           if (state.aguardandoReviver) throw new HttpError(409, 'Reviva seu Pokémon antes de atacar.');

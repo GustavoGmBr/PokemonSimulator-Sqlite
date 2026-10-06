@@ -14,14 +14,15 @@ function nodeFor(root, id) {
   return null;
 }
 
-function optionForCondition(target, condition, level, quantities, equippedMoves) {
+function optionForCondition(target, condition, level, friendship, quantities, equippedMoves) {
   let itemId = null;
   let knownMove = null;
   let requisito;
   let requiredLevel = condition.nivel;
+  const requiredFriendship = condition.felicidade ? 160 : null;
   if (condition.gatilho === 'level-up' && (condition.nivel || condition.felicidade || condition.beleza || condition.afeto) && !condition.item && !condition.itemSegurado && !condition.local && !condition.golpeConhecido && !condition.especieNoTime) {
     if (condition.felicidade || condition.beleza || condition.afeto) requiredLevel = Math.max(30, requiredLevel ?? 0);
-    requisito = condition.felicidade ? `Nível ${requiredLevel} (amizade simplificada${condition.periodo ? ` · ${condition.periodo}` : ''})` : condition.beleza ? `Nível ${requiredLevel} (beleza simplificada)` : condition.afeto ? `Nível ${requiredLevel} (afeto simplificado)` : `Nível ${requiredLevel}`;
+    requisito = condition.felicidade ? `Nível ${requiredLevel} + amizade ${requiredFriendship}${condition.periodo ? ` · ${condition.periodo}` : ''}` : condition.beleza ? `Nível ${requiredLevel} (beleza simplificada)` : condition.afeto ? `Nível ${requiredLevel} (afeto simplificado)` : `Nível ${requiredLevel}`;
   }
   else if (condition.gatilho === 'use-item' && condition.item) { itemId = condition.item; requisito = `Usar ${getCatalogo().itens.find((item) => item.nome === itemId)?.nomeExibicao ?? itemId}`; }
   else if (condition.gatilho === 'level-up' && condition.itemSegurado) { itemId = condition.itemSegurado; requiredLevel = 30; requisito = `Nível 30 + ${getCatalogo().itens.find((item) => item.nome === itemId)?.nomeExibicao ?? itemId}${condition.periodo ? ` (${condition.periodo})` : ''} (regra simplificada)`; }
@@ -30,9 +31,9 @@ function optionForCondition(target, condition, level, quantities, equippedMoves)
   else if (condition.gatilho === 'trade' && condition.especieNaTroca) { itemId = 'linking-cord'; requisito = `Usar Cabo de Ligação (troca com ${condition.especieNaTroca} simplificada)`; }
   else if (condition.gatilho === 'trade' && condition.itemSegurado && !condition.especieNaTroca) { itemId = condition.itemSegurado; requisito = `Usar ${getCatalogo().itens.find((item) => item.nome === itemId)?.nomeExibicao ?? itemId} (troca single-player)`; }
   else return { tipo: 'normal', alvo: target.especieId, nome: target.nome, requisito: 'Condição especial ainda não disponível', disponivel: false, motivo: 'Esta condição de evolução ainda não foi implementada.' };
-  const available = (requiredLevel == null || level >= requiredLevel) && (!knownMove || equippedMoves.has(knownMove)) && (!itemId || (quantities.get(itemId) ?? 0) > 0);
+  const available = (requiredLevel == null || level >= requiredLevel) && (requiredFriendship == null || friendship >= requiredFriendship) && (!knownMove || equippedMoves.has(knownMove)) && (!itemId || (quantities.get(itemId) ?? 0) > 0);
   return { tipo: 'normal', alvo: target.especieId, nome: getEspecie(target.especieId).nomeExibicao, requisito, itemId, quantidade: itemId ? quantities.get(itemId) ?? 0 : null, disponivel: available,
-    motivo: available ? null : requiredLevel != null && level < requiredLevel ? `Alcance o nível ${requiredLevel}.` : knownMove && !equippedMoves.has(knownMove) ? `Equipe ${knownMove} antes de evoluir.` : itemId ? `Você precisa de ${getCatalogo().itens.find((item) => item.nome === itemId)?.nomeExibicao ?? itemId}.` : 'Requisito não atendido.' };
+    motivo: available ? null : requiredLevel != null && level < requiredLevel ? `Alcance o nível ${requiredLevel}.` : requiredFriendship != null && friendship < requiredFriendship ? `Aumente a amizade para ${requiredFriendship}.` : knownMove && !equippedMoves.has(knownMove) ? `Equipe ${knownMove} antes de evoluir.` : itemId ? `Você precisa de ${getCatalogo().itens.find((item) => item.nome === itemId)?.nomeExibicao ?? itemId}.` : 'Requisito não atendido.' };
 }
 
 export function evolutionOptions(member, inventory = [], ownedSpeciesIds = []) {
@@ -46,7 +47,7 @@ export function evolutionOptions(member, inventory = [], ownedSpeciesIds = []) {
   const options = [];
   for (const target of current?.evolucoes ?? []) {
     if (!getCatalogo().pokemon.some((entry) => entry.id === target.especieId)) continue;
-    const variants = target.condicoes.map((condition) => optionForCondition(target, condition, member.nivel, quantities, equippedMoves));
+    const variants = target.condicoes.map((condition) => optionForCondition(target, condition, member.nivel, member.amizade ?? 70, quantities, equippedMoves));
     options.push(variants.find((option) => option.disponivel) ?? variants[0]);
   }
   for (const form of species.formasMega ?? []) {
@@ -181,6 +182,7 @@ export function createEvolutionService(db) {
       const lines = entries.map(({ itemId, quantidade }) => ({ item: catalog.get(itemId), itemId, quantidade }));
       if (lines.some(({ item, quantidade }) => !item || REWARD_ONLY_ITEMS.has(item.nome) || !Number.isInteger(item.precoLoja) || item.precoLoja <= 0 || PASSIVE_ITEMS.has(item.nome) && quantidade !== 1)) throw new HttpError(400, 'Carrinho contém item indisponível ou quantidade inválida.');
       const total = lines.reduce((sum, { item, quantidade }) => sum + item.precoLoja * quantidade, 0);
+      const premierBonus = Math.floor((lines.find(({ itemId }) => itemId === 'poke-ball')?.quantidade ?? 0) / 10);
       if (!Number.isSafeInteger(total) || total > 2_000_000_000) throw new HttpError(400, 'Valor do carrinho excede o limite.');
       return db.$transaction(async (tx) => {
         const save = await tx.save.findUnique({ where: { usuarioId } });
@@ -192,7 +194,8 @@ export function createEvolutionService(db) {
         const paid = await tx.save.updateMany({ where: { id: save.id, moedas: { gte: total } }, data: { moedas: { decrement: total } } });
         if (paid.count !== 1) throw new HttpError(409, 'Pokédólares insuficientes.');
         for (const { itemId, quantidade } of lines) await tx.itemInventario.upsert({ where: { saveId_itemId: { saveId: save.id, itemId } }, create: { saveId: save.id, itemId, quantidade }, update: { quantidade: { increment: quantidade } } });
-        return { itens: entries, total, moedasRestantes: save.moedas - total };
+        if (premierBonus) await tx.itemInventario.upsert({ where: { saveId_itemId: { saveId: save.id, itemId: 'premier-ball' } }, create: { saveId: save.id, itemId: 'premier-ball', quantidade: premierBonus }, update: { quantidade: { increment: premierBonus } } });
+        return { itens: entries, total, moedasRestantes: save.moedas - total, bonusItens: premierBonus ? [{ itemId: 'premier-ball', quantidade: premierBonus }] : [] };
       }, { isolationLevel: 'Serializable', timeout: 20_000 });
     },
     async useRareCandy(usuarioId, pokemonId) {

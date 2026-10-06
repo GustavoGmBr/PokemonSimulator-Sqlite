@@ -1,3 +1,10 @@
+## Pokémon Simulator SQLite v1.1.0
+
+- Adicionadas 16 Poké Bolas especiais com regras próprias de captura: Bola Rápida, do Tempo, do Crepúsculo, Aquática, de Rede, do Ninho, de Repetição, Pesada, Lunar, de Nível, do Amor, de Sonho, de Cura, de Luxo, Amiga e Premier.
+- A tela de encontro permite informar se o local é uma caverna, área aquática ou pescaria para aplicar os bônus correspondentes. O bônus noturno usa o horário local do computador.
+- A Bola de Cura restaura o Pokémon capturado e remove condições de status; as Bolas Amiga e de Luxo afetam a amizade, usada também em evoluções por amizade.
+- A Bola Premier é concedida ao comprar 10 Poké Bolas comuns de uma vez. Catálogo e imagens dos itens foram adicionados ao jogo.
+- Banco SQLite atualizado com sexo e amizade dos Pokémon, incluindo migração para saves existentes.
 ## Pokémon Simulator SQLite v1.0.0
 
 - Bônus por concluir as dez missões do ciclo antes da renovação: 5.000 ₽, 500 fichas de cassino e um Doce Raro.

@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { getCatalogo, criarDadosInicial, getDetalhesEspecie } from '../src/services/catalogo.js';
+import { CAPTURE_BALL_ITEMS } from '../src/services/captureBalls.js';
 
 test('catalogo local tem os 1025 IDs de Kanto a Paldea, sprites e golpes resolvidos', () => {
   const catalogo = getCatalogo();
@@ -55,7 +56,7 @@ test('todos os golpes de dano aprendidos por nível existem e autodestruição n
 });
 
 test('itens e Mega Pedras tem sprites locais e detalhes de golpes mantem poder', () => {
-  assert.equal(getCatalogo().itens.length, 157);
+  assert.equal(getCatalogo().itens.length, 157 + CAPTURE_BALL_ITEMS.length);
   assert.equal(getCatalogo().itens.find((item) => item.nome === 'ultra-burst-stone').precoLoja, 150000);
   for (const id of ['master-ball', 'rare-candy', 'exp-candy-p', 'exp-candy-m', 'exp-candy-g', 'exp-candy-gg']) assert.equal(getCatalogo().itens.find((item) => item.nome === id).precoLoja, null);
   assert.equal(getCatalogo().itens.find((item) => item.nome === 'gmax-stone').precoLoja, 75000);

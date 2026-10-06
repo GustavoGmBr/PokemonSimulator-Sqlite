@@ -8,6 +8,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '../src/app.js';
+import { CAPTURE_BALL_ITEMS } from '../src/services/captureBalls.js';
 import { parseEnv } from '../src/config/env.js';
 
 const config = { CORS_ORIGIN: 'http://localhost:5185' };
@@ -88,12 +89,13 @@ test('excluir um save remove seus dados e preserva os outros', async () => {
 });
 
 test('catalogo publico retorna itens, especies e sprites locais', async () => {
-  assert.equal((await request(app).get('/api/catalogo/itens').expect(200)).body.data.length, 157);
+  assert.equal((await request(app).get('/api/catalogo/itens').expect(200)).body.data.length, 157 + CAPTURE_BALL_ITEMS.length);
   const species = await request(app).get('/api/catalogo/25').expect(200);
   assert.equal(species.body.data.nomeExibicao, 'Pikachu');
   assert.ok(species.body.data.sprites.animatedShiny);
   assert.ok(species.body.data.golpesAprendidos[0].pp > 0);
   await request(app).get('/assets/pokemon/1-front.png').expect('Content-Type', /image/).expect(200);
+  await request(app).get('/assets/items/fast-ball.png').expect('Content-Type', /image/).expect(200);
   await request(app).get('/api/catalogo/not-an-id').expect(404);
 
   await request(app).post('/api/jogador/inicial').set('X-Save-Id', second.id).send({ saveId: second.id, especieId: 4 }).expect(201);

@@ -28,7 +28,7 @@ function ItemCard({ item, quantity, shop, busy, cartQuantity, add }) {
     {item.sprite ? <img src={assetUrl(item.sprite)} alt="" loading="lazy" /> : <Backpack size={24} />}
     <div><h3>{item.nomeExibicao}</h3><p>{item.descricao}</p>
       {shop && item.precoLoja > 0 && <div className="item-cart-controls"><span>{item.precoLoja.toLocaleString('pt-BR')} ₽ cada</span><label>Quantidade <input type="number" min="1" max={passiveItems.has(item.nome) ? 1 : 999} value={amount} disabled={ownedPassive || busy} onChange={(event) => setAmount(event.target.value)} /></label><button className="item-buy" type="button" disabled={busy || ownedPassive || !Number.isInteger(Number(amount)) || Number(amount) < 1 || Number(amount) > (passiveItems.has(item.nome) ? 1 : 999) || passiveItems.has(item.nome) && cartQuantity > 0} onClick={() => add(item, Number(amount))}>{ownedPassive ? 'Já adquirido' : cartQuantity ? `No carrinho: ${cartQuantity}` : 'Adicionar ao carrinho'}</button></div>}
-      {shop && item.precoLoja == null && <span className="item-reward-only">Somente recompensa de torneio</span>}
+      {shop && item.precoLoja == null && <span className="item-reward-only">{item.nome === 'premier-ball' ? 'Bônus ao comprar 10 Poké Bolas' : 'Somente recompensa de torneio'}</span>}
     </div><span aria-label={`Quantidade: ${quantity}`} className="item-quantity">×{quantity}</span>
   </article>;
 }
@@ -44,15 +44,17 @@ export function ItemsPanel({ save, shop = false }) {
   const [buying, setBuying] = useState(false);
   const [cart, setCart] = useState({});
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   function add(item, amount) {
     setCart((current) => ({ ...current, [item.nome]: passiveItems.has(item.nome) ? 1 : Math.min(999, (current[item.nome] ?? 0) + amount) }));
   }
   async function checkout() {
-    setBuying(true); setError('');
+    setBuying(true); setError(''); setSuccess('');
     try {
-      await api('/jogador/itens/carrinho', { method: 'POST', body: { itens: Object.entries(cart).map(([itemId, quantidade]) => ({ itemId, quantidade })) } });
+      const result = await api('/jogador/itens/carrinho', { method: 'POST', body: { itens: Object.entries(cart).map(([itemId, quantidade]) => ({ itemId, quantidade })) } });
       setCart({});
+      if (result.bonusItens?.length) setSuccess(`Compra concluída! Você ganhou ${result.bonusItens[0].quantidade} Bola Premier como bônus.`);
       await Promise.all([client.invalidateQueries({ queryKey: ['inventario'] }), client.invalidateQueries({ queryKey: ['save'] }), client.invalidateQueries({ queryKey: ['evolution-options'] })]);
     } catch (caught) { setError(caught.message); } finally { setBuying(false); }
   }
@@ -83,6 +85,7 @@ export function ItemsPanel({ save, shop = false }) {
     <div className="item-categories" role="group" aria-label="Filtrar itens por categoria"><button type="button" aria-pressed={category === 'all'} onClick={() => setCategory('all')}>Todos <span>{available.length}</span></button>{categories.filter((entry) => available.some((item) => item.categoria === entry.id)).map((entry) => <button type="button" key={entry.id} aria-pressed={category === entry.id} onClick={() => setCategory(entry.id)}>{entry.label} <span>{available.filter((item) => item.categoria === entry.id).length}</span></button>)}</div>
     <p className="panel-hint">{shop ? 'Busque pelo nome ou filtre por categoria para encontrar o item desejado.' : <>A bolsa mostra seus itens por categoria. <Link to="/loja" className="shop-link">Visitar a loja</Link></>}</p>
     {error && <p role="alert" className="battle-error">{error}</p>}
+    {success && <p role="status" className="panel-hint">{success}</p>}
     {groups.map((group) => <div className="item-group" key={group.id}><div className="item-group-heading"><h3>{group.label}</h3><span>{group.items.length} {group.items.length === 1 ? 'TIPO' : 'TIPOS'}</span></div><div className="items-grid">{group.items.map((item) => <ItemCard key={item.nome} item={item} quantity={quantities.get(item.nome) ?? 0} shop={shop} busy={buying} cartQuantity={cart[item.nome] ?? 0} add={add} />)}</div></div>)}
     {!groups.length && <p className="items-empty">{shop ? 'Nenhum item encontrado com esses filtros.' : 'Nenhum item nesta categoria da bolsa.'}</p>}
   </section>;
