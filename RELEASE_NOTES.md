@@ -1,3 +1,9 @@
+## Pokémon Simulator SQLite v1.2.0
+
+- Adicionada exportação e importação de saves pela tela de gerenciamento de jornadas.
+- O arquivo de backup inclui treinador, Pokémon, inventário, progresso, histórico e estados de batalha e cassino; saves podem ser importados como uma nova jornada ou substituir um save existente após confirmação.
+- Importações são validadas e aplicadas em uma transação SQLite para evitar substituir parcialmente uma jornada caso o arquivo seja inválido.
+
 ## Pokémon Simulator SQLite v1.1.3
 
 - Removida a escolha de ambiente da busca de Pokémon selvagens e do estado da batalha.

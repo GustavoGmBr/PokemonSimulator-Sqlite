@@ -19,6 +19,8 @@ const db = new PrismaClient({ datasourceUrl: databaseUrl });
 let app;
 let first;
 let second;
+let imported;
+let replaceTarget;
 
 before(async () => {
   writeFileSync(database, '');
@@ -78,13 +80,47 @@ test('inicial, colecao, inventario e alteracoes permanecem isolados entre saves'
   assert.equal((await request(app).get('/api/jogador/save').set('X-Save-Id', second.id).expect(200)).body.data.nomeTreinador, 'Misty');
 });
 
+test('exporta, importa como novo save e substitui outro save sem perder seu identificador', async () => {
+  const starter = await db.pokemonCapturado.findFirst({ where: { saveId: first.id } });
+  await db.batalha.create({ data: { saveId: first.id, estado: { jogador: { pokemonId: starter.id } } } });
+  const archive = (await request(app).get(`/api/jogador/saves/${first.id}/exportar`).expect(200)).body.data;
+  assert.equal(archive.format, 'pokemon-simulator-save');
+  assert.equal(archive.data.save.usuarioId, undefined);
+  assert.equal(archive.data.pokemon.length, 1);
+  archive.exportedAt = 'x'.repeat(40_000);
+
+  imported = (await request(app).post('/api/jogador/saves/importar').send({ arquivo: archive }).expect(201)).body.data;
+  assert.notEqual(imported.id, first.id);
+  assert.equal(imported.nomeTreinador, 'Red');
+  const importedPokemon = await db.pokemonCapturado.findMany({ where: { saveId: imported.id } });
+  assert.equal(importedPokemon.length, 1);
+  assert.notEqual(importedPokemon[0].id, archive.data.pokemon[0].id);
+  assert.equal(importedPokemon[0].saveId, imported.id);
+  const importedBattle = await db.batalha.findUnique({ where: { saveId: imported.id } });
+  assert.equal(importedBattle.estado.jogador.pokemonId, importedPokemon[0].id);
+
+  replaceTarget = (await request(app).post('/api/jogador/saves').send({ nomeTreinador: 'Substituir' }).expect(201)).body.data;
+  await db.save.update({ where: { id: replaceTarget.id }, data: { moedas: 987_654 } });
+  const replaced = (await request(app).post('/api/jogador/saves/importar').send({ arquivo: archive, substituirSaveId: replaceTarget.id }).expect(201)).body.data;
+  assert.equal(replaced.id, replaceTarget.id);
+  assert.equal(replaced.nomeTreinador, 'Red');
+  assert.equal(replaced.moedas, archive.data.save.moedas);
+  assert.equal(await db.pokemonCapturado.count({ where: { saveId: replaceTarget.id } }), 1);
+  assert.equal(await db.save.findUnique({ where: { id: imported.id } }).then(save => save.moedas), imported.moedas);
+
+  const invalid = structuredClone(archive);
+  invalid.formatVersion = 99;
+  await request(app).post('/api/jogador/saves/importar').send({ arquivo: invalid, substituirSaveId: replaceTarget.id }).expect(400);
+  assert.equal((await db.save.findUnique({ where: { id: replaceTarget.id } })).nomeTreinador, 'Red');
+});
+
 test('excluir um save remove seus dados e preserva os outros', async () => {
   await request(app).delete(`/api/jogador/saves/${first.id}`).expect(200);
   assert.equal(await db.pokemonCapturado.count({ where: { saveId: first.id } }), 0);
   assert.equal(await db.itemInventario.count({ where: { saveId: first.id } }), 0);
   assert.equal(await db.usuario.count({ where: { id: first.usuarioId } }), 0);
   const list = await request(app).get('/api/jogador/saves').expect(200);
-  assert.deepEqual(list.body.data.map(save => save.id), [second.id]);
+  assert.deepEqual(new Set(list.body.data.map(save => save.id)), new Set([second.id, imported.id, replaceTarget.id]));
   await request(app).delete(`/api/jogador/saves/${first.id}`).expect(404);
 });
 

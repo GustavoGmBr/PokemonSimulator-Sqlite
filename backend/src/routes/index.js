@@ -4,6 +4,7 @@ import { requireSaveContext } from '../middleware/save-context.js';
 import { validate } from '../middleware/validate.js';
 import { updateSaveSchema } from '../validators/auth.js';
 import { createJogadorService } from '../services/jogador.js';
+import { createSaveArchiveService } from '../services/saveArchive.js';
 import { createJogadorController } from '../controllers/jogador.js';
 import { novoSaveSchema, inicialSchema, evolveSchema, buyItemSchema, buyCartSchema, equipMovesSchema, buyTmSchema, expCandySchema, favoriteSchema, sellPokemonSchema, claimMissionSchema } from '../validators/jogador.js';
 import { getCatalogo, getDetalhesEspecie, resumoEspecie } from '../services/catalogo.js';
@@ -22,6 +23,7 @@ const buyPokemonStockSchema = z.object({ stockId: z.string().uuid() }).strict();
 export function createRouter(db, config) {
   const router = Router();
   const jogador = createJogadorController(createJogadorService(db));
+  const savesArchive = createSaveArchiveService(db);
   const battles = createBattleService(db);
   const evolutions = createEvolutionService(db);
   const moves = createMoveManagementService(db);
@@ -42,6 +44,12 @@ export function createRouter(db, config) {
   router.get('/jogador/saves', jogador.saves);
   router.post('/jogador/saves', validate(novoSaveSchema), jogador.criarSave);
   router.delete('/jogador/saves/:id', jogador.excluirSave);
+  router.get('/jogador/saves/:id/exportar', async (req, res, next) => {
+    try { res.json({ success: true, data: await savesArchive.export(req.params.id) }); } catch (error) { next(error); }
+  });
+  router.post('/jogador/saves/importar', async (req, res, next) => {
+    try { res.status(201).json({ success: true, data: await savesArchive.import(req.body.arquivo, req.body.substituirSaveId ?? null) }); } catch (error) { next(error); }
+  });
   router.get('/catalogo', (req, res) => res.json({ success: true, data: {
     pokemon: getCatalogo().pokemon.map(resumoEspecie), tipos: getCatalogo().tipos, regras: getCatalogo().regras,
   } }));

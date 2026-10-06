@@ -117,6 +117,14 @@ label > input, label > div { margin-top: 9px; }
 .save-meta span { display: flex; align-items: center; gap: 7px; }
 .new-save { background: #19221f; border: 1px dashed #3d493e; display: flex; flex-direction: column; justify-content: center; padding: 36px; }
 .new-save form { margin-top: 30px; }
+.import-save { background: radial-gradient(ellipse at 100% 0%, #52643c24, transparent 64%), #1c2822; border-color: #526348; display: flex; flex-direction: column; justify-content: center; padding: 36px; }
+.archive-file-label, .archive-replace-label { margin-top: 20px; color: #c4d1bd; }
+.archive-file-label input[type='file'] { margin-top: 9px; padding: 10px; font-size: 12px; color: #aebbaa; }
+.archive-file-label input::file-selector-button { border: 1px solid #53664c; border-radius: 7px; padding: 8px 11px; margin-right: 12px; background: #29392d; color: #dce8d0; font-weight: 600; cursor: pointer; }
+.archive-replace-label select { margin-top: 9px; font-size: 12px; }
+.archive-preview { display: flex; align-items: center; gap: 8px; border: 1px solid #41523b; border-radius: 9px; padding: 11px 12px; margin-top: 13px; color: #d4e4c4; overflow-wrap: anywhere; }
+.archive-preview span { color: #8c9b87; }
+.archive-success { color: #c9ef87; font-size: 12px; }
 .save-warning { color: #97a18f; font-size: 11px !important; margin-top: 20px; line-height: 1.7; }
 .tip { border: 1px solid #303d33; border-radius: 12px; background: #1b2520; display: flex; align-items: center; gap: 12px; padding: 18px 22px; margin-top: 24px; color: #b3be9b; font-size: 12px; }
 .tip > span:last-child { font-size: 9px; letter-spacing: 1px; color: #85947f; }

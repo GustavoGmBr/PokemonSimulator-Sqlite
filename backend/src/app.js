@@ -16,7 +16,7 @@ export function createApp({ db, config }) {
   app.use('/assets', express.static(fileURLToPath(new URL('../public', import.meta.url)), {
     maxAge: '1d', setHeaders: (res) => res.set('Cross-Origin-Resource-Policy', 'cross-origin'),
   }));
-  app.use(express.json({ limit: '32kb' }));
+  app.use((req, res, next) => express.json({ limit: req.path === '/api/jogador/saves/importar' ? '32mb' : '32kb' })(req, res, next));
   app.use('/api', (req, res, next) => {
     res.set('Cache-Control', 'no-store');
     res.set('X-Pokemon-Workspace', workspaceId);
