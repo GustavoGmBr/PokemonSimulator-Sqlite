@@ -1,3 +1,10 @@
+## Pokémon Simulator SQLite v1.1.1
+
+- As bolas especiais foram adaptadas ao jogo: Bola Psíquica (tipo Psíquico, 3×), Crepúsculo (Sombrio/Fantasma, 4×), Ninho (Voador, 3×), Trovão (Elétrico, 3×), Dracônica (Dragão, 3×), Congelante (Gelo, 3×), das Fadas (Fada, 3,5×; tipo compartilhado, 3×), de Treino (Lutador, 3×), Floresta (Planta, 3×) e Incandescente (Fogo, 3×).
+- A Bola Rápida mantém bônus de 5× no primeiro turno, dentro da faixa de 4–5×; a Bola de Sonho dá 4× contra Pokémon adormecidos.
+- A Bola Pesada agora calcula o bônus pelo peso ou pela altura do Pokémon, com multiplicador máximo de 4×.
+- Os bônus antigos de amizade das Bolas Amiga e de Luxo foram removidos, pois elas agora têm efeitos de captura por tipo. Bola Aquática, Bola de Rede, Cura e Premier mantêm suas regras adaptadas anteriores.
+- Adicionado o ícone da Bola Incandescente ao catálogo local.
 ## Pokémon Simulator SQLite v1.1.0
 
 - Adicionadas 16 Poké Bolas especiais com regras próprias de captura: Bola Rápida, do Tempo, do Crepúsculo, Aquática, de Rede, do Ninho, de Repetição, Pesada, Lunar, de Nível, do Amor, de Sonho, de Cura, de Luxo, Amiga e Premier.

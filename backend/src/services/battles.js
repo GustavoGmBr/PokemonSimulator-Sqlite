@@ -6,7 +6,7 @@ import { REGIONS, regionUnlocked, legendaryUnlocked, catchCharmMultiplier, chall
 import { generationForSpecies, HEALING_ITEMS, healCombatant } from './itemRules.js';
 import { equippedMoves, naturalMoves, unlockedMoves } from './moveRules.js';
 import { TOURNAMENTS, rollTournament } from './tournaments.js';
-import { CAPTURE_BALL_IDS, baseFriendship, captureBallMultiplier, evolvesWithMoonStone, happinessGain } from './captureBalls.js';
+import { CAPTURE_BALL_IDS, baseFriendship, captureBallMultiplier, happinessGain } from './captureBalls.js';
 
 const BASE_CAPTURE_MULTIPLIER = { 'poke-ball': 1, 'great-ball': 1.5, 'ultra-ball': 2, 'master-ball': Infinity };
 function displayName(name) { return name.replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
@@ -340,7 +340,7 @@ export function createBattleService(db) {
       const foe = state.oponente;
       state.xpGanho += Math.max(1, Math.floor((getEspecie(foe.especieId).experienciaBase ?? 50) * foe.nivel / 7));
       const species = getEspecie(foe.especieId);
-      await tx.pokemonCapturado.create({ data: { saveId: save.id, especieId: foe.especieId, nivel: foe.nivel, experiencia: species.experienciaPorNivel.find((entry) => entry.nivel === foe.nivel).experiencia, hpAtual: foe.maxHp, shiny: foe.shiny, bolaCaptura: action.itemId, sexo: foe.sexo, amizade: action.itemId === 'friend-ball' ? 200 : baseFriendship(species), ivs: normalizeIvs(foe.ivs), atributos: foe.stats, golpes: foe.ataques.map((move) => ({ nome: move.nome })), golpesDesbloqueados: naturalMoves(species, foe.nivel) } });
+      await tx.pokemonCapturado.create({ data: { saveId: save.id, especieId: foe.especieId, nivel: foe.nivel, experiencia: species.experienciaPorNivel.find((entry) => entry.nivel === foe.nivel).experiencia, hpAtual: foe.maxHp, shiny: foe.shiny, bolaCaptura: action.itemId, sexo: foe.sexo, amizade: baseFriendship(species), ivs: normalizeIvs(foe.ivs), atributos: foe.stats, golpes: foe.ataques.map((move) => ({ nome: move.nome })), golpesDesbloqueados: naturalMoves(species, foe.nivel) } });
       await tx.especieRegistrada.upsert({ where: { saveId_especieId: { saveId: save.id, especieId: foe.especieId } }, create: { saveId: save.id, especieId: foe.especieId }, update: {} });
       await tx.batalhaEvento.create({ data: { saveId: save.id, tipo: 'capturar', especieId: foe.especieId, regiao: state.regiaoEncontro, shiny: foe.shiny, descricao: `${foe.nome}${foe.shiny ? ' shiny' : ''} capturado` } });
     }
@@ -518,9 +518,8 @@ export function createBattleService(db) {
           const charm = await tx.itemInventario.findUnique({ where: { saveId_itemId: { saveId: save.id, itemId: 'catching-charm' } } });
           const completed = charm?.quantidade > 0 ? await progress(tx, save.id) : [];
           const multiplier = catchCharmMultiplier(completed, generationForSpecies(species.id), charm?.quantidade > 0);
-          const previouslyCaptured = action.itemId === 'repeat-ball' && Boolean(await tx.especieRegistrada.findUnique({ where: { saveId_especieId: { saveId: save.id, especieId: species.id } } }));
-          const opponent = { ...state.oponente, species: { types: species.tipos, weight: species.peso, evolvesWithMoonStone: evolvesWithMoonStone(species.evolucao, species.id) } };
-          const conditionalMultiplier = captureBallMultiplier(action.itemId, { round: state.rodada, opponent, player: state.jogador, previouslyCaptured, environment: state.ambiente });
+          const opponent = { ...state.oponente, species: { types: species.tipos, weight: species.peso, height: species.altura } };
+          const conditionalMultiplier = captureBallMultiplier(action.itemId, { round: state.rodada, opponent, player: state.jogador, environment: state.ambiente });
           const chance = action.itemId === 'master-ball' ? 1 : Math.min(.95, species.taxaCaptura / 255 * (BASE_CAPTURE_MULTIPLIER[action.itemId] ?? 1) * conditionalMultiplier * (3 - 2 * state.oponente.hp / state.oponente.maxHp) / 3 * multiplier);
           if (randomInt(10000) < chance * 10000) { state.resultado = 'captura'; if (action.itemId === 'heal-ball') state.oponente.status = null; log(state, `${state.oponente.nome} foi capturado${action.itemId === 'heal-ball' ? ' e recuperou todo o HP e status com a Bola de Cura' : ''}!`); }
           else { log(state, `${state.oponente.nome} escapou da Poké Bola.`); await opponentTurn(tx, save.id, state); }

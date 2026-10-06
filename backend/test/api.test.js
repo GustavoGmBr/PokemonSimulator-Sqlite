@@ -96,6 +96,7 @@ test('catalogo publico retorna itens, especies e sprites locais', async () => {
   assert.ok(species.body.data.golpesAprendidos[0].pp > 0);
   await request(app).get('/assets/pokemon/1-front.png').expect('Content-Type', /image/).expect(200);
   await request(app).get('/assets/items/fast-ball.png').expect('Content-Type', /image/).expect(200);
+  await request(app).get('/assets/items/sport-ball.png').expect('Content-Type', /image/).expect(200);
   await request(app).get('/api/catalogo/not-an-id').expect(404);
 
   await request(app).post('/api/jogador/inicial').set('X-Save-Id', second.id).send({ saveId: second.id, especieId: 4 }).expect(201);

@@ -33,27 +33,34 @@ after(async () => {
 });
 
 test('bolas situacionais respeitam os requisitos e os limites de multiplicador', () => {
-  const opponent = { nivel: 10, tipos: ['water'], status: null, species: { types: ['water'], weight: 310, evolvesWithMoonStone: true } };
-  const player = { nivel: 40, sexo: 'male' };
+  const opponent = { nivel: 10, tipos: ['water'], status: null, species: { types: ['water'], weight: 310, height: 1.5 } };
+  const player = { nivel: 40, sexo: 'male', tipos: ['fire'] };
   assert.equal(captureBallMultiplier('fast-ball', { round: 1, opponent, player }), 5);
   assert.equal(captureBallMultiplier('fast-ball', { round: 2, opponent, player }), 1);
-  assert.equal(captureBallMultiplier('timer-ball', { round: 11, opponent, player }), 4);
-  assert.equal(captureBallMultiplier('dusk-ball', { hour: 12, environment: 'cave', opponent, player }), 3.5);
-  assert.equal(captureBallMultiplier('dusk-ball', { hour: 12, environment: 'field', opponent, player }), 1);
+  assert.equal(captureBallMultiplier('timer-ball', { opponent: { tipos: ['psychic'] }, player }), 3);
+  assert.equal(captureBallMultiplier('timer-ball', { opponent, player }), 1);
+  assert.equal(captureBallMultiplier('dusk-ball', { opponent: { tipos: ['ghost'] }, player }), 4);
+  assert.equal(captureBallMultiplier('dusk-ball', { opponent: { tipos: ['dark', 'flying'] }, player }), 4);
+  assert.equal(captureBallMultiplier('dusk-ball', { hour: 23, opponent, player }), 1);
   assert.equal(captureBallMultiplier('dive-ball', { opponent, player }), 3.5);
   assert.equal(captureBallMultiplier('net-ball', { opponent, player }), 3);
-  assert.equal(captureBallMultiplier('nest-ball', { opponent: { ...opponent, nivel: 1 }, player }), 4);
-  assert.equal(captureBallMultiplier('repeat-ball', { opponent, player, previouslyCaptured: true }), 3);
+  assert.equal(captureBallMultiplier('nest-ball', { opponent: { tipos: ['flying'] }, player }), 3);
+  assert.equal(captureBallMultiplier('repeat-ball', { opponent: { tipos: ['electric'] }, player }), 3);
   assert.equal(captureBallMultiplier('heavy-ball', { opponent, player }), 4);
-  assert.equal(captureBallMultiplier('moon-ball', { opponent, player }), 4);
-  assert.equal(captureBallMultiplier('level-ball', { opponent, player }), 8);
-  assert.equal(captureBallMultiplier('love-ball', { opponent: { ...opponent, sexo: 'female' }, player }), 8);
-  assert.equal(captureBallMultiplier('love-ball', { opponent: { ...opponent, sexo: 'male' }, player }), 1);
+  assert.equal(captureBallMultiplier('heavy-ball', { opponent: { species: { weight: 0, height: 4 } }, player }), 3);
+  assert.equal(captureBallMultiplier('moon-ball', { opponent: { tipos: ['dragon'] }, player }), 3);
+  assert.equal(captureBallMultiplier('level-ball', { opponent: { tipos: ['ice'] }, player }), 3);
+  assert.equal(captureBallMultiplier('love-ball', { opponent: { tipos: ['fairy', 'fire'] }, player }), 3.5);
+  assert.equal(captureBallMultiplier('love-ball', { opponent: { tipos: ['fire'] }, player }), 3);
+  assert.equal(captureBallMultiplier('love-ball', { opponent: { tipos: ['water'] }, player }), 1);
   assert.equal(captureBallMultiplier('dream-ball', { opponent: { ...opponent, status: 'sleep' }, player }), 4);
   assert.equal(captureBallMultiplier('dream-ball', { opponent, player }), 1);
+  assert.equal(captureBallMultiplier('luxury-ball', { opponent: { tipos: ['fighting'] }, player }), 3);
+  assert.equal(captureBallMultiplier('friend-ball', { opponent: { tipos: ['grass'] }, player }), 3);
+  assert.equal(captureBallMultiplier('sport-ball', { opponent: { tipos: ['fire'] }, player }), 3);
 });
 
-test('Bola Lunar identifica somente a espécie que usa Pedra da Lua na evolução', () => {
+test('a busca da cadeia evolutiva identifica corretamente espécies que usam Pedra da Lua', () => {
   const family = { especieId: 29, evolucoes: [{ especieId: 30, condicoes: [{ item: null }], evolucoes: [{ especieId: 31, condicoes: [{ item: 'moon-stone' }], evolucoes: [] }] }] };
   assert.equal(evolvesWithMoonStone(family, 29), false);
   assert.equal(evolvesWithMoonStone(family, 30), true);
@@ -62,11 +69,12 @@ test('Bola Lunar identifica somente a espécie que usa Pedra da Lua na evoluçã
   assert.equal(evolvesWithMoonStone(clefairy, 35), true);
 });
 
-test('sexo e amizade usam os efeitos da Bola Amiga e da Bola de Luxo', () => {
+test('sexo é determinado pelo catálogo e a amizade não recebe bônus das bolas adaptadas', () => {
   assert.equal(rollPokemonSex({ proporcaoFemeas: 8 }, () => 0), 'female');
   assert.equal(rollPokemonSex({ proporcaoFemeas: 0 }, () => 0), 'male');
   assert.equal(rollPokemonSex({ proporcaoFemeas: -1 }, () => 0), null);
-  assert.equal(happinessGain('luxury-ball', 100), 110);
+  assert.equal(happinessGain('luxury-ball', 100), 105);
+  assert.equal(happinessGain('friend-ball', 100), 105);
   assert.equal(happinessGain('poke-ball', 100), 105);
   assert.equal(happinessGain('luxury-ball', 250), 255);
 });
