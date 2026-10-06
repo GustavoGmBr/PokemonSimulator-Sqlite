@@ -5,7 +5,7 @@ import { api } from '../lib/api';
 import { Failure, Loading } from './common';
 import { IV_ITEMS } from '../lib/ivs';
 
-const itemNames = { 'poke-ball': 'Poké Bola', 'great-ball': 'Super Bola', 'exp-candy-p': 'Doce EXP P', 'exp-candy-m': 'Doce EXP M', 'rare-candy': 'Doce Raro' };
+const itemNames = { 'poke-ball': 'Poké Bola', 'great-ball': 'Super Bola', 'fast-ball': 'Bola Rápida', 'timer-ball': 'Bola Psíquica', 'dusk-ball': 'Bola do Crepúsculo', 'dive-ball': 'Bola Aquática', 'net-ball': 'Bola de Rede', 'nest-ball': 'Bola do Ninho', 'repeat-ball': 'Bola Trovão', 'heavy-ball': 'Bola Pesada', 'moon-ball': 'Bola Dracônica', 'level-ball': 'Bola Congelante', 'love-ball': 'Bola das Fadas', 'dream-ball': 'Bola de Sonho', 'heal-ball': 'Bola de Cura', 'luxury-ball': 'Bola de Treino', 'friend-ball': 'Bola Floresta', 'premier-ball': 'Bola Premier', 'sport-ball': 'Bola Incandescente', 'exp-candy-p': 'Doce EXP P', 'exp-candy-m': 'Doce EXP M', 'rare-candy': 'Doce Raro' };
 for (const item of IV_ITEMS) itemNames[item.nome] = item.nomeExibicao;
 
 export function MissionsPanel({ saveId }) {

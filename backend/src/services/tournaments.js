@@ -2,9 +2,10 @@ import { randomInt } from 'node:crypto';
 import { getCatalogo } from './catalogo.js';
 import { wildWeight } from './battleRules.js';
 import { IV_ITEMS } from './ivRules.js';
+import { randomRewardCaptureBall, SPECIAL_CAPTURE_BALL_REWARD_ID } from './captureBalls.js';
 
 export const TOURNAMENTS = [
-  { id: 'muito-facil', nome: 'Muito fácil', entrada: 150, moedas: 120, minimo: 3, maximo: 3, nivelMinimo: 2, nivelMaximo: 10, premios: [['poke-ball', 2, 4], ['great-ball', 0, 2], ['exp-candy-p', 1, 3], ['exp-candy-m', 0, 1]] },
+  { id: 'muito-facil', nome: 'Muito fácil', entrada: 150, moedas: 120, minimo: 3, maximo: 3, nivelMinimo: 2, nivelMaximo: 10, premios: [[SPECIAL_CAPTURE_BALL_REWARD_ID, 2, 4], ['great-ball', 0, 2], ['exp-candy-p', 1, 3], ['exp-candy-m', 0, 1]] },
   { id: 'facil', nome: 'Fácil', entrada: 500, moedas: 400, minimo: 3, maximo: 4, nivelMinimo: 10, nivelMaximo: 30, premios: [['great-ball', 2, 4], ['ultra-ball', 0, 2], ['exp-candy-m', 2, 3], ['exp-candy-g', 0, 1]] },
   { id: 'intermediario', nome: 'Intermediário', entrada: 1500, moedas: 1200, minimo: 4, maximo: 5, nivelMinimo: 30, nivelMaximo: 50, premios: [['great-ball', 2, 4], ['ultra-ball', 1, 3], ['exp-candy-g', 2, 3], ['exp-candy-gg', 0, 1]] },
   { id: 'dificil', nome: 'Difícil', entrada: 4000, moedas: 3200, minimo: 5, maximo: 6, nivelMinimo: 50, nivelMaximo: 70, premios: [['ultra-ball', 3, 4], ['exp-candy-gg', 2, 4], ['rare-candy', 1, 2]] },
@@ -32,7 +33,7 @@ export function rollTournament(tier, rng = randomInt) {
     const count = rng(rule.minimo, rule.maximo + 1);
     return { nome: `${TRAINER_NAMES[round]} ${round + 1}`, pokemon: Array.from({ length: count }, () => ({ id: pool.splice(rng(pool.length), 1)[0], nivel: rng(rule.nivelMinimo, rule.nivelMaximo + 1) })) };
   });
-  const itens = rule.premios.map(([itemId, minimo, maximo]) => ({ itemId, quantidade: rng(minimo, maximo + 1) })).filter((entry) => entry.quantidade > 0);
+  const itens = rule.premios.map(([itemId, minimo, maximo]) => ({ itemId: itemId === SPECIAL_CAPTURE_BALL_REWARD_ID ? randomRewardCaptureBall(rng) : itemId, quantidade: rng(minimo, maximo + 1) })).filter((entry) => entry.quantidade > 0);
   itens.push({ itemId: IV_ITEMS[rng(IV_ITEMS.length)].nome, quantidade: rule.premiosIvs });
   return { id: rule.id, nome: rule.nome, entrada: rule.entrada, recompensa: { moedas: rule.moedas, itens }, treinadores };
 }

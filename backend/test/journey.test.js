@@ -6,12 +6,15 @@ import { PrismaClient } from '@prisma/client';
 import { createApp } from '../src/app.js';
 import { parseEnv } from '../src/config/env.js';
 import { generateMissions, missionPeriod } from '../src/services/journey.js';
+import { SPECIAL_CAPTURE_BALL_REWARD_IDS } from '../src/services/captureBalls.js';
 
 test('missões são estáveis no período de duas horas e mudam no próximo', () => {
   const save = { id: 'fixed-save' };
   const missions = generateMissions(save, [], 100);
   assert.deepEqual(missions, generateMissions(save, [], 100));
   assert.ok(missions.every((mission) => Number.isInteger(mission.recompensa.fichas) && mission.recompensa.fichas > 0));
+  const captureRewards = missions.filter((mission) => mission.tipo === 'capturar').map((mission) => mission.recompensa.itens[0]);
+  assert.ok(captureRewards.every((item) => SPECIAL_CAPTURE_BALL_REWARD_IDS.includes(item.itemId)));
   assert.notDeepEqual(generateMissions(save, [], 100), generateMissions(save, [], 101));
   assert.equal(missionPeriod(2 * 60 * 60 * 1000 - 1), 0);
   assert.equal(missionPeriod(2 * 60 * 60 * 1000), 1);

@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto';
 import { getCatalogo, getEspecie } from './catalogo.js';
-import { rollPokemonSex } from './captureBalls.js';
+import { randomRewardCaptureBall, rollPokemonSex, SPECIAL_CAPTURE_BALL_REWARD_ID } from './captureBalls.js';
 
 export const GYMS = [
   { id: 'brock', nome: 'Brock', tipo: 'rock', nivel: 15, pokemon: [74, 95] },
@@ -205,7 +205,7 @@ export function regionUnlocked(regionId, completed) {
 }
 
 export const TRAINER_DIFFICULTIES = {
-  facil: { nome: 'Fácil', minimo: 2, maximo: 3, nivelMinimo: 20, nivelMaximo: 30, moedas: 1000, itens: [{ itemId: 'poke-ball', quantidade: 2 }, { itemId: 'potion', quantidade: 1 }], nomes: ['Jovem Treinador', 'Escoteira', 'Colecionador'] },
+  facil: { nome: 'Fácil', minimo: 2, maximo: 3, nivelMinimo: 20, nivelMaximo: 30, moedas: 1000, itens: [{ itemId: SPECIAL_CAPTURE_BALL_REWARD_ID, quantidade: 2 }, { itemId: 'potion', quantidade: 1 }], nomes: ['Jovem Treinador', 'Escoteira', 'Colecionador'] },
   medio: { nome: 'Médio', minimo: 3, maximo: 4, nivelMinimo: 40, nivelMaximo: 50, moedas: 3000, itens: [{ itemId: 'great-ball', quantidade: 2 }, { itemId: 'super-potion', quantidade: 2 }], nomes: ['Veterana', 'Domador', 'Ace Trainer'] },
   dificil: { nome: 'Difícil', minimo: 6, maximo: 6, nivelMinimo: 100, nivelMaximo: 100, moedas: 10000, itens: [{ itemId: 'ultra-ball', quantidade: 3 }, { itemId: 'hyper-potion', quantidade: 2 }, { itemId: 'revive', quantidade: 1 }], nomes: ['Campeão Errante', 'Lenda da Arena', 'Mestre Pokémon'] },
 };
@@ -222,7 +222,8 @@ export function rollTrainer(difficulty, catalog = getCatalogo(), rng = randomInt
   }).map((entry) => entry.id);
   const pokemon = [];
   for (let index = 0; index < count; index++) pokemon.push({ id: pool.splice(rng(pool.length), 1)[0], nivel: rng(rules.nivelMinimo, rules.nivelMaximo + 1) });
-  return { nome: rules.nomes[rng(rules.nomes.length)], dificuldade: difficulty, pokemon, recompensa: { moedas: rules.moedas, itens: rules.itens } };
+  const itens = rules.itens.map((item) => ({ ...item, itemId: item.itemId === SPECIAL_CAPTURE_BALL_REWARD_ID ? randomRewardCaptureBall(rng) : item.itemId }));
+  return { nome: rules.nomes[rng(rules.nomes.length)], dificuldade: difficulty, pokemon, recompensa: { moedas: rules.moedas, itens } };
 }
 
 export function challengesWithStatus(completed) {

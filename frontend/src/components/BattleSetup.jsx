@@ -6,7 +6,7 @@ import { TournamentSetup } from './TournamentSetup';
 
 const groups = [['ginásio', 'Ginásios'], ['elite', 'Elite dos 4'], ['campeão', 'Campeão']];
 const difficulties = [
-  { id: 'facil', title: 'Fácil', detail: '2–3 Pokémon · Nv. 20–30', prize: '1.000 ₽ · 2 Poké Bolas · 1 Poção' },
+  { id: 'facil', title: 'Fácil', detail: '2–3 Pokémon · Nv. 20–30', prize: '1.000 ₽ · 2 Poké Bolas especiais aleatórias · 1 Poção' },
   { id: 'medio', title: 'Médio', detail: '3–4 Pokémon · Nv. 40–50', prize: '3.000 ₽ · 2 Super Bolas · 2 Superpoções' },
   { id: 'dificil', title: 'Difícil', detail: '6 Pokémon · Nv. 100', prize: '10.000 ₽ · 3 Ultra Bolas · 2 Hiperpoções · 1 Reviver' },
 ];

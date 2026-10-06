@@ -5,6 +5,7 @@ import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import { createApp } from '../src/app.js';
 import { parseEnv } from '../src/config/env.js';
+import { SPECIAL_CAPTURE_BALL_REWARD_IDS } from '../src/services/captureBalls.js';
 import { GYMS, ELITE, JOHTO_GYMS, HOENN_GYMS, SINNOH_GYMS, UNOVA1_GYMS, KALOS_GYMS, ALOLA_TRIALS, GALAR_GYMS, PALDEA_GYMS, PALDEA_ELITE } from '../src/services/battleRules.js';
 
 test('MySQL: treinador paga dinheiro e itens; escolha selvagem exige campeão de Kanto', { skip: process.env.TEST_MYSQL !== '1' }, async () => {
@@ -45,10 +46,13 @@ test('MySQL: treinador paga dinheiro e itens; escolha selvagem exige campeão de
     assert.equal(result.resultado, 'vitoria');
     assert.ok((await request(app).get('/api/jogador/historico').set(auth).expect(200)).body.data.eventos.some((entry) => entry.tipo === 'vencer_treinador' && entry.dificuldade === 'facil'));
     assert.equal(result.moedasGanhas, 1000);
-    assert.deepEqual(result.itensGanhos, [{ itemId: 'poke-ball', quantidade: 2 }, { itemId: 'potion', quantidade: 1 }]);
+    const ballReward = result.itensGanhos.find((entry) => SPECIAL_CAPTURE_BALL_REWARD_IDS.includes(entry.itemId));
+    assert.deepEqual(ballReward, { itemId: ballReward.itemId, quantidade: 2 });
+    assert.ok(!result.itensGanhos.some((entry) => entry.itemId === 'poke-ball'));
     assert.equal((await request(app).get('/api/jogador/save').set(auth).expect(200)).body.data.moedas, 1000);
     const inventory = (await request(app).get('/api/jogador/inventario').set(auth).expect(200)).body.data;
-    assert.equal(inventory.find((entry) => entry.itemId === 'poke-ball').quantidade, 12);
+    assert.equal(inventory.find((entry) => entry.itemId === 'poke-ball').quantidade, 10);
+    assert.equal(inventory.find((entry) => entry.itemId === ballReward.itemId).quantidade, 2);
     await db.desafioConcluido.create({ data: { saveId: save.id, desafioId: 'blue' } });
     assert.equal((await request(app).get('/api/batalhas/desafios').set(auth).expect(200)).body.data.regioes[0].escolhaSelvagem, true);
     const picked = (await request(app).post('/api/batalhas/iniciar').set(auth).send(custom).expect(201)).body.data;

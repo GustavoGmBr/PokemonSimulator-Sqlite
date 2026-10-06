@@ -8,7 +8,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '../src/app.js';
-import { captureBallMultiplier, CAPTURE_BALL_ITEMS, evolvesWithMoonStone, happinessGain, rollPokemonSex } from '../src/services/captureBalls.js';
+import { captureBallMultiplier, CAPTURE_BALL_ITEMS, evolvesWithMoonStone, happinessGain, rollPokemonSex, randomRewardCaptureBall, SPECIAL_CAPTURE_BALL_REWARD_IDS } from '../src/services/captureBalls.js';
 
 const temporary = mkdtempSync(path.join(tmpdir(), 'pokemon-capture-balls-'));
 const database = path.join(temporary, 'test.db');
@@ -58,6 +58,12 @@ test('bolas situacionais respeitam os requisitos e os limites de multiplicador',
   assert.equal(captureBallMultiplier('luxury-ball', { opponent: { tipos: ['fighting'] }, player }), 3);
   assert.equal(captureBallMultiplier('friend-ball', { opponent: { tipos: ['grass'] }, player }), 3);
   assert.equal(captureBallMultiplier('sport-ball', { opponent: { tipos: ['fire'] }, player }), 3);
+});
+
+test('recompensas selecionam aleatoriamente bolas especiais e nunca usam a Poké Bola comum ou Premier', () => {
+  assert.equal(randomRewardCaptureBall(() => 0), SPECIAL_CAPTURE_BALL_REWARD_IDS[0]);
+  assert.equal(randomRewardCaptureBall((max) => max - 1), SPECIAL_CAPTURE_BALL_REWARD_IDS.at(-1));
+  assert.ok(SPECIAL_CAPTURE_BALL_REWARD_IDS.every((id) => id !== 'poke-ball' && id !== 'premier-ball'));
 });
 
 test('a busca da cadeia evolutiva identifica corretamente espécies que usam Pedra da Lua', () => {

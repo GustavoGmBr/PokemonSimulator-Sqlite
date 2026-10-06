@@ -1,3 +1,5 @@
+import { randomInt } from 'node:crypto';
+
 export const CAPTURE_BALL_ITEMS = [
   { id: 'fast-ball', name: 'Bola Rápida', price: 1_000, description: 'Multiplica a captura por 4–5× no primeiro turno.' },
   { id: 'timer-ball', name: 'Bola Psíquica', price: 1_000, description: 'Multiplica a captura por 3× contra Pokémon do tipo Psíquico.' },
@@ -17,6 +19,13 @@ export const CAPTURE_BALL_ITEMS = [
   { id: 'premier-ball', name: 'Bola Premier', price: null, description: 'Visual especial. Ganhe uma ao comprar 10 Poké Bolas de uma vez.' },
   { id: 'sport-ball', name: 'Bola Incandescente', price: 1_000, description: 'Multiplica a captura por 3× contra Pokémon do tipo Fogo.' },
 ];
+
+export const SPECIAL_CAPTURE_BALL_REWARD_ID = 'special-capture-ball';
+export const SPECIAL_CAPTURE_BALL_REWARD_IDS = Object.freeze(CAPTURE_BALL_ITEMS.filter((ball) => ball.id !== 'premier-ball').map((ball) => ball.id));
+
+export function randomRewardCaptureBall(rng = randomInt) {
+  return SPECIAL_CAPTURE_BALL_REWARD_IDS[rng(SPECIAL_CAPTURE_BALL_REWARD_IDS.length)];
+}
 
 export const CAPTURE_BALL_IDS = new Set([
   'poke-ball', 'great-ball', 'ultra-ball', 'master-ball',

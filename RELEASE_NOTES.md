@@ -1,3 +1,9 @@
+## Pokémon Simulator SQLite v1.1.2
+
+- Missões de captura, treinadores no modo Fácil e torneios Muito fáceis agora entregam Poké Bolas especiais aleatórias no lugar da Poké Bola comum.
+- A escolha da recompensa de missão fica estável durante o ciclo; as recompensas de treinador e torneio são sorteadas ao iniciar a disputa e permanecem vinculadas à batalha.
+- A Bola Premier foi mantida fora desse sorteio, preservando sua obtenção pelo bônus de compra de Poké Bolas comuns.
+- A sprite da Bola Congelante foi substituída pela arte da Lure Ball.
 ## Pokémon Simulator SQLite v1.1.1
 
 - As bolas especiais foram adaptadas ao jogo: Bola Psíquica (tipo Psíquico, 3×), Crepúsculo (Sombrio/Fantasma, 4×), Ninho (Voador, 3×), Trovão (Elétrico, 3×), Dracônica (Dragão, 3×), Congelante (Gelo, 3×), das Fadas (Fada, 3,5×; tipo compartilhado, 3×), de Treino (Lutador, 3×), Floresta (Planta, 3×) e Incandescente (Fogo, 3×).

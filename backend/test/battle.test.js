@@ -9,6 +9,7 @@ import { evolutionOptions } from '../src/services/evolutions.js';
 import { TOURNAMENTS, rollTournament } from '../src/services/tournaments.js';
 import { createApp } from '../src/app.js';
 import { parseEnv } from '../src/config/env.js';
+import { SPECIAL_CAPTURE_BALL_REWARD_IDS, SPECIAL_CAPTURE_BALL_REWARD_ID } from '../src/services/captureBalls.js';
 
 test('encontros respeitam pesos de evolucao, limite e probabilidade shiny', () => {
   const catalog = getCatalogo();
@@ -153,6 +154,11 @@ test('treinadores respeitam equipes, níveis e recompensas; efetividade consider
       assert.equal(new Set(trainer.pokemon.map((entry) => entry.id)).size, trainer.pokemon.length);
       assert.equal(trainer.recompensa.moedas, rules.moedas);
       assert.ok(trainer.recompensa.itens.every((item) => item.itemId !== 'master-ball'));
+      if (difficulty === 'facil') {
+        const ballReward = trainer.recompensa.itens.find((item) => SPECIAL_CAPTURE_BALL_REWARD_IDS.includes(item.itemId));
+        assert.deepEqual(ballReward, { itemId: ballReward.itemId, quantidade: 2 });
+        assert.ok(!trainer.recompensa.itens.some((item) => item.itemId === 'poke-ball'));
+      }
     }
   }
   assert.equal(effectiveness('electric', ['water', 'flying']), 4);
@@ -178,8 +184,12 @@ test('torneios geram oito equipes e prêmios dentro de cada faixa', () => {
         if (rule.id === 'dificil') assert.ok(trainer.pokemon.every(({ id }) => Object.values(getCatalogo().pokemon[id - 1].atributosBase).reduce((sum, stat) => sum + stat, 0) >= 460 || wildWeight(getCatalogo().pokemon[id - 1]) === 5));
       }
       for (const [itemId, min, max] of rule.premios) {
-        const quantity = tournament.recompensa.itens.find((entry) => entry.itemId === itemId)?.quantidade ?? 0;
+        const reward = itemId === SPECIAL_CAPTURE_BALL_REWARD_ID
+          ? tournament.recompensa.itens.find((entry) => SPECIAL_CAPTURE_BALL_REWARD_IDS.includes(entry.itemId))
+          : tournament.recompensa.itens.find((entry) => entry.itemId === itemId);
+        const quantity = reward?.quantidade ?? 0;
         assert.ok(quantity >= min && quantity <= max);
+        if (itemId === SPECIAL_CAPTURE_BALL_REWARD_ID) assert.ok(!tournament.recompensa.itens.some((entry) => entry.itemId === 'poke-ball'));
       }
     }
   }

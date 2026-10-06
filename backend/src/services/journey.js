@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { HttpError } from '../lib/errors.js';
 import { REGIONS, regionUnlocked } from './battleRules.js';
 import { IV_ITEMS } from './ivRules.js';
+import { randomRewardCaptureBall } from './captureBalls.js';
 
 export const MISSION_DURATION_MS = 2 * 60 * 60 * 1000;
 export const MISSION_COMPLETION_REWARD = Object.freeze({ moedas: 5_000, fichas: 500, itens: [{ itemId: 'rare-candy', quantidade: 1 }] });
@@ -19,7 +20,7 @@ export function generateMissions(save, completed, period = missionPeriod()) {
   for (let index = 0; index < 3; index++) {
     const selected = region(index);
     const goal = index + 1 + period % 3;
-    missions.push({ indice: missions.length, tipo: 'capturar', regiao: selected.id, titulo: `Capture ${goal} espécie${goal > 1 ? 's' : ''} diferente${goal > 1 ? 's' : ''} de ${selected.nome}`, alvo: goal, recompensa: { moedas: 150 + selected.geracao * 50 + index * 100, itens: [{ itemId: 'poke-ball', quantidade: 2 + index }] } });
+    missions.push({ indice: missions.length, tipo: 'capturar', regiao: selected.id, titulo: `Capture ${goal} espécie${goal > 1 ? 's' : ''} diferente${goal > 1 ? 's' : ''} de ${selected.nome}`, alvo: goal, recompensa: { moedas: 150 + selected.geracao * 50 + index * 100, itens: [{ itemId: randomRewardCaptureBall((max) => bytes[20 + index] % max), quantidade: 2 + index }] } });
   }
   for (let index = 0; index < 3; index++) {
     const selected = region(index + 3);

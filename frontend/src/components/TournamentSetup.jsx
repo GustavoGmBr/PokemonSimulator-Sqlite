@@ -1,7 +1,7 @@
 import { Trophy } from 'lucide-react';
 import { Button } from './ui/button';
 
-const names = { 'poke-ball': 'Poké Bola', 'great-ball': 'Grande Bola', 'ultra-ball': 'Ultra Bola', 'master-ball': 'Master Bola', 'rare-candy': 'Doce Raro', 'exp-candy-p': 'Doce EXP P', 'exp-candy-m': 'Doce EXP M', 'exp-candy-g': 'Doce EXP G', 'exp-candy-gg': 'Doce EXP GG' };
+const names = { 'poke-ball': 'Poké Bola', 'special-capture-ball': 'Poké Bola especial aleatória', 'great-ball': 'Grande Bola', 'ultra-ball': 'Ultra Bola', 'master-ball': 'Master Bola', 'rare-candy': 'Doce Raro', 'exp-candy-p': 'Doce EXP P', 'exp-candy-m': 'Doce EXP M', 'exp-candy-g': 'Doce EXP G', 'exp-candy-gg': 'Doce EXP GG' };
 
 export function TournamentSetup({ tournaments = [], choice, setChoice, start, busy, coins, collectionCount }) {
   const selected = tournaments.find((entry) => entry.id === choice.torneioId) ?? tournaments[0];
