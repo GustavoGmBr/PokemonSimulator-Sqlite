@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Backpack, Coins, Search, Store } from 'lucide-react';
 import { api, assetUrl } from '../lib/api';
+import { getBonusItemDescriptions } from '../lib/bonus-items';
 import { useSession } from '../stores/session';
 import { Loading, Failure } from './common';
 
@@ -21,12 +22,13 @@ const categories = [
 ];
 const normalized = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-function ItemCard({ item, quantity, shop, busy, cartQuantity, add }) {
+function ItemCard({ item, quantity, shop, busy, cartQuantity, add, bonusDescription }) {
   const ownedPassive = passiveItems.has(item.nome) && quantity > 0;
   const [amount, setAmount] = useState(1);
   return <article className={`item-card ${quantity > 0 ? 'owned-item' : ''}`}>
     {item.sprite ? <img src={assetUrl(item.sprite)} alt="" loading="lazy" /> : <Backpack size={24} />}
     <div><h3>{item.nomeExibicao}</h3><p>{item.descricao}</p>
+      {passiveItems.has(item.nome) && <p className={`item-bonus-indicator ${ownedPassive ? 'active' : ''}`}><strong>{ownedPassive ? 'BÔNUS ATIVO' : 'INATIVO'}</strong> · {ownedPassive ? bonusDescription : `Não adquirido. Aplicaria: ${bonusDescription}`}</p>}
       {shop && item.precoLoja > 0 && <div className="item-cart-controls"><span>{item.precoLoja.toLocaleString('pt-BR')} ₽ cada</span><label>Quantidade <input type="number" min="1" max={passiveItems.has(item.nome) ? 1 : 999} value={amount} disabled={ownedPassive || busy} onChange={(event) => setAmount(event.target.value)} /></label><button className="item-buy" type="button" disabled={busy || ownedPassive || !Number.isInteger(Number(amount)) || Number(amount) < 1 || Number(amount) > (passiveItems.has(item.nome) ? 1 : 999) || passiveItems.has(item.nome) && cartQuantity > 0} onClick={() => add(item, Number(amount))}>{ownedPassive ? 'Já adquirido' : cartQuantity ? `No carrinho: ${cartQuantity}` : 'Adicionar ao carrinho'}</button></div>}
       {shop && item.precoLoja == null && <span className="item-reward-only">{item.nome === 'premier-ball' ? 'Bônus ao comprar 10 Poké Bolas' : 'Somente recompensa de torneio'}</span>}
     </div><span aria-label={`Quantidade: ${quantity}`} className="item-quantity">×{quantity}</span>
@@ -38,6 +40,7 @@ export function ItemsPanel({ save, shop = false }) {
   const userId = useSession((state) => state.usuario.id);
   const items = useQuery({ queryKey: ['items-catalog'], queryFn: () => api('/catalogo/itens'), staleTime: Infinity });
   const inventory = useQuery({ queryKey: ['inventario', userId, save.id], queryFn: () => api('/jogador/inventario') });
+  const challenges = useQuery({ queryKey: ['challenges', save.id], queryFn: () => api('/batalhas/desafios'), enabled: Boolean(save.id) });
   const [category, setCategory] = useState('all');
   const [onlyOwned, setOnlyOwned] = useState(!shop);
   const [search, setSearch] = useState('');
@@ -59,8 +62,8 @@ export function ItemsPanel({ save, shop = false }) {
     } catch (caught) { setError(caught.message); } finally { setBuying(false); }
   }
 
-  if (items.isPending || inventory.isPending) return <Loading label="Carregando itens…" />;
-  if (items.error || inventory.error) return <Failure error={items.error || inventory.error} retry={() => { items.refetch(); inventory.refetch(); }} />;
+  if (items.isPending || inventory.isPending || challenges.isPending) return <Loading label="Carregando itens…" />;
+  if (items.error || inventory.error || challenges.error) return <Failure error={items.error || inventory.error || challenges.error} retry={() => { items.refetch(); inventory.refetch(); challenges.refetch(); }} />;
 
   const quantities = new Map(inventory.data.map((item) => [item.itemId, item.quantidade]));
   const knownIds = new Set(items.data.map((item) => item.nome));
@@ -73,6 +76,7 @@ export function ItemsPanel({ save, shop = false }) {
   const groups = categories.map((entry) => ({ ...entry, items: available.filter((item) => item.categoria === entry.id) })).filter((entry) => entry.items.length && (category === 'all' || category === entry.id));
   const cartLines = Object.entries(cart).map(([id, quantity]) => ({ item: items.data.find((entry) => entry.nome === id), quantity })).filter((line) => line.item);
   const cartTotal = cartLines.reduce((sum, { item, quantity }) => sum + item.precoLoja * quantity, 0);
+  const currentBonuses = getBonusItemDescriptions(challenges.data.regioes);
 
   return <section className="items-panel">
     <div className="section-heading"><h2>{shop ? <Store size={20} /> : <Backpack size={20} />}{shop ? 'Loja Pokémon' : 'Bolsa do treinador'}</h2><span>{total} NA MOCHILA{!shop && ` · ${save.moedas.toLocaleString('pt-BR')} ₽`}</span></div>
@@ -86,7 +90,7 @@ export function ItemsPanel({ save, shop = false }) {
     <p className="panel-hint">{shop ? 'Busque pelo nome ou filtre por categoria para encontrar o item desejado.' : <>A bolsa mostra seus itens por categoria. <Link to="/loja" className="shop-link">Visitar a loja</Link></>}</p>
     {error && <p role="alert" className="battle-error">{error}</p>}
     {success && <p role="status" className="panel-hint">{success}</p>}
-    {groups.map((group) => <div className="item-group" key={group.id}><div className="item-group-heading"><h3>{group.label}</h3><span>{group.items.length} {group.items.length === 1 ? 'TIPO' : 'TIPOS'}</span></div><div className="items-grid">{group.items.map((item) => <ItemCard key={item.nome} item={item} quantity={quantities.get(item.nome) ?? 0} shop={shop} busy={buying} cartQuantity={cart[item.nome] ?? 0} add={add} />)}</div></div>)}
+    {groups.map((group) => <div className="item-group" key={group.id}><div className="item-group-heading"><h3>{group.label}</h3><span>{group.items.length} {group.items.length === 1 ? 'TIPO' : 'TIPOS'}</span></div><div className="items-grid">{group.items.map((item) => <ItemCard key={item.nome} item={item} quantity={quantities.get(item.nome) ?? 0} shop={shop} busy={buying} cartQuantity={cart[item.nome] ?? 0} add={add} bonusDescription={currentBonuses[item.nome]} />)}</div></div>)}
     {!groups.length && <p className="items-empty">{shop ? 'Nenhum item encontrado com esses filtros.' : 'Nenhum item nesta categoria da bolsa.'}</p>}
   </section>;
 }

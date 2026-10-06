@@ -41,8 +41,9 @@ test('bolas situacionais respeitam os requisitos e os limites de multiplicador',
   assert.equal(captureBallMultiplier('timer-ball', { opponent, player }), 1);
   assert.equal(captureBallMultiplier('dusk-ball', { opponent: { tipos: ['ghost'] }, player }), 4);
   assert.equal(captureBallMultiplier('dusk-ball', { opponent: { tipos: ['dark', 'flying'] }, player }), 4);
-  assert.equal(captureBallMultiplier('dusk-ball', { hour: 23, opponent, player }), 1);
+  assert.equal(captureBallMultiplier('dusk-ball', { opponent, player }), 1);
   assert.equal(captureBallMultiplier('dive-ball', { opponent, player }), 3.5);
+  assert.equal(captureBallMultiplier('dive-ball', { opponent: { tipos: ['fire'] }, player }), 1);
   assert.equal(captureBallMultiplier('net-ball', { opponent, player }), 3);
   assert.equal(captureBallMultiplier('nest-ball', { opponent: { tipos: ['flying'] }, player }), 3);
   assert.equal(captureBallMultiplier('repeat-ball', { opponent: { tipos: ['electric'] }, player }), 3);
@@ -94,4 +95,8 @@ test('catálogo inclui as bolas especiais e compras de dez Poké Bolas dão Bola
   assert.deepEqual(purchase.bonusItens, [{ itemId: 'premier-ball', quantidade: 1 }]);
   assert.equal((await db.itemInventario.findUniqueOrThrow({ where: { saveId_itemId: { saveId: save.id, itemId: 'premier-ball' } } })).quantidade, 1);
   await request(app).post('/api/jogador/itens/carrinho').set(headers).send({ itens: [{ itemId: 'premier-ball', quantidade: 1 }] }).expect(400);
+});
+
+test('busca selvagem não aceita mais configuração de ambiente', async () => {
+  await request(app).post('/api/batalhas/iniciar').set({ 'X-Save-Id': save.id }).send({ tipo: 'selvagem', regiao: 'kanto', ambiente: 'water' }).expect(400);
 });

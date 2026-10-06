@@ -1,3 +1,9 @@
+## Pokémon Simulator SQLite v1.1.3
+
+- Removida a escolha de ambiente da busca de Pokémon selvagens e do estado da batalha.
+- A Bola Aquática agora aplica seu bônus de 3,5× somente contra Pokémon do tipo Água.
+- A bolsa e a loja mostram se cada item passivo está ativo e o bônus atual calculado pelo progresso do save.
+- Ovo da Sorte e Amuleto da Sorte exibem seus multiplicadores de XP e dinheiro; Shiny Charm e Catch Charm mostram as chances por geração.
 ## Pokémon Simulator SQLite v1.1.2
 
 - Missões de captura, treinadores no modo Fácil e torneios Muito fáceis agora entregam Poké Bolas especiais aleatórias no lugar da Poké Bola comum.
