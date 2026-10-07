@@ -43,6 +43,19 @@
 .wild-range-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .wild-range-fields label { display: grid; gap: 6px; font-size: 12px; color: #d1e3be; }
 .wild-range-fields input { width: 100%; padding: 9px; }
+.wild-auto-search { display: grid; gap: 12px; padding: 15px; margin-top: 20px; border: 1px solid #52643e; border-radius: 11px; background: #202e24; }
+.wild-auto-heading { display: flex; align-items: flex-start; gap: 10px; color: #c9ef87; }
+.wild-auto-heading > span { display: grid; gap: 4px; }
+.wild-auto-heading strong { font-size: 13px; }
+.wild-auto-heading small, .wild-auto-hint { color: #a0ad98; font-size: 11px; line-height: 1.5; }
+.wild-auto-search label { display: grid; gap: 6px; color: #d1e3be; font-size: 12px; }
+.wild-auto-search input, .wild-auto-search select { margin: 0; padding: 9px 10px; font-size: 12px; }
+.wild-auto-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.wild-auto-search .battle-start { margin: 0; }
+.wild-auto-status { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 13px 15px; margin: 16px 0; border: 1px solid #6d6334; border-radius: 10px; background: #3a3420; color: #ffe394; }
+.wild-auto-status > span { display: flex; align-items: center; gap: 9px; }
+.wild-auto-status strong { font-size: 12px; }
+.wild-auto-status.found { border-color: #5c7743; background: #233324; color: #c9ef87; }
 .wild-iv-guide { margin:12px 0; padding:14px 16px; border:1px solid #526e4d; border-radius:11px; background:#17271d; color:#d8e4ce; }
 .wild-iv-guide summary { color:#f0e6ac; font-weight:700; cursor:pointer; }
 .wild-iv-guide p { margin:10px 0; line-height:1.5; }

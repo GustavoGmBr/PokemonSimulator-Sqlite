@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Search, Trophy, Sparkles, Footprints, RefreshCw, Swords, Backpack, Users, Check, X } from 'lucide-react';
@@ -77,6 +77,8 @@ export function BattlePage({ area = 'batalhas' }) {
   const [actionTab, setActionTab] = useState('attack');
   const [mode, setMode] = useState(() => localStorage.getItem('battle-sprite-mode') === '3d' ? '3d' : '2d');
   const [busy, setBusy] = useState(false);
+  const autoSearchRef = useRef(false);
+  const [autoSearchStatus, setAutoSearchStatus] = useState(null);
   const [error, setError] = useState('');
   const [ball, setBall] = useState('poke-ball');
   const [healItem, setHealItem] = useState('potion');
@@ -86,7 +88,7 @@ export function BattlePage({ area = 'batalhas' }) {
     await Promise.all([client.invalidateQueries({ queryKey: ['current-battle', save.data?.id] }), client.invalidateQueries({ queryKey: ['colecao'] }), client.invalidateQueries({ queryKey: ['inventario'] }), client.invalidateQueries({ queryKey: ['save'] }), client.invalidateQueries({ queryKey: ['challenges'] }), client.invalidateQueries({ queryKey: ['missoes'] }), client.invalidateQueries({ queryKey: ['historico'] })]);
   }
   async function start(requestedChoice = choice) {
-    setBusy(true); setError('');
+    setBusy(true); setError(''); setAutoSearchStatus(null);
     try {
       const state = await api('/batalhas/iniciar', { method: 'POST', body: requestedChoice });
       setBattle(state); setSelected([]); setActionTab('attack'); await refresh();
@@ -98,6 +100,51 @@ export function BattlePage({ area = 'batalhas' }) {
       const state = await api('/batalhas/acao', { method: 'POST', body: { batalhaId: active.id, versao: active.versao, acao, ...extra } });
       setBattle(state); if (['procurar', 'fugir', 'escolher'].includes(acao)) setSelected([]); if (['escolher', 'trocar'].includes(acao)) setActionTab('attack'); await refresh();
     } catch (err) { setError(err.message); await current.refetch(); setBattle(null); } finally { setBusy(false); }
+  }
+  function matchesAutoSearch(opponent, criteria) {
+    return (!criteria.especieId || opponent.especieId === criteria.especieId) &&
+      (criteria.estrelasMin == null || ivQuality(opponent.ivs).stars >= criteria.estrelasMin) &&
+      (criteria.estrelasMax == null || ivQuality(opponent.ivs).stars <= criteria.estrelasMax) &&
+      (criteria.shiny === 'any' || opponent.shiny === (criteria.shiny === 'shiny'));
+  }
+  function isRareAutoEncounter(opponent) {
+    return opponent.shiny && ivQuality(opponent.ivs).stars === 4;
+  }
+  async function startAutoSearch(requestedChoice, criteria) {
+    if (busy || !criteria.especieId && criteria.estrelasMin == null && criteria.estrelasMax == null && criteria.shiny === 'any') return;
+    autoSearchRef.current = true;
+    setAutoSearchStatus({ running: true, attempts: 0, criteria, stopping: false });
+    setBusy(true); setError('');
+    let state = null;
+    try {
+      state = await api('/batalhas/iniciar', { method: 'POST', body: { ...requestedChoice, autoBusca: true } });
+      setBattle(state); setSelected([]); setActionTab('attack');
+      setAutoSearchStatus({ running: true, attempts: 1, criteria, stopping: false });
+      if (state.moedasBusca != null) client.setQueryData(['save', save.data.id], currentSave => currentSave ? { ...currentSave, moedas: state.moedasBusca } : currentSave);
+      while (autoSearchRef.current && !matchesAutoSearch(state.oponente, criteria) && !isRareAutoEncounter(state.oponente)) {
+        await new Promise(resolve => setTimeout(resolve, 180));
+        if (!autoSearchRef.current) break;
+        state = await api('/batalhas/acao', { method: 'POST', body: { batalhaId: state.id, versao: state.versao, acao: 'procurar-auto' } });
+        setBattle(state);
+        setAutoSearchStatus(currentStatus => ({ ...currentStatus, attempts: state.buscaTentativas ?? currentStatus.attempts + 1 }));
+        if (state.moedasBusca != null) client.setQueryData(['save', save.data.id], currentSave => currentSave ? { ...currentSave, moedas: state.moedasBusca } : currentSave);
+      }
+      autoSearchRef.current = false;
+      setAutoSearchStatus({ running: false, attempts: state?.buscaTentativas ?? 1, criteria, result: state && isRareAutoEncounter(state.oponente) ? 'rare' : state && matchesAutoSearch(state.oponente, criteria) ? 'found' : 'stopped', stopping: false });
+    } catch (err) {
+      autoSearchRef.current = false;
+      const validationDetails = err.fields?.map((field) => `${field.field}: ${field.message}`).join(' · ');
+      setError(validationDetails ? `${err.message} ${validationDetails}` : err.message);
+      setAutoSearchStatus(currentStatus => ({ ...currentStatus, running: false, result: 'stopped', stopping: false }));
+    } finally {
+      setBusy(false);
+      await refresh();
+    }
+  }
+  function stopAutoSearch() {
+    if (!autoSearchRef.current) return;
+    autoSearchRef.current = false;
+    setAutoSearchStatus(currentStatus => currentStatus ? { ...currentStatus, stopping: true } : currentStatus);
   }
   if (save.isPending || catalog.isPending || (save.data?.id && (collection.isPending || challenges.isPending || current.isPending || inventory.isPending))) return <Loading label="Preparando arena…" />;
   if (save.error || catalog.error || collection.error || challenges.error || current.error || inventory.error) return <Failure error={save.error || catalog.error || collection.error || challenges.error || current.error || inventory.error} retry={() => { save.refetch(); catalog.refetch(); collection.refetch(); challenges.refetch(); current.refetch(); inventory.refetch(); }} />;
@@ -139,6 +186,7 @@ export function BattlePage({ area = 'batalhas' }) {
     {error && <p className="battle-error" role="alert">{error}</p>}
     {active ? <div className="battle-active">
       <div className="battle-topline"><span>{active.tipo === 'selvagem' ? 'ENCONTRO SELVAGEM' : `${active.tipo === 'desafio' ? 'DESAFIO' : active.tipo === 'torneio' ? 'TORNEIO' : 'TREINADOR'} · ${active.treinador.toUpperCase()}`}</span><span>{active.resultado ? 'RESULTADO' : active.jogador ? 'EM COMBATE' : 'ESCOLHA SEU PARCEIRO'} · {active.torneio && `TREINADOR ${active.torneio.rodada}/8 · `}RODADA {active.rodada}</span></div>
+      {active.tipo === 'selvagem' && autoSearchStatus && <div className={`wild-auto-status ${['found', 'rare'].includes(autoSearchStatus.result) ? 'found' : ''}`} role="status"><span><Sparkles size={17} /><strong>{autoSearchStatus.running ? autoSearchStatus.stopping ? `Parando após o giro atual · ${autoSearchStatus.attempts} tentativas` : `Busca automática em andamento · ${autoSearchStatus.attempts} tentativas` : autoSearchStatus.result === 'rare' ? `Shiny de 4 estrelas encontrado! Busca pausada após ${autoSearchStatus.attempts} tentativas.` : autoSearchStatus.result === 'found' ? `Encontrado após ${autoSearchStatus.attempts} tentativas!` : `Busca automática parada · ${autoSearchStatus.attempts ?? 0} tentativas`} · {(autoSearchStatus.attempts ?? 0) * 25} ₽ gastos</strong></span>{autoSearchStatus.running && <Button variant="outline" onClick={stopAutoSearch}>Parar busca</Button>}</div>}
       {active.tipo === 'torneio' && !active.resultado && <button className="battle-abandon" type="button" disabled={busy} onClick={() => act('abandonar')}>Abandonar torneio</button>}
       {active.tipo === 'selvagem' && active.intervaloNivel && <p className="panel-hint">Intervalo escolhido: Nv. {active.intervaloNivel.minimo}–{active.intervaloNivel.maximo}{active.regiao === 'todas' ? ` · progresso de ${challenges.data.regioes.find(entry => entry.id === active.regiaoNiveis)?.nome ?? active.regiaoNiveis}` : ''}.</p>}
       <div className="battle-workspace">
@@ -147,6 +195,6 @@ export function BattlePage({ area = 'batalhas' }) {
 {active.resultado ? <div className="battle-result"><h2>{({ vitoria: 'Vitória!', derrota: 'Derrota', captura: 'Pokémon capturado!', fuga: 'Você fugiu', desistencia: 'Torneio abandonado' })[active.resultado]}</h2>{active.xpGanho > 0 && <p>Seus Pokémon receberam {active.xpGanho} XP{active.novoNivel ? ` e chegaram ao nível ${active.novoNivel}` : ''}.</p>}{active.resultado === 'vitoria' && <p>Você ganhou {active.moedasGanhas.toLocaleString('pt-BR')} ₽.{active.itensGanhos?.length ? ` Itens: ${active.itensGanhos.map((item) => `${ballNames[item.itemId] ?? healNames[item.itemId] ?? rewardNames[item.itemId] ?? IV_ITEMS.find(entry => entry.nome === item.itemId)?.nomeExibicao ?? item.itemId} ×${item.quantidade}`).join(', ')}.` : ''}</p>}<div className="battle-result-actions"><Button disabled={busy} onClick={() => { setBattle(null); setSelected([]); }}>Escolher próxima batalha</Button>{active.tipo === 'selvagem' && <Button disabled={busy} onClick={() => { setSelected([]); start({ tipo: 'selvagem', regiao: active.regiao ?? 'kanto', ...(active.intervaloNivel ? { intervaloNivel: active.intervaloNivel } : {}) }); }}>Procurar novo Pokémon</Button>}{active.tipo === 'treinador' && <Button disabled={busy} onClick={() => { setSelected([]); start({ tipo: 'treinador', dificuldade: active.dificuldade }); }}>Enfrentar outro treinador</Button>}</div></div> : active.jogador ? active.aguardandoReviver ? <div className="battle-actions"><h2>{active.jogador.nome} desmaiou.</h2><p className="panel-hint">Escolha um Pokémon da reserva, use um Reviver ou aceite a derrota.</p><ReservePicker members={active.reservas} {...{byId,act,busy}} fainted /><HealingPicker {...{healing,chosenHeal,setHealItem,act,busy}} combatant={active.jogador} /><Button variant="outline" disabled={busy} onClick={() => act('desistir')}>Aceitar derrota</Button></div> : <div className="battle-actions"><span className="battle-phase">SUA PRÓXIMA AÇÃO</span><h2>O que {active.jogador.nome} vai fazer?</h2><div className="battle-action-tabs" role="tablist" aria-label="Ações de batalha">{[['attack','Ataques',Swords],['items','Bolsa',Backpack],['team','Equipe',Users]].map(([id,label,Icon])=><button type="button" key={id} role="tab" aria-selected={actionTab===id} aria-controls="battle-action-panel" id={'battle-action-'+id} onClick={()=>setActionTab(id)}><Icon size={16} />{label}</button>)}</div><div id="battle-action-panel" role="tabpanel" aria-labelledby={'battle-action-'+actionTab}>{actionTab==='attack' && <div className="battle-moves">{active.jogador.ataques.map((move) => <AttackOption key={move.nome} move={move} defenderTypes={active.oponente.tipos} types={catalog.data.tipos} busy={busy} onAttack={(name) => act('ataque', { golpe: name })} />)}</div>}{actionTab==='items' && <><HealingPicker {...{healing,chosenHeal,setHealItem,act,busy}} combatant={active.jogador} />{active.tipo==='selvagem' && <BallPicker balls={balls} selected={chosenBall} setBall={setBall} act={act} busy={busy} />}</>}{actionTab==='team' && <ReservePicker members={active.reservas} {...{byId,act,busy}} />}</div>{active.tipo==='selvagem' && <button className="battle-flee" disabled={busy} onClick={()=>act('fugir')}><Footprints size={14} />Fugir do encontro</button>}</div> : <div className="battle-actions"><div className="battle-encounter-heading"><span className="battle-phase">{active.tipo === 'selvagem' ? 'NOVO ENCONTRO' : 'PRÓXIMO CONFRONTO'}</span><h2>Escolha seu Pokémon após ver o adversário</h2><p>{active.oponente.nome} · Nv. {active.oponente.nivel} · {active.oponente.tipos.map((entry) => typeNames[entry] ?? entry).join(' / ')}</p>{active.tipo === 'selvagem' && <div className="battle-encounter-actions"><Button variant="outline" disabled={busy} onClick={() => act('procurar')}><RefreshCw size={16} /> Procurar outro Pokémon</Button><Button variant="outline" disabled={busy} onClick={() => act('fugir')}><Footprints size={16} /> Fugir</Button></div>}</div>{selectedChallenge && <div className="battle-cap">Limite de {selectedChallenge.nome}: nível {selectedChallenge.nivel}</div>}<div className="battle-team-heading"><strong>Sua equipe · {selected.length}/{teamLimit}</strong><small>O primeiro escolhido entra em campo.</small></div>{selectedMembers.length>0 && <div className="battle-selected-team" aria-label="Ordem da equipe selecionada">{selectedMembers.map((member,index)=><div key={member.id}><b>{index+1}</b><span>{member.apelido || ownedForm(byId.get(member.especieId),member).nomeExibicao}<small>{index ? 'Reserva' : 'Entra primeiro'}</small></span>{index>0 && <button type="button" aria-label={'Enviar '+(member.apelido || byId.get(member.especieId).nomeExibicao)+' primeiro'} disabled={busy} onClick={()=>setSelected(current=>[member.id,...current.filter(id=>id!==member.id)])}>↑</button>}<button type="button" aria-label={'Remover '+(member.apelido || byId.get(member.especieId).nomeExibicao)+' da equipe'} disabled={busy} onClick={()=>toggleMember(member.id)}><X size={14} /></button></div>)}</div>}<div className="collection-filters battle-selection-filters"><label className="search-field battle-filter-name"><Search size={16} /><input aria-label="Filtrar Pokémon para batalha por número ou nome" placeholder="Nº da Pokédex ou nome" value={search} onChange={(event) => setSearch(event.target.value)} /></label><select className="battle-filter-type" aria-label="Filtrar Pokémon para batalha por tipo" value={type} onChange={(event) => setType(event.target.value)}><option value="">Todos os tipos</option>{Object.entries(typeNames).map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select><select className="battle-filter-stars" aria-label="Filtrar Pokémon para batalha por estrelas" value={starFilter} onChange={event=>setStarFilter(event.target.value)}><option value="">Todas as estrelas</option>{[0,1,2,3,4].map(stars=><option key={stars} value={stars}>{stars} estrelas</option>)}</select><select className="battle-filter-level" aria-label="Filtrar Pokémon para batalha por nível" value={levelFilter} onChange={event=>setLevelFilter(event.target.value)}><option value="">Todos os níveis</option>{["1-20","21-40","41-60","61-80","81-100"].map(range=><option key={range} value={range}>Nível {range.replace("-", "–")}</option>)}</select><select className="battle-filter-shiny" aria-label="Filtrar Pokémon para batalha por brilho" value={shinyFilter} onChange={event=>setShinyFilter(event.target.value)}><option value="">Normal e Shiny</option><option value="normal">Normal</option><option value="shiny">Shiny</option></select></div><div className="battle-collection">{members.map((member) => <BattleMemberCard key={member.id} member={member} species={byId.get(member.especieId)} opponent={opponent} types={catalog.data.tipos} selected={selected.includes(member.id)} position={selected.indexOf(member.id)+1} disabled={busy || teamLimit>1 && selected.length>=teamLimit && !selected.includes(member.id)} onSelect={() => toggleMember(member.id)} levelCap={selectedChallenge?.nivel} />)}{!members.length && <p className="collection-empty">Nenhum Pokémon corresponde aos filtros.</p>}</div><div className="battle-selection-footer"><span>Equipe selecionada · {selected.length}/{teamLimit}</span><Button className="battle-start" disabled={!selected.length || busy} onClick={() => act('escolher', { pokemonIds: selected })}>{busy ? 'Entrando…' : 'Escolher para batalhar'}</Button></div></div>}
       </div>
       </div>
-    </div> : <BattleSetup area={area} catalog={catalog.data} challenges={challenges.data} choice={choice} setChoice={setChoice} start={start} busy={busy} collectionCount={collection.data.length} hasShinyCharm={hasShinyCharm} coins={save.data.moedas} />}
+    </div> : <BattleSetup area={area} catalog={catalog.data} challenges={challenges.data} choice={choice} setChoice={setChoice} start={start} startAutoSearch={startAutoSearch} busy={busy} collectionCount={collection.data.length} hasShinyCharm={hasShinyCharm} coins={save.data.moedas} />}
   </>;
 }

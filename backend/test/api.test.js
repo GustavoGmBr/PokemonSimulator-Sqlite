@@ -114,6 +114,54 @@ test('exporta, importa como novo save e substitui outro save sem perder seu iden
   assert.equal((await db.save.findUnique({ where: { id: replaceTarget.id } })).nomeTreinador, 'Red');
 });
 
+test('busca automática exige os oito ginásios de Kanto e cobra 25 moedas por tentativa', async () => {
+  const save = (await request(app).post('/api/jogador/saves').send({ nomeTreinador: 'Busca' }).expect(201)).body.data;
+  await request(app).post('/api/jogador/inicial').set('X-Save-Id', save.id).send({ saveId: save.id, especieId: 7 }).expect(201);
+  const lockedChallenges = (await request(app).get('/api/batalhas/desafios').set('X-Save-Id', save.id).expect(200)).body.data;
+  assert.equal(lockedChallenges.autoBuscaDisponivel, false);
+  await request(app).post('/api/batalhas/iniciar').set('X-Save-Id', save.id).send({ tipo: 'selvagem', regiao: 'kanto', autoBusca: true }).expect(403);
+  assert.equal(await db.batalha.count({ where: { saveId: save.id } }), 0);
+
+  await db.desafioConcluido.createMany({ data: ['brock', 'misty', 'lt-surge', 'erika', 'koga', 'sabrina', 'blaine', 'giovanni'].map(desafioId => ({ saveId: save.id, desafioId })) });
+  const unlockedChallenges = (await request(app).get('/api/batalhas/desafios').set('X-Save-Id', save.id).expect(200)).body.data;
+  assert.equal(unlockedChallenges.autoBuscaDisponivel, true);
+  await request(app).post('/api/batalhas/iniciar').set('X-Save-Id', save.id).send({ tipo: 'treinador', dificuldade: 'facil', autoBusca: true }).expect(400);
+  await request(app).post('/api/batalhas/iniciar').set('X-Save-Id', save.id).send({ tipo: 'selvagem', regiao: 'kanto', autoBusca: true }).expect(409);
+  assert.equal(await db.batalha.count({ where: { saveId: save.id } }), 0);
+
+  await db.save.update({ where: { id: save.id }, data: { moedas: 500 } });
+  const started = (await request(app).post('/api/batalhas/iniciar').set('X-Save-Id', save.id).send({ tipo: 'selvagem', regiao: 'kanto', intervaloNivel: { minimo: 2, maximo: 58 }, autoBusca: true }).expect(201)).body.data;
+  assert.equal(started.buscaAutomatica, true);
+  assert.equal(started.buscaTentativas, 1);
+  assert.equal(started.moedasBusca, 475);
+
+  const next = (await request(app).post('/api/batalhas/acao').set('X-Save-Id', save.id).send({ batalhaId: started.id, versao: 0, acao: 'procurar-auto' }).expect(200)).body.data;
+  assert.equal(next.buscaTentativas, 2);
+  assert.equal(next.moedasBusca, 450);
+  assert.equal((await db.save.findUnique({ where: { id: save.id } })).moedas, 450);
+  await db.save.update({ where: { id: save.id }, data: { moedas: 24 } });
+  await request(app).post('/api/batalhas/acao').set('X-Save-Id', save.id).send({ batalhaId: started.id, versao: 1, acao: 'procurar-auto' }).expect(409);
+  assert.equal((await db.save.findUnique({ where: { id: save.id } })).moedas, 24);
+
+  await request(app).post('/api/batalhas/acao').set('X-Save-Id', save.id).send({ batalhaId: started.id, versao: 1, acao: 'fugir' }).expect(200);
+  await db.save.update({ where: { id: save.id }, data: { moedas: 300 } });
+  const manual = (await request(app).post('/api/batalhas/iniciar').set('X-Save-Id', save.id).send({ tipo: 'selvagem' }).expect(201)).body.data;
+  await request(app).post('/api/batalhas/acao').set('X-Save-Id', save.id).send({ batalhaId: manual.id, versao: 0, acao: 'procurar-auto' }).expect(409);
+  assert.equal((await db.save.findUnique({ where: { id: save.id } })).moedas, 300);
+  await request(app).post('/api/batalhas/acao').set('X-Save-Id', save.id).send({ batalhaId: manual.id, versao: 0, acao: 'fugir' }).expect(200);
+
+  await db.desafioConcluido.create({ data: { saveId: save.id, desafioId: 'blue' } });
+  await db.save.update({ where: { id: save.id }, data: { moedas: 300 } });
+  const specific = (await request(app).post('/api/batalhas/iniciar').set('X-Save-Id', save.id).send({ tipo: 'selvagem', regiao: 'kanto', selvagem: { regiao: 'kanto', especieId: 95, nivel: 27 }, autoBusca: true }).expect(201)).body.data;
+  assert.equal(specific.oponente.especieId, 95);
+  assert.equal(specific.oponente.nivel, 27);
+  const specificNext = (await request(app).post('/api/batalhas/acao').set('X-Save-Id', save.id).send({ batalhaId: specific.id, versao: 0, acao: 'procurar-auto' }).expect(200)).body.data;
+  assert.equal(specificNext.oponente.especieId, 95);
+  assert.equal(specificNext.oponente.nivel, 27);
+  await request(app).post('/api/batalhas/acao').set('X-Save-Id', save.id).send({ batalhaId: specific.id, versao: 1, acao: 'fugir' }).expect(200);
+  await request(app).delete(`/api/jogador/saves/${save.id}`).expect(200);
+});
+
 test('excluir um save remove seus dados e preserva os outros', async () => {
   await request(app).delete(`/api/jogador/saves/${first.id}`).expect(200);
   assert.equal(await db.pokemonCapturado.count({ where: { saveId: first.id } }), 0);

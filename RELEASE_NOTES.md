@@ -1,3 +1,10 @@
+## Pokémon Simulator SQLite v1.2.1
+
+- Busca automática de Pokémon selvagens liberada após vencer os oito Ginásios de Kanto, com filtro de IV por faixa de estrelas e custo de 25 moedas por giro.
+- A busca automática pausa ao encontrar um Pokémon Shiny de 4 estrelas, mesmo que ele não corresponda à espécie ou aos filtros definidos.
+- Após concluir a região e liberar a busca específica, selecionar um Pokémon na busca automática faz os giros procurarem somente aquela espécie, mantendo o nível escolhido enquanto IVs ou brilho ainda não correspondem aos filtros.
+- Erros de validação da API agora apresentam os detalhes dos campos inválidos.
+
 ## Pokémon Simulator SQLite v1.2.0
 
 - Adicionada exportação e importação de saves pela tela de gerenciamento de jornadas.
