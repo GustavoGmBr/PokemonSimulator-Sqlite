@@ -1,5 +1,9 @@
 # Histórico de versões
 
+## v1.2.2 — pausa da busca automática em encontros raros
+
+- A busca automática agora pausa se encontrar um Pokémon Shiny ou com 4 estrelas, mesmo quando a outra característica não estiver presente e mesmo que ele não corresponda aos filtros escolhidos.
+
 ## v1.2.1 — busca automática de Pokémon selvagens
 
 - A busca automática custa 25 moedas por giro, permite filtrar por intervalo de estrelas de IV e só é liberada após vencer os oito Ginásios de Kanto.

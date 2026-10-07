@@ -11,6 +11,7 @@ import { Button } from '../components/ui/button';
 import { BattleSetup } from '../components/BattleSetup';
 import { IvStars } from '../components/IvSummary';
 import { ivQuality, IV_ITEMS } from '../lib/ivs';
+import { isPriorityAutoSearchEncounter } from '../lib/auto-search';
 import { effectiveness, effectivenessLabel } from '../lib/effectiveness';
 import './battle-screen.css';
 
@@ -107,9 +108,6 @@ export function BattlePage({ area = 'batalhas' }) {
       (criteria.estrelasMax == null || ivQuality(opponent.ivs).stars <= criteria.estrelasMax) &&
       (criteria.shiny === 'any' || opponent.shiny === (criteria.shiny === 'shiny'));
   }
-  function isRareAutoEncounter(opponent) {
-    return opponent.shiny && ivQuality(opponent.ivs).stars === 4;
-  }
   async function startAutoSearch(requestedChoice, criteria) {
     if (busy || !criteria.especieId && criteria.estrelasMin == null && criteria.estrelasMax == null && criteria.shiny === 'any') return;
     autoSearchRef.current = true;
@@ -121,7 +119,7 @@ export function BattlePage({ area = 'batalhas' }) {
       setBattle(state); setSelected([]); setActionTab('attack');
       setAutoSearchStatus({ running: true, attempts: 1, criteria, stopping: false });
       if (state.moedasBusca != null) client.setQueryData(['save', save.data.id], currentSave => currentSave ? { ...currentSave, moedas: state.moedasBusca } : currentSave);
-      while (autoSearchRef.current && !matchesAutoSearch(state.oponente, criteria) && !isRareAutoEncounter(state.oponente)) {
+      while (autoSearchRef.current && !matchesAutoSearch(state.oponente, criteria) && !isPriorityAutoSearchEncounter(state.oponente)) {
         await new Promise(resolve => setTimeout(resolve, 180));
         if (!autoSearchRef.current) break;
         state = await api('/batalhas/acao', { method: 'POST', body: { batalhaId: state.id, versao: state.versao, acao: 'procurar-auto' } });
@@ -130,7 +128,7 @@ export function BattlePage({ area = 'batalhas' }) {
         if (state.moedasBusca != null) client.setQueryData(['save', save.data.id], currentSave => currentSave ? { ...currentSave, moedas: state.moedasBusca } : currentSave);
       }
       autoSearchRef.current = false;
-      setAutoSearchStatus({ running: false, attempts: state?.buscaTentativas ?? 1, criteria, result: state && isRareAutoEncounter(state.oponente) ? 'rare' : state && matchesAutoSearch(state.oponente, criteria) ? 'found' : 'stopped', stopping: false });
+      setAutoSearchStatus({ running: false, attempts: state?.buscaTentativas ?? 1, criteria, result: state && isPriorityAutoSearchEncounter(state.oponente) ? 'rare' : state && matchesAutoSearch(state.oponente, criteria) ? 'found' : 'stopped', stopping: false });
     } catch (err) {
       autoSearchRef.current = false;
       const validationDetails = err.fields?.map((field) => `${field.field}: ${field.message}`).join(' · ');
@@ -186,7 +184,7 @@ export function BattlePage({ area = 'batalhas' }) {
     {error && <p className="battle-error" role="alert">{error}</p>}
     {active ? <div className="battle-active">
       <div className="battle-topline"><span>{active.tipo === 'selvagem' ? 'ENCONTRO SELVAGEM' : `${active.tipo === 'desafio' ? 'DESAFIO' : active.tipo === 'torneio' ? 'TORNEIO' : 'TREINADOR'} · ${active.treinador.toUpperCase()}`}</span><span>{active.resultado ? 'RESULTADO' : active.jogador ? 'EM COMBATE' : 'ESCOLHA SEU PARCEIRO'} · {active.torneio && `TREINADOR ${active.torneio.rodada}/8 · `}RODADA {active.rodada}</span></div>
-      {active.tipo === 'selvagem' && autoSearchStatus && <div className={`wild-auto-status ${['found', 'rare'].includes(autoSearchStatus.result) ? 'found' : ''}`} role="status"><span><Sparkles size={17} /><strong>{autoSearchStatus.running ? autoSearchStatus.stopping ? `Parando após o giro atual · ${autoSearchStatus.attempts} tentativas` : `Busca automática em andamento · ${autoSearchStatus.attempts} tentativas` : autoSearchStatus.result === 'rare' ? `Shiny de 4 estrelas encontrado! Busca pausada após ${autoSearchStatus.attempts} tentativas.` : autoSearchStatus.result === 'found' ? `Encontrado após ${autoSearchStatus.attempts} tentativas!` : `Busca automática parada · ${autoSearchStatus.attempts ?? 0} tentativas`} · {(autoSearchStatus.attempts ?? 0) * 25} ₽ gastos</strong></span>{autoSearchStatus.running && <Button variant="outline" onClick={stopAutoSearch}>Parar busca</Button>}</div>}
+      {active.tipo === 'selvagem' && autoSearchStatus && <div className={`wild-auto-status ${['found', 'rare'].includes(autoSearchStatus.result) ? 'found' : ''}`} role="status"><span><Sparkles size={17} /><strong>{autoSearchStatus.running ? autoSearchStatus.stopping ? `Parando após o giro atual · ${autoSearchStatus.attempts} tentativas` : `Busca automática em andamento · ${autoSearchStatus.attempts} tentativas` : autoSearchStatus.result === 'rare' ? `Pokémon Shiny ou de 4 estrelas encontrado! Busca pausada após ${autoSearchStatus.attempts} tentativas.` : autoSearchStatus.result === 'found' ? `Encontrado após ${autoSearchStatus.attempts} tentativas!` : `Busca automática parada · ${autoSearchStatus.attempts ?? 0} tentativas`} · {(autoSearchStatus.attempts ?? 0) * 25} ₽ gastos</strong></span>{autoSearchStatus.running && <Button variant="outline" onClick={stopAutoSearch}>Parar busca</Button>}</div>}
       {active.tipo === 'torneio' && !active.resultado && <button className="battle-abandon" type="button" disabled={busy} onClick={() => act('abandonar')}>Abandonar torneio</button>}
       {active.tipo === 'selvagem' && active.intervaloNivel && <p className="panel-hint">Intervalo escolhido: Nv. {active.intervaloNivel.minimo}–{active.intervaloNivel.maximo}{active.regiao === 'todas' ? ` · progresso de ${challenges.data.regioes.find(entry => entry.id === active.regiaoNiveis)?.nome ?? active.regiaoNiveis}` : ''}.</p>}
       <div className="battle-workspace">

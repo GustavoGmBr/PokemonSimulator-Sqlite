@@ -1,3 +1,7 @@
+## Pokémon Simulator SQLite v1.2.2
+
+- A busca automática pausa ao encontrar qualquer Pokémon Shiny ou de 4 estrelas, mesmo que ele não corresponda à espécie ou aos filtros definidos. Ter as duas características também pausa a busca.
+
 ## Pokémon Simulator SQLite v1.2.1
 
 - Busca automática de Pokémon selvagens liberada após vencer os oito Ginásios de Kanto, com filtro de IV por faixa de estrelas e custo de 25 moedas por giro.
