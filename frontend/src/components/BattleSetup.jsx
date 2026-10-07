@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle2, CircleDot, LockKeyhole, Search, Swords, Trophy, Sparkles } from 'lucide-react';
+import { CheckCircle2, CircleDot, LockKeyhole, Search, Swords, Trophy, Sparkles, X } from 'lucide-react';
 import { TypeBadge } from './common';
 import { Button } from './ui/button';
 import { TournamentSetup } from './TournamentSetup';
@@ -20,6 +20,7 @@ export function BattleSetup({ area, catalog, challenges, choice, setChoice, star
   const [intervals, setIntervals] = useState(() => { try { return JSON.parse(localStorage.getItem('wild-level-intervals') || '{}'); } catch { return {}; } });
   const [level, setLevel] = useState(() => { const saved = Number(localStorage.getItem('wild-custom-level')); return Number.isInteger(saved) && saved >= 1 && saved <= 100 ? saved : 100; });
   const [autoSpeciesQuery, setAutoSpeciesQuery] = useState('');
+  const [autoSpeciesIds, setAutoSpeciesIds] = useState([]);
   const [autoStarsMin, setAutoStarsMin] = useState('');
   const [autoStarsMax, setAutoStarsMax] = useState('');
   const [autoShiny, setAutoShiny] = useState('any');
@@ -44,9 +45,10 @@ export function BattleSetup({ area, catalog, challenges, choice, setChoice, star
   const autoSpecies = catalog.pokemon.filter((entry) => region === 'todas'
     ? regions.some((entryRegion) => entryRegion.desbloqueada && entry.id >= entryRegion.especieInicial && entry.id <= entryRegion.especieFinal)
     : entry.id >= (selectedRegion?.especieInicial ?? 1) && entry.id <= (selectedRegion?.especieFinal ?? 151));
-  const autoSpeciesTargets = autoSpeciesQuery.split(',').map(value => value.trim()).filter(Boolean).map(value => { const term = value.toLocaleLowerCase('pt-BR'); const id = term.replace(/^#/, '').replace(/^0+/, '') || '0'; return autoSpecies.find(entry => entry.nomeExibicao.toLocaleLowerCase('pt-BR') === term || String(entry.id) === id); });
+  const autoSpeciesTargets = autoSpeciesIds.map(id => autoSpecies.find(entry => entry.id === id)).filter(Boolean);
   const autoSpeciesTarget = autoSpeciesTargets.length === 1 ? autoSpeciesTargets[0] : null;
-  const autoSpeciesInvalid = autoSpeciesTargets.some(entry => !entry);
+  const autoSpeciesInvalid = autoSpeciesIds.length !== autoSpeciesTargets.length;
+  const autoSpeciesSuggestions = autoSpeciesQuery.trim() ? autoSpecies.filter(entry => !autoSpeciesIds.includes(entry.id) && (entry.nomeExibicao.toLocaleLowerCase('pt-BR').includes(autoSpeciesQuery.trim().toLocaleLowerCase('pt-BR')) || String(entry.id).includes(autoSpeciesQuery.trim().replace(/^#/, '')))).slice(0, 8) : [];
   const autoSpecificRegions = autoSpeciesTargets.filter(Boolean).map(target => regions.filter(entry => target.id >= entry.especieInicial && target.id <= entry.especieFinal && entry.escolhaSelvagem && (region === 'todas' || region === entry.id)).at(-1));
   const autoUsesSpecificSearch = Boolean(autoSpeciesTargets.length && !autoSpeciesInvalid && autoSpecificRegions.every(Boolean));
   const autoSpecificRegion = autoSpeciesTargets.length === 1 ? autoSpecificRegions[0] : null;
@@ -65,6 +67,12 @@ export function BattleSetup({ area, catalog, challenges, choice, setChoice, star
     setSearch('');
     setSpeciesId(next.especieInicial ?? 1);
     setChoice({ tipo: 'desafio', desafioId: challenges.lideres.find((leader) => leader.regiao === next.id && leader.desbloqueado)?.id ?? null });
+  }
+
+  function addAutoSpecies(entry) {
+    if (!entry || autoSpeciesIds.includes(entry.id)) return;
+    setAutoSpeciesIds(ids => [...ids, entry.id]);
+    setAutoSpeciesQuery('');
   }
 
   const regionTabs = <div className="region-tabs">{area === 'selvagens' && <button type="button" className={region === 'todas' ? 'chosen' : ''} onClick={() => chooseRegion({ id: 'todas' })}>Todas as gerações liberadas</button>}{regions.map((entry) => <button key={entry.id} type="button" className={region === entry.id ? 'chosen' : ''} disabled={!entry.desbloqueada} onClick={() => chooseRegion(entry)}>{entry.nome} · Geração {entry.geracao}{!entry.desbloqueada ? ' 🔒' : ''}</button>)}</div>;
@@ -87,13 +95,15 @@ export function BattleSetup({ area, catalog, challenges, choice, setChoice, star
   </section><section className="battle-picker"><div className="section-heading"><h2>Pronto para procurar?</h2><span>{collectionCount} NA COLEÇÃO</span></div><p className="panel-hint">O encontro começa antes da escolha do seu Pokémon. Você poderá capturar ou fugir.</p>{!custom && validInterval && <p className="panel-hint">Os encontros serão entre os níveis {Number(chosenInterval.minimo)} e {Number(chosenInterval.maximo)}.</p>}<Button className="battle-start" disabled={busy || !selectedRegion?.desbloqueada || (!custom && !validInterval) || (custom && (!Number.isInteger(Number(level)) || Number(level) < 1 || Number(level) > 100))} onClick={() => start({ tipo: 'selvagem', regiao: region, ...(custom ? { selvagem: { regiao: region, especieId: speciesId, nivel: Number(level) } } : { intervaloNivel: { minimo: Number(chosenInterval.minimo), maximo: Number(chosenInterval.maximo) } }) })}>{busy ? 'Procurando…' : 'Procurar Pokémon'}</Button>
     {!custom && <div className="wild-auto-search"><div className="wild-auto-heading"><Sparkles size={18} /><span><strong>Busca automática</strong><small>Gira até encontrar uma combinação. Cada encontro custa 25 moedas.</small></span></div>
       {!autoSearchUnlocked && <small className="wild-auto-hint" role="status">🔒 Disponível após vencer os 8 Ginásios de Kanto ({kantoGymsCompleted}/8).</small>}
-      <label>Pokémon (opcional; separe vários por vírgula)<input list="wild-auto-species-list" value={autoSpeciesQuery} onChange={(event) => setAutoSpeciesQuery(event.target.value)} placeholder="Qualquer Pokémon ou Pikachu, Eevee" disabled={busy || !autoSearchUnlocked} /><datalist id="wild-auto-species-list">{autoSpecies.map((entry) => <option key={entry.id} value={entry.nomeExibicao}>#{String(entry.id).padStart(3, '0')}</option>)}</datalist></label>
-      {autoSpeciesInvalid && <small className="wild-auto-hint">Confira os nomes e números separados por vírgula.</small>}
+      <label>Pokémon para procurar (opcional)<input role="combobox" aria-autocomplete="list" aria-expanded={autoSpeciesSuggestions.length > 0} aria-controls="wild-auto-species-options" value={autoSpeciesQuery} onChange={(event) => setAutoSpeciesQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && autoSpeciesSuggestions.length) { event.preventDefault(); addAutoSpecies(autoSpeciesSuggestions[0]); } }} placeholder="Digite o nome ou número da Pokédex" disabled={busy || !autoSearchUnlocked} /></label>
+      {autoSpeciesSuggestions.length > 0 && <div id="wild-auto-species-options" className="wild-auto-species-options" role="listbox" aria-label="Pokémon disponíveis para adicionar">{autoSpeciesSuggestions.map(entry => <button type="button" role="option" aria-selected="false" key={entry.id} onClick={() => addAutoSpecies(entry)}><span>#{String(entry.id).padStart(3, '0')}</span><strong>{entry.nomeExibicao}</strong><small>Adicionar à busca</small></button>)}</div>}
+      {autoSpeciesTargets.length > 0 && <div className="wild-auto-species-list" aria-label="Espécies selecionadas para a busca"><strong>Lista de busca · {autoSpeciesTargets.length}</strong><div>{autoSpeciesTargets.map(entry => <span key={entry.id}>#{String(entry.id).padStart(3, '0')} {entry.nomeExibicao}<button type="button" aria-label={`Remover ${entry.nomeExibicao} da busca`} disabled={busy} onClick={() => setAutoSpeciesIds(ids => ids.filter(id => id !== entry.id))}><X size={13} /></button></span>)}</div><small>O giro para ao encontrar qualquer espécie da lista. Clique no nome para removê-lo.</small></div>}
+      {autoSpeciesInvalid && <small className="wild-auto-hint">Alguma espécie selecionada não está disponível nesta geração. Remova-a e escolha outra.</small>}
       {autoUsesSpecificSearch && autoSpeciesTarget && <label>Nível do Pokémon escolhido<input type="number" min="1" max="100" value={level} onChange={(event) => setLevel(Number(event.target.value))} disabled={busy} /></label>}{autoUsesSpecificSearch && <small className="wild-auto-hint">Giros específicos: {autoSpeciesTargets.map(entry => entry.nomeExibicao).join(', ')}{autoSpeciesTarget ? ` · nível ${level}` : ` · níveis entre ${chosenInterval.minimo} e ${chosenInterval.maximo}`}. A espécie fica limitada às gerações concluídas.</small>}
       <div className="wild-auto-fields"><label>IV mínimo<select value={autoStarsMin} onChange={(event) => setAutoStarsMin(event.target.value)} disabled={busy || !autoSearchUnlocked}><option value="">Qualquer</option>{[0,1,2,3,4].map((stars) => <option key={stars} value={stars}>{stars} {stars === 0 ? 'estrelas' : '⭐'}</option>)}</select></label><label>IV máximo<select value={autoStarsMax} onChange={(event) => setAutoStarsMax(event.target.value)} disabled={busy || !autoSearchUnlocked}><option value="">Qualquer</option>{[0,1,2,3,4].map((stars) => <option key={stars} value={stars}>{stars} {stars === 0 ? 'estrelas' : '⭐'}</option>)}</select></label><label>Brilho<select value={autoShiny} onChange={(event) => setAutoShiny(event.target.value)} disabled={busy || !autoSearchUnlocked}><option value="any">Normal ou Shiny</option><option value="shiny">Somente Shiny</option><option value="normal">Somente normal</option></select></label></div>
       {!validAutoStars && <small className="wild-auto-hint" role="alert">O mínimo de estrelas não pode superar o máximo.</small>}
       {(autoStarsMin !== '' || autoStarsMax !== '') && validAutoStars && <small className="wild-auto-hint">Faixa selecionada: {autoStarsMin === '' ? 0 : autoStarsMin}–{autoStarsMax === '' ? 4 : autoStarsMax} estrelas.</small>}
-      <Button className="battle-start" variant="outline" disabled={busy || !autoSearchUnlocked || !hasAutoCriteria || !validAutoStars || (autoSpeciesTarget && !validAutoSpeciesLevel) || !selectedRegion?.desbloqueada || (!autoUsesSpecificSearch && !validInterval) || coins < 25 || autoSpeciesInvalid || Boolean(autoSpeciesTargets.length && !autoUsesSpecificSearch) || Boolean(autoSpeciesQuery && !autoSpeciesTargets.length)} onClick={() => startAutoSearch(autoSearchChoice, { especieId: autoSpeciesTarget?.id ?? null, especieIds: autoSpeciesTargets.filter(Boolean).map(entry => entry.id), estrelasMin: autoStarsMin === '' ? null : Number(autoStarsMin), estrelasMax: autoStarsMax === '' ? null : Number(autoStarsMax), shiny: autoShiny })}>{busy ? 'Iniciando busca…' : <><Sparkles size={16} /> Buscar automaticamente · 25 ₽ por giro</>}</Button>
+      <Button className="battle-start" variant="outline" disabled={busy || !autoSearchUnlocked || !hasAutoCriteria || !validAutoStars || (autoUsesSpecificSearch && !validAutoSpeciesLevel) || !selectedRegion?.desbloqueada || (!autoUsesSpecificSearch && !validInterval) || coins < 25 || autoSpeciesInvalid || Boolean(autoSpeciesTargets.length && !autoUsesSpecificSearch) || Boolean(autoSpeciesQuery.trim())} onClick={() => startAutoSearch(autoSearchChoice, { especieId: autoSpeciesTarget?.id ?? null, especieIds: autoSpeciesTargets.map(entry => entry.id), estrelasMin: autoStarsMin === '' ? null : Number(autoStarsMin), estrelasMax: autoStarsMax === '' ? null : Number(autoStarsMax), shiny: autoShiny })}>{busy ? 'Iniciando busca…' : <><Sparkles size={16} /> Buscar automaticamente · 25 ₽ por giro</>}</Button>
       {coins < 25 && <small className="wild-auto-hint">Saldo insuficiente. A busca automática precisa de 25 moedas para começar.</small>}
       {!hasAutoCriteria && <small className="wild-auto-hint">Escolha ao menos uma condição: espécie, estrelas de IV ou Shiny.</small>}
     </div>}

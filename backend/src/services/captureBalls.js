@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto';
 
 export const CAPTURE_BALL_ITEMS = [
-  { id: 'fast-ball', name: 'Bola Rápida', price: 1_000, description: 'Multiplica a captura por 4–5× no primeiro turno.' },
+  { id: 'fast-ball', name: 'Bola Rápida', price: 1_000, description: 'Multiplica a captura por 6× no primeiro turno.' },
   { id: 'timer-ball', name: 'Bola Psíquica', price: 1_000, description: 'Multiplica a captura por 3× contra Pokémon do tipo Psíquico.' },
   { id: 'dusk-ball', name: 'Bola do Crepúsculo', price: 1_000, description: 'Multiplica a captura por 4× contra Pokémon dos tipos Sombrio ou Fantasma.' },
   { id: 'dive-ball', name: 'Bola Aquática', price: 1_000, description: 'Multiplica a captura por 3,5× contra Pokémon do tipo Água.' },
@@ -36,7 +36,7 @@ export function captureBallMultiplier(itemId, { round = 1, opponent, player }) {
   const species = opponent?.species;
   const types = species?.types ?? opponent?.tipos ?? [];
   switch (itemId) {
-    case 'fast-ball': return round <= 1 ? 5 : 1;
+    case 'fast-ball': return round <= 1 ? 6 : 1;
     case 'timer-ball': return types.includes('psychic') ? 3 : 1;
     case 'dusk-ball': return types.some((type) => ['dark', 'ghost'].includes(type)) ? 4 : 1;
     case 'dive-ball': return types.includes('water') ? 3.5 : 1;

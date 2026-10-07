@@ -290,7 +290,7 @@ const itemDefinitions = [
   ['great-ball', 'Grande Bola', 'captura', 'Uma bola com maior eficiência de captura.'],
   ['ultra-ball', 'Ultra Bola', 'captura', 'Uma bola com alta eficiência de captura.'],
   ['master-ball', 'Master Bola', 'captura', 'Uma bola que garante a captura de um Pokémon selvagem.'],
-  ['fast-ball', 'Bola Rápida', 'captura', 'Multiplica a captura por 4–5× no primeiro turno.'],
+  ['fast-ball', 'Bola Rápida', 'captura', 'Multiplica a captura por 6× no primeiro turno.'],
   ['timer-ball', 'Bola Psíquica', 'captura', 'Multiplica a captura por 3× contra Pokémon do tipo Psíquico.'],
   ['dusk-ball', 'Bola do Crepúsculo', 'captura', 'Multiplica a captura por 4× contra Pokémon dos tipos Sombrio ou Fantasma.'],
   ['dive-ball', 'Bola Aquática', 'captura', 'Multiplica a captura por 3,5× na água, pescando ou contra Pokémon de Água.'],

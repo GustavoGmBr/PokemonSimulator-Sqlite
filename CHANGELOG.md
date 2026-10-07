@@ -1,5 +1,12 @@
 # Histórico de versões
 
+## v1.3.1 — seleção e leitura mais claras
+
+- A busca automática agora adiciona cada Pokémon clicado a uma lista visual, com remoção individual antes de começar os giros.
+- Poké Bolas mostram a chance atual em destaque, com cores por faixa; o valor acompanha as mudanças da batalha. A Bola Rápida recebe bônus de 6× no primeiro turno.
+- A Pokédex ganhou um acesso direto ao Mercado Pokémon depois da lista, e o comparador apresenta sprites, IVs, bônus shiny e barras lado a lado.
+- A criação de equipes mostra os seis espaços, a ordem de entrada e os Pokémon disponíveis com sprites, tipos e IVs.
+
 ## v1.3.0 — equipes, Pokédex e melhorias de batalha
 
 - Equipes nomeadas de seis Pokémon são salvas na jornada, incluídas nos backups e usadas como filtro na escolha para batalhas; adicionado também o filtro de favoritos.

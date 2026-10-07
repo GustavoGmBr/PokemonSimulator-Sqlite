@@ -1,3 +1,11 @@
+## Pokémon Simulator SQLite v1.3.1
+
+- A busca automática aceita espécies por uma lista visual: encontre pelo nome ou número, adicione com um clique e remova individualmente antes de iniciar.
+- A Pokédex oferece um atalho para comprar Pokémon no Mercado depois da lista e um comparador renovado com sprites, IVs, bônus Shiny e atributos em barras lado a lado.
+- Chances de captura aparecem em destaque, com cinco cores e legenda, e são recalculadas conforme HP e status mudam na batalha.
+- Bola Rápida agora multiplica a chance de captura por 6× no primeiro turno.
+- Criação de equipes redesenhada com seis espaços ordenados, prévia da equipe e cartões de Pokémon com sprite, tipo, nível e IVs.
+
 ## Pokémon Simulator SQLite v1.3.0
 
 - Adicionadas equipes ilimitadas de seis Pokémon com nome; elas ficam no save, acompanham a exportação/importação e podem filtrar a seleção de batalha. Batalhas também filtram favoritos.

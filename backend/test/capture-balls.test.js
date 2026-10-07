@@ -35,7 +35,7 @@ after(async () => {
 test('bolas situacionais respeitam os requisitos e os limites de multiplicador', () => {
   const opponent = { nivel: 10, tipos: ['water'], status: null, species: { types: ['water'], weight: 310, height: 1.5 } };
   const player = { nivel: 40, sexo: 'male', tipos: ['fire'] };
-  assert.equal(captureBallMultiplier('fast-ball', { round: 1, opponent, player }), 5);
+  assert.equal(captureBallMultiplier('fast-ball', { round: 1, opponent, player }), 6);
   assert.equal(captureBallMultiplier('fast-ball', { round: 2, opponent, player }), 1);
   assert.equal(captureBallMultiplier('timer-ball', { opponent: { tipos: ['psychic'] }, player }), 3);
   assert.equal(captureBallMultiplier('timer-ball', { opponent, player }), 1);
