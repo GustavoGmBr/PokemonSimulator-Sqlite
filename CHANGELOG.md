@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## v1.3.2 — busca automática em gerações ainda não concluídas
+
+- Corrigida a busca automática que ficava desabilitada ao escolher espécies de uma geração ainda não concluída.
+- Antes de vencer o campeão da geração, a lista funciona como filtro nos giros normais da região; após a conclusão, a busca direta por espécie continua disponível.
+- A tela explica quando os giros usam o filtro regional e quando a busca direta já foi liberada.
+
 ## v1.3.1 — seleção e leitura mais claras
 
 - A busca automática agora adiciona cada Pokémon clicado a uma lista visual, com remoção individual antes de começar os giros.

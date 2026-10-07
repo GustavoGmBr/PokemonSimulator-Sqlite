@@ -1,3 +1,9 @@
+## Pokémon Simulator SQLite v1.3.2
+
+- Corrigido o botão de busca automática desabilitado ao selecionar Pokémon de uma geração ainda não concluída.
+- Antes de vencer o campeão, o automático gira encontros da região e para quando encontra uma espécie da lista; após concluir a geração, usa a busca direta por espécie.
+- A tela informa qual modo de busca está ativo.
+
 ## Pokémon Simulator SQLite v1.3.1
 
 - A busca automática aceita espécies por uma lista visual: encontre pelo nome ou número, adicione com um clique e remova individualmente antes de iniciar.

@@ -119,7 +119,7 @@ export function BattlePage({ area = 'batalhas' }) {
     setBusy(true); setError('');
     let state = null;
     try {
-      state = await api('/batalhas/iniciar', { method: 'POST', body: { ...requestedChoice, autoBusca: true, ...(criteria.especieIds?.length ? { autoBuscaEspeciesIds: criteria.especieIds } : {}) } });
+      state = await api('/batalhas/iniciar', { method: 'POST', body: { ...requestedChoice, autoBusca: true, ...(criteria.especieIdsEspecificos?.length ? { autoBuscaEspeciesIds: criteria.especieIdsEspecificos } : {}) } });
       setBattle(state); setSelected([]); setActionTab('attack');
       setAutoSearchStatus({ running: true, attempts: 1, criteria, stopping: false });
       if (state.moedasBusca != null) client.setQueryData(['save', save.data.id], currentSave => currentSave ? { ...currentSave, moedas: state.moedasBusca } : currentSave);
