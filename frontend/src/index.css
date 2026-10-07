@@ -217,3 +217,23 @@ label > input, label > div { margin-top: 9px; }
 .battle-life > .iv-stars { display: inline-block; margin: 5px 0; }
 
 @media (max-width: 800px) { .trainer-name small { display: block; } }
+.pokemon-comparator,.team-manager { display:grid; gap:14px; margin:18px 0; padding:18px; border:1px solid #3e5940; border-radius:14px; background:#192b22; }
+.pokemon-comparator > div:first-child { display:grid; gap:4px; }
+.pokemon-comparator > div:first-child span { color:#b4c6a5; font-size:12px; }
+.pokemon-compare-picks { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.pokemon-compare-picks select,.team-manager select,.team-name-input input { min-width:0; padding:10px; border:1px solid #496549; border-radius:8px; background:#1e3228; color:#eef1dc; }
+.pokemon-compare-stats { display:grid; gap:6px; }
+.pokemon-compare-stats > div { display:grid; grid-template-columns:70px 1fr minmax(140px,2fr) 1fr; gap:10px; align-items:center; padding:8px 10px; border-radius:8px; background:#22382a; }
+.pokemon-compare-stats > div b:last-child { text-align:right; }
+.pokemon-compare-stats small { color:#bfd19e; text-align:center; }
+.team-manager .section-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.team-manager .section-heading h2 { display:flex; align-items:center; gap:8px; }
+.team-manager .section-heading p,.team-selected-count { color:#b4c6a5; font-size:12px; }
+.team-roster-picker { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:7px; max-height:390px; overflow:auto; }
+.team-roster-option { display:grid; gap:4px; padding:10px; border:1px solid #405743; border-radius:9px; background:#203328; color:#e9eddc; text-align:left; }
+.team-roster-option.active { border-color:#c7e28e; background:#354b30; }
+.team-roster-option span,.team-roster-option small { color:#aec39a; font-size:10px; }
+.team-name-input { display:grid; gap:6px; max-width:400px; color:#e6edda; font-size:12px; }
+.team-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.team-current-roster { display:grid; gap:5px; color:#d6e5c4; font-size:12px; }
+@media(max-width:600px) { .pokemon-compare-picks { grid-template-columns:1fr; }.pokemon-compare-stats > div { grid-template-columns:45px 1fr 1.5fr 1fr; gap:5px; }.pokemon-compare-stats small { font-size:9px; }.team-manager .section-heading { align-items:stretch; flex-direction:column; } }

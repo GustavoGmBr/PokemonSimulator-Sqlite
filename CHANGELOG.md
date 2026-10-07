@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## v1.3.0 — equipes, Pokédex e melhorias de batalha
+
+- Equipes nomeadas de seis Pokémon são salvas na jornada, incluídas nos backups e usadas como filtro na escolha para batalhas; adicionado também o filtro de favoritos.
+- Adicionadas efetividades de tipo na Pokédex e comparação de atributos entre Pokémon capturados com IVs e shiny aplicados.
+- Nível de entrada em torneios limitado pela categoria, sem alterar o nível original do Pokémon.
+- Alertas e confirmação para encontros shiny ou 4 estrelas; busca específica preserva a espécie e a busca automática aceita múltiplas espécies.
+- Chances atuais de captura das Poké Bolas são exibidas e atualizadas conforme a batalha.
+- Shiny passa a dar +50% nos atributos; Pedra Brilhante disponível por 1.000.000 ₽ na loja ou 350.000 fichas no cassino.
+- Apelidos, doces no cassino, golpes característicos G-Max e prêmios em dinheiro por Pay Day e G-Max Gold Rush.
+
 ## v1.2.2 — pausa da busca automática em encontros raros
 
 - A busca automática agora pausa se encontrar um Pokémon Shiny ou com 4 estrelas, mesmo quando a outra característica não estiver presente e mesmo que ele não corresponda aos filtros escolhidos.

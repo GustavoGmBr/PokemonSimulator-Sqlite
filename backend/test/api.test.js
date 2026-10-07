@@ -80,6 +80,49 @@ test('inicial, colecao, inventario e alteracoes permanecem isolados entre saves'
   assert.equal((await request(app).get('/api/jogador/save').set('X-Save-Id', second.id).expect(200)).body.data.nomeTreinador, 'Misty');
 });
 
+test('equipes nomeadas persistem, apelidos atualizam e Pedra Brilhante converte um Pokémon', async () => {
+  const localSave = (await request(app).post('/api/jogador/saves').send({ nomeTreinador: 'Equipe 1.3' }).expect(201)).body.data;
+  await request(app).post('/api/jogador/inicial').set('X-Save-Id', localSave.id).send({ saveId: localSave.id, especieId: 1 }).expect(201);
+  const starter = await db.pokemonCapturado.findFirst({ where: { saveId: localSave.id } });
+  await db.pokemonCapturado.createMany({ data: [4, 7, 25, 133, 26].map((especieId, index) => ({ saveId: localSave.id, especieId: especieId + index, hpAtual: 20, nivel: 5, experiencia: 0 })) });
+  const members = await db.pokemonCapturado.findMany({ where: { saveId: localSave.id }, select: { id: true } });
+  const team = { nome: 'Aventureiros', pokemonIds: members.slice(0, 6).map(member => member.id) };
+  await request(app).put('/api/jogador/equipes').set('X-Save-Id', localSave.id).send({ equipes: [team] }).expect(200);
+  assert.deepEqual((await request(app).get('/api/jogador/equipes').set('X-Save-Id', localSave.id).expect(200)).body.data, [team]);
+  await request(app).put('/api/jogador/equipes').set('X-Save-Id', localSave.id).send({ equipes: [{ ...team, pokemonIds: [starter.id] }] }).expect(400);
+  await request(app).patch(`/api/jogador/pokemon/${starter.id}/apelido`).set('X-Save-Id', localSave.id).send({ apelido: 'Bulba' }).expect(200);
+  assert.equal((await db.pokemonCapturado.findUnique({ where: { id: starter.id } })).apelido, 'Bulba');
+  await db.itemInventario.create({ data: { saveId: localSave.id, itemId: 'shiny-stone', quantidade: 1 } });
+  const before = starter.atributos;
+  await request(app).post(`/api/jogador/pokemon/${starter.id}/pedra-brilhante`).set('X-Save-Id', localSave.id).send({}).expect(200);
+  const transformed = await db.pokemonCapturado.findUnique({ where: { id: starter.id } });
+  assert.equal(transformed.shiny, true);
+  assert.ok(transformed.atributos.attack > before.attack);
+  await request(app).post(`/api/jogador/pokemon/${starter.id}/pedra-brilhante`).set('X-Save-Id', localSave.id).send({}).expect(409);
+  const casinoItems = (await request(app).get('/api/cassino').set('X-Save-Id', localSave.id).expect(200)).body.data.itens;
+  assert.equal(casinoItems.find(item => item.itemId === 'shiny-stone').preco, 350_000);
+  assert.ok(casinoItems.some(item => item.itemId === 'rare-candy'));
+  assert.ok(casinoItems.some(item => item.itemId === 'exp-candy-gg'));
+  const encounter = (await request(app).post('/api/batalhas/iniciar').set('X-Save-Id', localSave.id).send({ tipo: 'selvagem', regiao: 'kanto', intervaloNivel: { minimo: 1, maximo: 1 } }).expect(201)).body.data;
+  assert.ok(encounter.chancesCaptura['poke-ball'] > 0);
+  await request(app).post('/api/batalhas/acao').set('X-Save-Id', localSave.id).send({ batalhaId: encounter.id, versao: encounter.versao, acao: 'fugir' }).expect(200);
+  await db.pokemonCapturado.update({ where: { id: starter.id }, data: { nivel: 100 } });
+  await db.save.update({ where: { id: localSave.id }, data: { moedas: 1000 } });
+  const tournament = (await request(app).post('/api/batalhas/iniciar').set('X-Save-Id', localSave.id).send({ tipo: 'torneio', torneioId: 'muito-facil' }).expect(201)).body.data;
+  assert.equal(tournament.limiteNivel, 10);
+  const chosen = (await request(app).post('/api/batalhas/acao').set('X-Save-Id', localSave.id).send({ batalhaId: tournament.id, versao: tournament.versao, acao: 'escolher', pokemonId: starter.id }).expect(200)).body.data;
+  assert.equal(chosen.jogador.nivel, 10);
+  assert.equal((await db.pokemonCapturado.findUnique({ where: { id: starter.id } })).nivel, 100);
+  const archive = (await request(app).get(`/api/jogador/saves/${localSave.id}/exportar`).expect(200)).body.data;
+  const importedSave = (await request(app).post('/api/jogador/saves/importar').send({ arquivo: archive }).expect(201)).body.data;
+  const importedTeam = (await request(app).get('/api/jogador/equipes').set('X-Save-Id', importedSave.id).expect(200)).body.data[0];
+  assert.equal(importedTeam.nome, team.nome);
+  assert.equal(importedTeam.pokemonIds.length, 6);
+  assert.notEqual(importedTeam.pokemonIds[0], team.pokemonIds[0]);
+  await request(app).delete(`/api/jogador/saves/${importedSave.id}`).expect(200);
+  await request(app).delete(`/api/jogador/saves/${localSave.id}`).expect(200);
+});
+
 test('exporta, importa como novo save e substitui outro save sem perder seu identificador', async () => {
   const starter = await db.pokemonCapturado.findFirst({ where: { saveId: first.id } });
   await db.batalha.create({ data: { saveId: first.id, estado: { jogador: { pokemonId: starter.id } } } });
@@ -159,6 +202,12 @@ test('busca automática exige os oito ginásios de Kanto e cobra 25 moedas por t
   assert.equal(specificNext.oponente.especieId, 95);
   assert.equal(specificNext.oponente.nivel, 27);
   await request(app).post('/api/batalhas/acao').set('X-Save-Id', save.id).send({ batalhaId: specific.id, versao: 1, acao: 'fugir' }).expect(200);
+  const speciesList = (await request(app).post('/api/batalhas/iniciar').set('X-Save-Id', save.id).send({ tipo: 'selvagem', regiao: 'kanto', intervaloNivel: { minimo: 2, maximo: 4 }, autoBusca: true, autoBuscaEspeciesIds: [95, 92] }).expect(201)).body.data;
+  assert.ok([95, 92].includes(speciesList.oponente.especieId));
+  const speciesListNext = (await request(app).post('/api/batalhas/acao').set('X-Save-Id', save.id).send({ batalhaId: speciesList.id, versao: 0, acao: 'procurar-auto' }).expect(200)).body.data;
+  assert.ok([95, 92].includes(speciesListNext.oponente.especieId));
+  assert.ok(speciesListNext.oponente.nivel >= 2 && speciesListNext.oponente.nivel <= 4);
+  await request(app).post('/api/batalhas/acao').set('X-Save-Id', save.id).send({ batalhaId: speciesList.id, versao: 1, acao: 'fugir' }).expect(200);
   await request(app).delete(`/api/jogador/saves/${save.id}`).expect(200);
 });
 

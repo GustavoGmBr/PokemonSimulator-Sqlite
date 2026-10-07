@@ -39,6 +39,7 @@ model Save {
   cassinoRodada CassinoRodada?
   lojaPokemonEstoque LojaPokemonEstoque?
   kitEntregue  Boolean @default(false)
+  equipes      String  @default("[]")
 }
 
 // especieId referencia o catalogo local (1 a 1025).

@@ -270,7 +270,7 @@ test('Strength Sap, Aqua Ring, Ingrain, Grassy Terrain e Leech Seed recuperam HP
   assert.equal(seeder.hp, 32);
 });
 
-test('golpes de dano e efeito respeitam aprendizado por nivel e shiny ganha 20% de cada atributo', () => {
+test('golpes de dano e efeito respeitam aprendizado por nivel e shiny ganha 50% de cada atributo', () => {
   for (const species of getCatalogo().pokemon) {
     for (const level of [5, 20, 50, 100]) {
       const moves = levelMovesFor(species, level);
@@ -281,7 +281,7 @@ test('golpes de dano e efeito respeitam aprendizado por nivel e shiny ganha 20% 
     }
     const normal = statsFor(species, 50);
     const shiny = statsFor(species, 50, true);
-    for (const key of Object.keys(normal)) assert.equal(shiny[key], Math.floor(normal[key] * 1.2));
+    for (const key of Object.keys(normal)) assert.equal(shiny[key], Math.floor(normal[key] * 1.5));
   }
   assert.deepEqual(levelMovesFor(getCatalogo().pokemon[3], 5).map((move) => move.nome), ['scratch', 'growl']);
   assert.deepEqual(levelMovesFor(getCatalogo().pokemon[3], 7).map((move) => move.nome), ['ember', 'scratch', 'growl']);

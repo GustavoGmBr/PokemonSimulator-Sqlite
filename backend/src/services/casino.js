@@ -8,12 +8,13 @@ import { pokemonSaleValue } from './market.js';
 
 export const CASINO_CHIP_COST = 5;
 export const CASINO_MASTER_BALL_PRICE = 10000;
+const CASINO_ITEM_PRICES = { 'shiny-stone': 350_000, 'rare-candy': 12_000, 'exp-candy-p': 1_000, 'exp-candy-m': 3_500, 'exp-candy-g': 10_000, 'exp-candy-gg': 30_000 };
 const MAX_BALANCE = 2_000_000_000;
 
 function casinoItem(itemId) {
   const item = getCatalogo().itens.find((entry) => entry.nome === itemId);
-  if (!item || !['captura', 'cura', 'ivs'].includes(item.categoria)) return null;
-  return { itemId, nome: item.nomeExibicao, preco: itemId === 'master-ball' ? CASINO_MASTER_BALL_PRICE : Math.ceil(item.precoLoja / CASINO_CHIP_COST), sprite: item.sprite };
+  if (!item || !['captura', 'cura', 'ivs', 'treino', 'evolucao'].includes(item.categoria)) return null;
+  return { itemId, nome: item.nomeExibicao, preco: CASINO_ITEM_PRICES[itemId] ?? (itemId === 'master-ball' ? CASINO_MASTER_BALL_PRICE : Math.ceil(item.precoLoja / CASINO_CHIP_COST)), sprite: item.sprite };
 }
 
 function checkBet(save, bet) {
@@ -72,7 +73,7 @@ export function createCasinoService(db, { rng = randomInt } = {}) {
           save = await tx.save.update({ where: { id: save.id }, data: { fichas: { increment: reembolso } } });
           await tx.cassinoRodada.delete({ where: { saveId: save.id } }); round = null;
         }
-        return { fichas: save.fichas, moedas: save.moedas, custoFicha: CASINO_CHIP_COST, reembolso, itens: getCatalogo().itens.filter(item => ['captura', 'cura', 'ivs'].includes(item.categoria)).map(item => casinoItem(item.nome)), rodada: publicCasinoRound(round?.estado), regras: { linhas: SLOT_LINES, roleta: ROULETTE_ORDER, casasRoleta: ROULETTE_ORDER.map(numero => rouletteResult(numero)), fortune: FORTUNE_SEGMENTS, piplup: PIPLUP_MULTIPLIERS, chancesPiplup: PIPLUP_CHANCES, corredores: RACERS } };
+        return { fichas: save.fichas, moedas: save.moedas, custoFicha: CASINO_CHIP_COST, reembolso, itens: getCatalogo().itens.filter(item => ['captura', 'cura', 'ivs', 'treino', 'evolucao'].includes(item.categoria) && casinoItem(item.nome)).map(item => casinoItem(item.nome)), rodada: publicCasinoRound(round?.estado), regras: { linhas: SLOT_LINES, roleta: ROULETTE_ORDER, casasRoleta: ROULETTE_ORDER.map(numero => rouletteResult(numero)), fortune: FORTUNE_SEGMENTS, piplup: PIPLUP_MULTIPLIERS, chancesPiplup: PIPLUP_CHANCES, corredores: RACERS } };
       }, { isolationLevel: 'Serializable' });
     },
     async buyChips(usuarioId, quantidade) {

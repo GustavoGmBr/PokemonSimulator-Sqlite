@@ -336,7 +336,7 @@ export function statsFor(species, level, shiny = false, ivs = null) {
   const stats = Object.fromEntries(Object.entries(species.atributosBase).map(([name, base]) => [name,
     Math.floor(((2 * base + values[name]) * level) / 100) + (name === 'hp' ? level + 10 : 5),
   ]));
-  if (shiny) for (const stat of Object.keys(stats)) stats[stat] = Math.floor(stats[stat] * 1.2);
+  if (shiny) for (const stat of Object.keys(stats)) stats[stat] = Math.floor(stats[stat] * 1.5);
   if (species.gmax) stats.hp = Math.floor(stats.hp * 1.5);
   return stats;
 }

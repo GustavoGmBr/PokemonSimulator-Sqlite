@@ -4,7 +4,7 @@ import { HttpError } from '../lib/errors.js';
 export const SAVE_ARCHIVE_FORMAT = 'pokemon-simulator-save';
 export const SAVE_ARCHIVE_VERSION = 1;
 
-const SAVE_FIELDS = ['nomeTreinador', 'moedas', 'fichas', 'vitorias', 'derrotas', 'iniciadoEm', 'inicialEspecieId', 'criadoEm', 'atualizadoEm', 'kitEntregue'];
+const SAVE_FIELDS = ['nomeTreinador', 'moedas', 'fichas', 'vitorias', 'derrotas', 'iniciadoEm', 'inicialEspecieId', 'criadoEm', 'atualizadoEm', 'kitEntregue', 'equipes'];
 const POKEMON_FIELDS = ['id', 'especieId', 'apelido', 'nivel', 'experiencia', 'hpAtual', 'shiny', 'bolaCaptura', 'sexo', 'amizade', 'investimentoItens', 'favorito', 'megaForma', 'gmaxForma', 'atributos', 'ivs', 'golpes', 'golpesDesbloqueados', 'posicaoTime', 'capturadoEm'];
 const EVENT_FIELDS = ['tipo', 'especieId', 'regiao', 'dificuldade', 'torneioId', 'resultado', 'descricao', 'shiny', 'criadoEm'];
 
@@ -45,6 +45,11 @@ function validateSave(value) {
   result.iniciadoEm = dateOrNull(value.iniciadoEm, 'iniciadoEm');
   result.criadoEm = dateOrNull(value.criadoEm, 'criadoEm') ?? new Date();
   result.atualizadoEm = new Date();
+  result.equipes = typeof result.equipes === 'string' ? result.equipes : '[]';
+  try {
+    const teams = JSON.parse(result.equipes);
+    if (!Array.isArray(teams) || teams.some(team => !isRecord(team) || typeof team.nome !== 'string' || !Array.isArray(team.pokemonIds) || team.pokemonIds.length !== 6 || new Set(team.pokemonIds).size !== 6)) fail('As equipes do arquivo de save são inválidas.');
+  } catch (error) { if (error instanceof HttpError) throw error; fail('As equipes do arquivo de save são inválidas.'); }
   return result;
 }
 function remap(value, ids) {
@@ -126,6 +131,8 @@ export function createSaveArchiveService(db) {
       const created = await tx.pokemonCapturado.create({ data: { ...pokemon, saveId } });
       if (sourceId) idMap.set(sourceId, created.id);
     }
+    const teams = JSON.parse(data.save.equipes ?? '[]').map(team => ({ ...team, pokemonIds: team.pokemonIds.map(id => idMap.get(id) ?? id) }));
+    await tx.save.update({ where: { id: saveId }, data: { equipes: JSON.stringify(teams) } });
     if (data.inventory.length) await tx.itemInventario.createMany({ data: data.inventory.map((row) => ({ ...row, saveId })) });
     if (data.challenges.length) await tx.desafioConcluido.createMany({ data: data.challenges.map((row) => ({ ...row, saveId })) });
     if (data.registeredSpecies.length) await tx.especieRegistrada.createMany({ data: data.registeredSpecies.map((row) => ({ ...row, saveId })) });

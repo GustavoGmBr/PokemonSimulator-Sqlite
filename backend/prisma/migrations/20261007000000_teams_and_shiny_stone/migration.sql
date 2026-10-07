@@ -1,0 +1,1 @@
+ALTER TABLE "Save" ADD COLUMN "equipes" TEXT NOT NULL DEFAULT '[]';

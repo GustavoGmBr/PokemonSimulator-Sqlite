@@ -15,6 +15,7 @@ import { TrainerProfilePage } from './pages/TrainerProfilePage';
 import { MissionsPage } from './pages/MissionsPage';
 import { CasinoPage } from './pages/CasinoPage';
 import { MarketPage } from './pages/MarketPage';
+import { TeamsPage } from './pages/TeamsPage';
 
 function ProtectedRoute() {
   const saveId = useSession((state) => state.saveId);
@@ -33,6 +34,7 @@ export default function App() {
       <Route path="/inicial" element={<StarterPage />} />
       <Route path="/menu" element={<MenuPage />} />
       <Route path="/pokedex" element={<PokedexPage />} />
+      <Route path="/equipes" element={<TeamsPage />} />
       <Route path="/selvagens" element={<BattlePage area="selvagens" />} />
       <Route path="/batalha" element={<BattlePage area="batalhas" />} />
       <Route path="/perfil" element={<TrainerProfilePage />} />

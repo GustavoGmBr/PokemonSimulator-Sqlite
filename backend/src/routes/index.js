@@ -6,7 +6,7 @@ import { updateSaveSchema } from '../validators/auth.js';
 import { createJogadorService } from '../services/jogador.js';
 import { createSaveArchiveService } from '../services/saveArchive.js';
 import { createJogadorController } from '../controllers/jogador.js';
-import { novoSaveSchema, inicialSchema, evolveSchema, buyItemSchema, buyCartSchema, equipMovesSchema, buyTmSchema, expCandySchema, favoriteSchema, sellPokemonSchema, claimMissionSchema } from '../validators/jogador.js';
+import { novoSaveSchema, inicialSchema, evolveSchema, buyItemSchema, buyCartSchema, equipMovesSchema, buyTmSchema, expCandySchema, favoriteSchema, nicknameSchema, sellPokemonSchema, claimMissionSchema } from '../validators/jogador.js';
 import { getCatalogo, getDetalhesEspecie, resumoEspecie } from '../services/catalogo.js';
 import { createBattleService } from '../services/battles.js';
 import { startBattleSchema, battleActionSchema } from '../validators/battle.js';
@@ -19,6 +19,7 @@ import { buyChipsSchema, buyCasinoItemsSchema, casinoWagerSchema, rouletteSchema
 import { z } from 'zod';
 
 const buyPokemonStockSchema = z.object({ stockId: z.string().uuid() }).strict();
+const saveTeamsSchema = z.object({ equipes: z.array(z.object({ nome: z.string().trim().min(1).max(30), pokemonIds: z.array(z.string().min(1).max(30)).length(6).refine(ids => new Set(ids).size === ids.length) }).strict()).refine(teams => new Set(teams.map(team => team.nome.toLocaleLowerCase())).size === teams.length) }).strict();
 
 export function createRouter(db, config) {
   const router = Router();
@@ -63,6 +64,10 @@ export function createRouter(db, config) {
   router.get('/jogador/time', jogador.time);
   router.get('/jogador/pc', jogador.pc);
   router.get('/jogador/pokemon', jogador.colecao);
+  router.get('/jogador/equipes', async (req, res, next) => { try { res.json({ success: true, data: await createJogadorService(db).getTeams(req.usuarioId) }); } catch (error) { next(error); } });
+  router.put('/jogador/equipes', validate(saveTeamsSchema), async (req, res, next) => {
+    try { res.json({ success: true, data: await createJogadorService(db).setTeams(req.usuarioId, req.body.equipes) }); } catch (error) { next(error); }
+  });
   router.get('/jogador/pokemon/valores-venda', async (req, res, next) => {
     try { res.json({ success: true, data: await market.values(req.usuarioId) }); } catch (error) { next(error); }
   });
@@ -82,6 +87,9 @@ export function createRouter(db, config) {
     try { res.json({ success: true, data: await market.buyPokemon(req.usuarioId, req.body.stockId) }); } catch (error) { next(error); }
   });
   router.patch('/jogador/pokemon/:id/favorito', validate(favoriteSchema), jogador.favorito);
+  router.patch('/jogador/pokemon/:id/apelido', validate(nicknameSchema), async (req, res, next) => {
+    try { res.json({ success: true, data: await createJogadorService(db).renamePokemon(req.usuarioId, req.params.id, req.body.apelido) }); } catch (error) { next(error); }
+  });
   router.post('/jogador/pokemon/:id/iv', validate(ivItemSchema), async (req, res, next) => {
     try { res.json({ success: true, data: await evolutions.improveIv(req.usuarioId, req.params.id, req.body.itemId) }); } catch (error) { next(error); }
   });
@@ -105,6 +113,9 @@ export function createRouter(db, config) {
   });
   router.post('/jogador/pokemon/:id/doce-raro', async (req, res, next) => {
     try { res.json({ success: true, data: await evolutions.useRareCandy(req.usuarioId, req.params.id) }); } catch (error) { next(error); }
+  });
+  router.post('/jogador/pokemon/:id/pedra-brilhante', async (req, res, next) => {
+    try { res.json({ success: true, data: await evolutions.useShinyStone(req.usuarioId, req.params.id) }); } catch (error) { next(error); }
   });
   router.post('/jogador/pokemon/:id/doce-exp', validate(expCandySchema), async (req, res, next) => {
     try { res.json({ success: true, data: await evolutions.useExpCandy(req.usuarioId, req.params.id, req.body.itemId) }); } catch (error) { next(error); }

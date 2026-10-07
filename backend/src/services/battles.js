@@ -10,6 +10,9 @@ import { CAPTURE_BALL_IDS, baseFriendship, captureBallMultiplier, happinessGain 
 
 const BASE_CAPTURE_MULTIPLIER = { 'poke-ball': 1, 'great-ball': 1.5, 'ultra-ball': 2, 'master-ball': Infinity };
 const AUTO_SEARCH_COST = 25;
+const GMAX_SIGNATURES = {
+  'venusaur-gmax': ['g-max-vine-lash', 'grass', 100], 'charizard-gmax': ['g-max-wildfire', 'fire', 100], 'blastoise-gmax': ['g-max-cannonade', 'water', 100], 'butterfree-gmax': ['g-max-befuddle', 'bug', 100], 'pikachu-gmax': ['g-max-volt-crash', 'electric', 100], 'meowth-gmax': ['g-max-gold-rush', 'normal', 120], 'machamp-gmax': ['g-max-chi-strike', 'fighting', 100], 'gengar-gmax': ['g-max-terror', 'ghost', 100], 'kingler-gmax': ['g-max-foam-burst', 'water', 100], 'lapras-gmax': ['g-max-resonance', 'ice', 100], 'eevee-gmax': ['g-max-cuddle', 'normal', 100], 'snorlax-gmax': ['g-max-replenish', 'normal', 100], 'garbodor-gmax': ['g-max-malodor', 'poison', 100], 'melmetal-gmax': ['g-max-meltdown', 'steel', 100], 'rillaboom-gmax': ['g-max-drum-solo', 'grass', 160], 'cinderace-gmax': ['g-max-fireball', 'fire', 160], 'inteleon-gmax': ['g-max-hydrosnipe', 'water', 160], 'corviknight-gmax': ['g-max-wind-rage', 'flying', 100], 'orbeetle-gmax': ['g-max-gravitas', 'psychic', 100], 'drednaw-gmax': ['g-max-stonesurge', 'water', 100], 'coalossal-gmax': ['g-max-volcalith', 'rock', 100], 'flapple-gmax': ['g-max-tartness', 'grass', 100], 'appletun-gmax': ['g-max-sweetness', 'grass', 100], 'sandaconda-gmax': ['g-max-sandblast', 'ground', 100], 'toxtricity-amped-gmax': ['g-max-stun-shock', 'electric', 100], 'toxtricity-low-key-gmax': ['g-max-stun-shock', 'electric', 100], 'centiskorch-gmax': ['g-max-centiferno', 'fire', 100], 'hatterene-gmax': ['g-max-smite', 'fairy', 100], 'grimmsnarl-gmax': ['g-max-snooze', 'dark', 100], 'alcremie-gmax': ['g-max-finale', 'fairy', 100], 'copperajah-gmax': ['g-max-steelsurge', 'steel', 100], 'duraludon-gmax': ['g-max-depletion', 'dragon', 100], 'urshifu-single-strike-gmax': ['g-max-one-blow', 'dark', 100], 'urshifu-rapid-strike-gmax': ['g-max-rapid-flow', 'water', 100],
+};
 function displayName(name) { return name.replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); }
 
 export function createBattleService(db) {
@@ -35,12 +38,32 @@ export function createBattleService(db) {
   }
   async function playerMovesFor(_tx, member) {
     const names = equippedMoves(member, getEspecie(member.especieId));
-    return names.map(name => catalogMoves.get(name)).filter(Boolean).map(battleMove);
+    const moves = names.map(name => catalogMoves.get(name)).filter(Boolean).map(battleMove);
+    const signature = GMAX_SIGNATURES[member.gmaxForma];
+    if (!signature) return moves;
+    const [nome, tipo, poder] = signature;
+    return [...moves.slice(0, 3), { nome, tipo, categoria: 'physical', poder, precisao: 100, prioridade: 0, alvo: 'selected-pokemon', meta: {}, alteracoesAtributos: [] }];
   }
   async function progress(tx, saveId) {
     return (await tx.desafioConcluido.findMany({ where: { saveId }, select: { desafioId: true } })).map((entry) => entry.desafioId);
   }
   function log(state, message) { state.logs = [...state.logs.slice(-24), message]; }
+  function captureChancePercent(state, itemId, completed, hasCharm) {
+    if (itemId === 'master-ball') return 100;
+    const species = getEspecie(state.oponente.especieId);
+    const opponent = { ...state.oponente, species: { types: species.tipos, weight: species.peso, height: species.altura } };
+    const charm = catchCharmMultiplier(completed, generationForSpecies(species.id), hasCharm);
+    const bonus = captureBallMultiplier(itemId, { round: state.rodada, opponent, player: state.jogador });
+    const chance = species.taxaCaptura / 255 * (BASE_CAPTURE_MULTIPLIER[itemId] ?? 1) * bonus * (3 - 2 * state.oponente.hp / state.oponente.maxHp) / 3 * charm;
+    return Math.max(0, Math.min(0.95, chance)) * 100;
+  }
+  async function attachCaptureChances(tx, saveId, state) {
+    if (state.tipo !== 'selvagem' || state.resultado) return;
+    const inventory = await tx.itemInventario.findMany({ where: { saveId, quantidade: { gt: 0 } }, select: { itemId: true } });
+    const ids = new Set(inventory.map(item => item.itemId));
+    const completed = ids.has('catching-charm') ? await progress(tx, saveId) : [];
+    state.chancesCaptura = Object.fromEntries([...CAPTURE_BALL_IDS].filter(id => ids.has(id)).map(id => [id, Math.round(captureChancePercent(state, id, completed, ids.has('catching-charm')) * 100) / 100]));
+  }
   function battleSpeed(combatant) {
     const stage = Math.max(-6, Math.min(6, combatant.statStages?.speed ?? 0));
     const multiplier = stage >= 0 ? (2 + stage) / 2 : 2 / (2 - stage);
@@ -253,6 +276,11 @@ export function createBattleService(db) {
     const result = damage(attacker, defender, move);
     if (!result.acerto) { log(state, `${attacker.nome} usou ${displayName(move.nome)}, mas errou.`); return; }
     defender.hp = Math.max(0, defender.hp - result.dano);
+    if (attacker === state.jogador && ['pay-day', 'g-max-gold-rush'].includes(move.nome)) {
+      const earned = attacker.nivel * (move.nome === 'g-max-gold-rush' ? 10 : 5);
+      state.moedasGolpes = (state.moedasGolpes ?? 0) + earned;
+      log(state, `${attacker.nome} espalhou ${earned.toLocaleString('pt-BR')} ₽ com ${displayName(move.nome)}.`);
+    }
     const healing = healByDrain(attacker, result.dano, drainPercentForMove(move));
     const ailment = applyMoveAilment(state, attacker, defender, move);
     const statChance = move.meta?.stat_chance > 0 ? move.meta.stat_chance : move.chanceEfeito ?? 0;
@@ -330,7 +358,7 @@ export function createBattleService(db) {
     const eggMultiplier = owned.has('lucky-egg') ? luckyEggMultiplier(completed) : 1;
     const coinMultiplier = owned.has('amulet-coin') ? amuletCoinMultiplier(completed) : 1;
     if (state.resultado === 'vitoria') {
-      state.moedasGanhas = Math.floor((['treinador', 'torneio'].includes(state.tipo) ? state.recompensa.moedas : state.moedasGanhas ?? state.oponente.nivel * 10) * coinMultiplier);
+      state.moedasGanhas = Math.floor((['treinador', 'torneio'].includes(state.tipo) ? state.recompensa.moedas : state.moedasGanhas ?? state.oponente.nivel * 10) * coinMultiplier) + Math.floor((state.moedasGolpes ?? 0) * coinMultiplier);
       await tx.save.update({ where: { id: save.id }, data: { vitorias: { increment: 1 }, moedas: { increment: state.moedasGanhas } } });
       if (['treinador', 'torneio'].includes(state.tipo)) {
         state.itensGanhos = state.recompensa.itens;
@@ -388,7 +416,7 @@ export function createBattleService(db) {
       const active = await db.batalha.findUnique({ where: { saveId: save.id } });
       return active ? { id: active.id, versao: active.versao, ...normalizeBattleState(structuredClone(active.estado)) } : null;
     },
-    async start(usuarioId, { tipo, desafioId, dificuldade, torneioId, regiao, selvagem, intervaloNivel, autoBusca = false }) {
+    async start(usuarioId, { tipo, desafioId, dificuldade, torneioId, regiao, selvagem, intervaloNivel, autoBusca = false, autoBuscaEspeciesIds }) {
       return db.$transaction(async (tx) => {
         const save = await tx.save.findUnique({ where: { usuarioId } });
         if (!save?.inicialEspecieId) throw new HttpError(409, 'Escolha seu inicial antes de batalhar.');
@@ -405,6 +433,13 @@ export function createBattleService(db) {
         if (tipo === 'selvagem' && (requestedRegion !== 'todas' && (!wildRegion || !regionUnlocked(wildRegion.id, completed)) || requestedRegion === 'todas' && selvagem)) throw new HttpError(403, 'Região ainda bloqueada ou escolha personalizada indisponível para todas as gerações.');
         if (selvagem && !completed.includes(wildRegion.champion.id)) throw new HttpError(403, `Derrote o campeão de ${wildRegion.nome} para escolher espécie e nível selvagem.`);
         if (selvagem && (selvagem.regiao !== wildRegion.id || selvagem.especieId < wildRegion.minSpecies || selvagem.especieId > wildRegion.maxSpecies)) throw new HttpError(404, 'Espécie indisponível nesta região.');
+        if (autoBuscaEspeciesIds?.length) {
+          for (const speciesId of autoBuscaEspeciesIds) {
+            const speciesRegion = REGIONS.filter(entry => speciesId >= entry.minSpecies && speciesId <= entry.maxSpecies && regionUnlocked(entry.id, completed)).at(-1);
+            if (!speciesRegion || (requestedRegion !== 'todas' && speciesRegion.id !== requestedRegion) || !completed.includes(speciesRegion.champion.id)) throw new HttpError(403, `A busca específica por #${speciesId} exige concluir a geração correspondente.`);
+            if (!legendaryUnlocked(getEspecie(speciesId), completed)) throw new HttpError(403, `Conclua a Elite dos 4 para incluir o Pokémon lendário #${speciesId} na busca.`);
+          }
+        }
         const wildLevels = tipo === 'selvagem' && !selvagem ? wildRange(completed, requestedRegion, intervaloNivel) : null;
         let autoSearchCoins = null;
         if (autoBusca) {
@@ -416,7 +451,8 @@ export function createBattleService(db) {
         const tournament = tipo === 'torneio' ? rollTournament(torneioId) : null;
         if (tipo === 'torneio' && !tournament) throw new HttpError(404, 'Torneio não encontrado.');
         const opponents = [];
-        const wild = tipo === 'selvagem' ? (selvagem ? getEspecie(selvagem.especieId) : rollWild(getCatalogo(), randomInt, completed, requestedRegion)) : null;
+        const specificId = selvagem?.especieId ?? (autoBuscaEspeciesIds?.length ? autoBuscaEspeciesIds[randomInt(autoBuscaEspeciesIds.length)] : null);
+        const wild = tipo === 'selvagem' ? (specificId ? getEspecie(specificId) : rollWild(getCatalogo(), randomInt, completed, requestedRegion)) : null;
         if (wild && !legendaryUnlocked(wild, completed)) throw new HttpError(403, 'Derrote a Elite dos 4 desta região para encontrar este Pokémon lendário ou mítico.');
         const encounterRegion = requestedRegion === 'todas' ? REGIONS.filter((entry) => wild.id >= entry.minSpecies && wild.id <= entry.maxSpecies && regionUnlocked(entry.id, completed)).at(-1) : wildRegion;
         const lineup = leader ? leader.pokemon.map((id) => ({ id, nivel: leader.nivel })) : trainer ? trainer.pokemon : tournament ? tournament.treinadores[0].pokemon : [{ id: wild.id, nivel: selvagem?.nivel ?? randomInt(wildLevels.intervaloNivel.minimo, wildLevels.intervaloNivel.maximo + 1) }];
@@ -427,9 +463,10 @@ export function createBattleService(db) {
           const paid = await tx.save.updateMany({ where: { id: save.id, moedas: { gte: tournament.entrada } }, data: { moedas: { decrement: tournament.entrada } } });
           if (paid.count !== 1) throw new HttpError(409, 'Pokédólares insuficientes para entrar no torneio.');
         }
-        const state = { tipo, regiao: tipo === 'selvagem' ? requestedRegion : leader?.regiao ?? null, regiaoEncontro: tipo === 'selvagem' ? encounterRegion.id : null, desafioId: leader?.id ?? null, treinador: leader?.nome ?? trainer?.nome ?? tournament?.treinadores[0].nome ?? null, dificuldade: trainer?.dificuldade ?? null, recompensa: trainer?.recompensa ?? tournament?.recompensa ?? null, torneio: tournament ? { id: tournament.id, nome: tournament.nome, entrada: tournament.entrada, rodada: 1, treinadores: tournament.treinadores } : null, xpPorPokemon: {}, itensGanhos: [], limiteNivel: leader?.nivel ?? null, totalOponentes: opponents.length, jogador: null, reservas: [], oponente: opponents.shift(), fila: opponents, rodada: 1, xpGanho: 0, moedasGanhas: 0, resultado: null, aguardandoReviver: false, ...(autoBusca ? { buscaAutomatica: true, buscaTentativas: 1, moedasBusca: autoSearchCoins, ...(selvagem ? { buscaAutomaticaEspecieId: selvagem.especieId, buscaAutomaticaNivel: selvagem.nivel } : {}) } : {}), logs: [leader ? `${leader.nome} desafiou você!` : trainer ? `${trainer.nome} desafiou você!` : tournament ? `Torneio ${tournament.nome}: rodada 1 de 8 contra ${tournament.treinadores[0].nome}.` : 'Um Pokémon selvagem apareceu! Escolha quem vai enfrentá-lo.'] };
+        const state = { tipo, regiao: tipo === 'selvagem' ? requestedRegion : leader?.regiao ?? null, regiaoEncontro: tipo === 'selvagem' ? encounterRegion.id : null, ...(selvagem ? { buscaEspecieId: selvagem.especieId, buscaNivel: selvagem.nivel } : {}), desafioId: leader?.id ?? null, treinador: leader?.nome ?? trainer?.nome ?? tournament?.treinadores[0].nome ?? null, dificuldade: trainer?.dificuldade ?? null, recompensa: trainer?.recompensa ?? tournament?.recompensa ?? null, torneio: tournament ? { id: tournament.id, nome: tournament.nome, entrada: tournament.entrada, rodada: 1, treinadores: tournament.treinadores } : null, xpPorPokemon: {}, itensGanhos: [], limiteNivel: leader?.nivel ?? tournament?.nivelMaximo ?? null, totalOponentes: opponents.length, jogador: null, reservas: [], oponente: opponents.shift(), fila: opponents, rodada: 1, xpGanho: 0, moedasGanhas: 0, resultado: null, aguardandoReviver: false, ...(autoBusca ? { buscaAutomatica: true, buscaTentativas: 1, moedasBusca: autoSearchCoins, ...(selvagem ? { buscaAutomaticaEspecieId: selvagem.especieId, buscaAutomaticaNivel: selvagem.nivel } : autoBuscaEspeciesIds?.length ? { buscaAutomaticaEspeciesIds: autoBuscaEspeciesIds } : {}) } : {}), logs: [leader ? `${leader.nome} desafiou você!` : trainer ? `${trainer.nome} desafiou você!` : tournament ? `Torneio ${tournament.nome}: rodada 1 de 8 contra ${tournament.treinadores[0].nome}.` : 'Um Pokémon selvagem apareceu! Escolha quem vai enfrentá-lo.'] };
         if (wildLevels) Object.assign(state, wildLevels);
         if (tipo === 'selvagem' && state.oponente.shiny) await tx.batalhaEvento.create({ data: { saveId: save.id, tipo: 'shiny_encontrado', especieId: wild.id, regiao: encounterRegion.id, shiny: true, descricao: `${state.oponente.nome} shiny encontrado` } });
+        await attachCaptureChances(tx, save.id, state);
         if (!save.kitEntregue) {
           await tx.save.update({ where: { id: save.id }, data: { kitEntregue: true } });
           for (const [itemId, quantidade] of [['poke-ball', 10], ['potion', 5]]) await tx.itemInventario.upsert({ where: { saveId_itemId: { saveId: save.id, itemId } }, create: { saveId: save.id, itemId, quantidade }, update: { quantidade: { increment: quantidade } } });
@@ -489,15 +526,17 @@ export function createBattleService(db) {
           }
           const completed = await progress(tx, save.id);
           const owned = new Set((await tx.itemInventario.findMany({ where: { saveId: save.id, quantidade: { gt: 0 } }, select: { itemId: true } })).map((item) => item.itemId));
-          let wild = state.buscaAutomaticaEspecieId ? getEspecie(state.buscaAutomaticaEspecieId) : rollWild(getCatalogo(), randomInt, completed, state.regiao);
-          for (let attempt = 0; !state.buscaAutomaticaEspecieId && wild.id === state.oponente.especieId && attempt < 20; attempt++) wild = rollWild(getCatalogo(), randomInt, completed, state.regiao);
-          if (!state.buscaAutomaticaEspecieId && wild.id === state.oponente.especieId) {
+          const specificSearchId = state.buscaEspecieId ?? (state.buscaAutomaticaEspeciesIds?.length ? state.buscaAutomaticaEspeciesIds[randomInt(state.buscaAutomaticaEspeciesIds.length)] : state.buscaAutomaticaEspecieId);
+          const searchingSpeciesList = !state.buscaEspecieId && !state.buscaAutomaticaEspecieId && Boolean(state.buscaAutomaticaEspeciesIds?.length);
+          let wild = specificSearchId ? getEspecie(specificSearchId) : rollWild(getCatalogo(), randomInt, completed, state.regiao);
+          for (let attempt = 0; !specificSearchId && wild.id === state.oponente.especieId && attempt < 20; attempt++) wild = rollWild(getCatalogo(), randomInt, completed, state.regiao);
+          if (!specificSearchId && wild.id === state.oponente.especieId) {
             const alternatives = getCatalogo().pokemon.filter((species) => species.id !== state.oponente.especieId && legendaryUnlocked(species, completed) && REGIONS.some((region) => species.id >= region.minSpecies && species.id <= region.maxSpecies && regionUnlocked(region.id, completed) && (state.regiao === 'todas' || state.regiao === region.id)));
             wild = alternatives[randomInt(alternatives.length)];
           }
           const encounterRegion = REGIONS.find((region) => wild.id >= region.minSpecies && wild.id <= region.maxSpecies);
-          const wildLevels = state.buscaAutomaticaEspecieId ? null : wildRange(completed, state.regiao, state.intervaloNivel);
-          const level = state.buscaAutomaticaEspecieId ? state.buscaAutomaticaNivel : randomInt(wildLevels.intervaloNivel.minimo, wildLevels.intervaloNivel.maximo + 1);
+          const wildLevels = specificSearchId && !searchingSpeciesList ? null : wildRange(completed, state.regiao, state.intervaloNivel);
+          const level = specificSearchId && !searchingSpeciesList ? state.buscaNivel ?? state.buscaAutomaticaNivel : randomInt(wildLevels.intervaloNivel.minimo, wildLevels.intervaloNivel.maximo + 1);
           if (wildLevels) Object.assign(state, wildLevels);
           state.oponente = makeCombatant(wild.id, level, rollShiny(randomInt, shinyRolls(completed, generationForSpecies(wild.id), owned.has('shiny-charm'))), await movesFor(tx, wild.id, level));
           state.regiaoEncontro = encounterRegion.id;
@@ -534,10 +573,7 @@ export function createBattleService(db) {
           const species = getEspecie(state.oponente.especieId);
           const charm = await tx.itemInventario.findUnique({ where: { saveId_itemId: { saveId: save.id, itemId: 'catching-charm' } } });
           const completed = charm?.quantidade > 0 ? await progress(tx, save.id) : [];
-          const multiplier = catchCharmMultiplier(completed, generationForSpecies(species.id), charm?.quantidade > 0);
-          const opponent = { ...state.oponente, species: { types: species.tipos, weight: species.peso, height: species.altura } };
-          const conditionalMultiplier = captureBallMultiplier(action.itemId, { round: state.rodada, opponent, player: state.jogador });
-          const chance = action.itemId === 'master-ball' ? 1 : Math.min(.95, species.taxaCaptura / 255 * (BASE_CAPTURE_MULTIPLIER[action.itemId] ?? 1) * conditionalMultiplier * (3 - 2 * state.oponente.hp / state.oponente.maxHp) / 3 * multiplier);
+          const chance = captureChancePercent(state, action.itemId, completed, charm?.quantidade > 0) / 100;
           if (randomInt(10000) < chance * 10000) { state.resultado = 'captura'; if (action.itemId === 'heal-ball') state.oponente.status = null; log(state, `${state.oponente.nome} foi capturado${action.itemId === 'heal-ball' ? ' e recuperou todo o HP e status com a Bola de Cura' : ''}!`); }
           else { log(state, `${state.oponente.nome} escapou da Poké Bola.`); await opponentTurn(tx, save.id, state); }
         } else {
@@ -557,6 +593,7 @@ export function createBattleService(db) {
           }
         }
         if (!['escolher', 'procurar', 'procurar-auto'].includes(action.acao)) state.rodada++;
+        await attachCaptureChances(tx, save.id, state);
         if (state.resultado) return finish(tx, save, state, action);
         const updated = await tx.batalha.updateMany({ where: { id: battle.id, versao: action.versao }, data: { estado: state, versao: { increment: 1 } } });
         if (updated.count !== 1) throw new HttpError(409, 'A batalha mudou. Recarregue seu estado.');

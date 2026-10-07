@@ -17,5 +17,6 @@ export const buyCartSchema = z.object({ itens: z.array(z.object({ itemId: z.stri
 export const equipMovesSchema = z.object({ golpes: z.array(z.string().min(1).max(80)).min(1).max(4).refine((names) => new Set(names).size === names.length) }).strict();
 export const buyTmSchema = z.object({ golpe: z.string().min(1).max(80) }).strict();
 export const favoriteSchema = z.object({ favorito: z.boolean() }).strict();
+export const nicknameSchema = z.object({ apelido: z.string().trim().min(1).max(24).nullable() }).strict();
 export const sellPokemonSchema = z.object({ pokemonIds: z.array(z.string().min(1).max(30)).min(1).max(5000).refine((ids) => new Set(ids).size === ids.length, 'Selecione Pokémon diferentes.') }).strict();
 export const claimMissionSchema = z.object({ periodo: z.number().int().nonnegative() }).strict();

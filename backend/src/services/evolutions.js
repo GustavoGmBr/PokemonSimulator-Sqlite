@@ -114,6 +114,21 @@ export function createEvolutionService(db) {
         return tx.pokemonCapturado.update({ where: { id: member.id }, data: { ivs, atributos: stats, hpAtual } });
       }, { isolationLevel: 'Serializable', timeout: 20_000 });
     },
+    async useShinyStone(usuarioId, pokemonId) {
+      return db.$transaction(async tx => {
+        const member = await tx.pokemonCapturado.findFirst({ where: { id: pokemonId, save: { usuarioId } } });
+        if (!member) throw new HttpError(404, 'Pokémon não encontrado na sua coleção.');
+        if (member.shiny) throw new HttpError(409, 'Este Pokémon já é shiny.');
+        if (await tx.batalha.findUnique({ where: { saveId: member.saveId }, select: { id: true } })) throw new HttpError(409, 'Termine a batalha antes de usar a Pedra Brilhante.');
+        const used = await tx.itemInventario.updateMany({ where: { saveId: member.saveId, itemId: 'shiny-stone', quantidade: { gt: 0 } }, data: { quantidade: { decrement: 1 } } });
+        if (used.count !== 1) throw new HttpError(409, 'Pedra Brilhante indisponível na mochila.');
+        await tx.itemInventario.deleteMany({ where: { saveId: member.saveId, itemId: 'shiny-stone', quantidade: 0 } });
+        const stats = statsFor(formFor(getEspecie(member.especieId), member.megaForma, member.gmaxForma), member.nivel, true, member.ivs);
+        const oldMaxHp = member.atributos?.hp ?? statsFor(getEspecie(member.especieId), member.nivel, false, member.ivs).hp;
+        const hpAtual = member.hpAtual === 0 ? 0 : Math.max(1, Math.min(stats.hp, Math.ceil(member.hpAtual / oldMaxHp * stats.hp)));
+        return tx.pokemonCapturado.update({ where: { id: member.id }, data: { shiny: true, atributos: stats, hpAtual } });
+      }, { isolationLevel: 'Serializable', timeout: 20_000 });
+    },
     async options(usuarioId, pokemonId) {
       const member = await db.pokemonCapturado.findFirst({ where: { id: pokemonId, save: { usuarioId } } });
       if (!member) throw new HttpError(404, 'Pokémon não encontrado na sua coleção.');

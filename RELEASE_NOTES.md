@@ -1,3 +1,13 @@
+## Pokémon Simulator SQLite v1.3.0
+
+- Adicionadas equipes ilimitadas de seis Pokémon com nome; elas ficam no save, acompanham a exportação/importação e podem filtrar a seleção de batalha. Batalhas também filtram favoritos.
+- A Pokédex mostra a efetividade de cada tipo contra o Pokémon e compara dois Pokémon capturados usando os atributos reais, IVs, nível e bônus shiny.
+- Torneios agora reduzem o nível de entrada ao máximo permitido pela categoria sem alterar o nível salvo.
+- Encontros selvagens mostram alerta para shiny e 4 estrelas, pedem confirmação antes de trocar, mantêm a espécie escolhida na busca e mostram a chance atual de cada Poké Bola.
+- A busca automática aceita uma lista de espécies concluídas e continua pausando ao encontrar qualquer shiny ou Pokémon de 4 estrelas.
+- Adicionados apelidos, doces de EXP e Doce Raro no cassino, golpes característicos G-Max e dinheiro de Pay Day/G-Max Gold Rush.
+- Pokémon shiny recebem +50% nos atributos. A Pedra Brilhante converte Pokémon não shiny, custa 1.000.000 ₽ na loja e 350.000 fichas no cassino.
+
 ## Pokémon Simulator SQLite v1.2.2
 
 - A busca automática pausa ao encontrar qualquer Pokémon Shiny ou de 4 estrelas, mesmo que ele não corresponda à espécie ou aos filtros definidos. Ter as duas características também pausa a busca.

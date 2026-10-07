@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Home, BookOpen, LogOut, MapPin, CircleDot, Swords, Store, UserRound, Trees, ListChecks, Dices, BadgeDollarSign, Save, Coins } from 'lucide-react';
+import { Home, BookOpen, LogOut, MapPin, CircleDot, Swords, Store, UserRound, Trees, ListChecks, Dices, BadgeDollarSign, Save, Coins, Users } from 'lucide-react';
 import { useSession } from '../stores/session';
 import { useSave } from '../lib/queries';
 import { Brand } from './common';
@@ -19,6 +19,7 @@ export function Layout() {
       <nav aria-label="Navegação principal">
         <NavLink to="/menu"><Home size={19} /> Início</NavLink>
         <NavLink to="/pokedex"><BookOpen size={19} /> Pokédex <span className="nav-count">1025</span></NavLink>
+        <NavLink to="/equipes"><Users size={19} /> Equipes</NavLink>
         <NavLink to="/selvagens"><Trees size={19} /> Selvagens</NavLink>
         <NavLink to="/batalha"><Swords size={19} /> Batalhas</NavLink>
         <NavLink to="/loja"><Store size={19} /> Loja</NavLink>

@@ -35,5 +35,5 @@ export function rollTournament(tier, rng = randomInt) {
   });
   const itens = rule.premios.map(([itemId, minimo, maximo]) => ({ itemId: itemId === SPECIAL_CAPTURE_BALL_REWARD_ID ? randomRewardCaptureBall(rng) : itemId, quantidade: rng(minimo, maximo + 1) })).filter((entry) => entry.quantidade > 0);
   itens.push({ itemId: IV_ITEMS[rng(IV_ITEMS.length)].nome, quantidade: rule.premiosIvs });
-  return { id: rule.id, nome: rule.nome, entrada: rule.entrada, recompensa: { moedas: rule.moedas, itens }, treinadores };
+  return { id: rule.id, nome: rule.nome, entrada: rule.entrada, nivelMaximo: rule.nivelMaximo, recompensa: { moedas: rule.moedas, itens }, treinadores };
 }

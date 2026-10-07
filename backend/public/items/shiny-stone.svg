@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Pedra Brilhante">
+  <defs><radialGradient id="g" cx="35%" cy="28%"><stop stop-color="#fff8ce"/><stop offset=".45" stop-color="#fff2a0"/><stop offset="1" stop-color="#e2a83f"/></radialGradient></defs>
+  <path d="M32 4 55 19 51 48 32 60 10 47 7 20Z" fill="url(#g)" stroke="#fff2c0" stroke-width="3"/>
+  <path d="m32 4 1 27-26-11M33 31l22-12M33 31l18 17M33 31 10 47M33 31l-1 29" fill="none" stroke="#fff9db" stroke-width="2" opacity=".9"/>
+</svg>

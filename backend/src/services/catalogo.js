@@ -4,7 +4,7 @@ import { HttpError } from '../lib/errors.js';
 import { levelMovesFor, statsFor } from './battleRules.js';
 import { naturalMoves } from './moveRules.js';
 import { IV_ITEMS, perfectIvs } from './ivRules.js';
-import { STATUS_CURE_ITEMS } from './itemRules.js';
+import { STATUS_CURE_ITEMS, EXP_CANDIES } from './itemRules.js';
 import { CAPTURE_BALL_ITEMS, rollPokemonSex } from './captureBalls.js';
 
 let cached;
@@ -12,7 +12,7 @@ export function getCatalogo() {
   if (!cached) {
     try {
       cached = JSON.parse(readFileSync(new URL('../../data/catalogo.json', import.meta.url), 'utf8'));
-      const extraItems = [...IV_ITEMS, ...STATUS_CURE_ITEMS, ...CAPTURE_BALL_ITEMS.map((ball, index) => ({ id: 2400 + index, nome: ball.id, nomeExibicao: ball.name, categoria: 'captura', descricao: ball.description, precoReferencia: null, sprite: `/assets/items/${ball.id}.png`, precoLoja: ball.price }))];
+      const extraItems = [...IV_ITEMS, ...STATUS_CURE_ITEMS, ...CAPTURE_BALL_ITEMS.map((ball, index) => ({ id: 2400 + index, nome: ball.id, nomeExibicao: ball.name, categoria: 'captura', descricao: ball.description, precoReferencia: null, sprite: `/assets/items/${ball.id}.png`, precoLoja: ball.price })), ...Object.entries(EXP_CANDIES).map(([nome, experiencia], index) => ({ id: 2500 + index, nome, nomeExibicao: `Doce EXP ${nome.slice(-1).toUpperCase()}`, categoria: 'treino', descricao: `Concede ${experiencia.toLocaleString('pt-BR')} pontos de experiência.`, sprite: '/assets/items/exp-candy.svg', precoLoja: null })), { id: 2510, nome: 'rare-candy', nomeExibicao: 'Doce Raro', categoria: 'treino', descricao: 'Aumenta um nível.', sprite: '/assets/items/rare-candy.png', precoLoja: null }, { id: 2511, nome: 'shiny-stone', nomeExibicao: 'Pedra Brilhante', categoria: 'evolucao', descricao: 'Transforma um Pokémon em shiny e aumenta seus atributos em 50%.', sprite: '/assets/items/shiny-stone.svg', precoLoja: 1_000_000 }];
       const itemsByName = new Map(cached.itens.map((item) => [item.nome, item]));
       for (const item of extraItems) itemsByName.set(item.nome, item);
       cached.itens = [...itemsByName.values()];

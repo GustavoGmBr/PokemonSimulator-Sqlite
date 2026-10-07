@@ -12,7 +12,7 @@ export function createApp({ db, config }) {
   const app = express();
   app.disable('x-powered-by');
   app.use(helmet());
-  app.use(cors({ origin: config.CORS_ORIGIN, methods: ['GET', 'POST', 'PATCH', 'DELETE'], allowedHeaders: ['Content-Type', 'X-Save-Id'] }));
+  app.use(cors({ origin: config.CORS_ORIGIN, methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], allowedHeaders: ['Content-Type', 'X-Save-Id'] }));
   app.use('/assets', express.static(fileURLToPath(new URL('../public', import.meta.url)), {
     maxAge: '1d', setHeaders: (res) => res.set('Cross-Origin-Resource-Policy', 'cross-origin'),
   }));

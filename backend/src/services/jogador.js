@@ -69,6 +69,27 @@ export function createJogadorService(db) {
       if (updated.count !== 1) throw new HttpError(404, 'Pokémon não encontrado na sua coleção.');
       return db.pokemonCapturado.findUnique({ where: { id: pokemonId } });
     },
+    async renamePokemon(usuarioId, pokemonId, apelido) {
+      const updated = await db.pokemonCapturado.updateMany({ where: { id: pokemonId, save: { usuarioId } }, data: { apelido: apelido?.trim() || null } });
+      if (updated.count !== 1) throw new HttpError(404, 'Pokémon não encontrado na sua coleção.');
+      return db.pokemonCapturado.findUnique({ where: { id: pokemonId } });
+    },
+    async getTeams(usuarioId) {
+      const save = await db.save.findUnique({ where: { usuarioId }, select: { equipes: true } });
+      try { return JSON.parse(save?.equipes ?? '[]'); } catch { return []; }
+    },
+    async setTeams(usuarioId, teams) {
+      return db.$transaction(async tx => {
+        const save = await tx.save.findUnique({ where: { usuarioId }, select: { id: true } });
+        if (!save) throw new HttpError(404, 'Save não encontrado.');
+        const ids = [...new Set(teams.flatMap(team => team.pokemonIds))];
+        const owned = await tx.pokemonCapturado.findMany({ where: { saveId: save.id, id: { in: ids } }, select: { id: true } });
+        if (owned.length !== ids.length) throw new HttpError(400, 'Uma equipe contém Pokémon que não pertencem a este save.');
+        const normalized = teams.map(team => ({ nome: team.nome.trim(), pokemonIds: team.pokemonIds }));
+        await tx.save.update({ where: { id: save.id }, data: { equipes: JSON.stringify(normalized) } });
+        return normalized;
+      }, { isolationLevel: 'Serializable' });
+    },
     getInventario(usuarioId) {
       return db.itemInventario.findMany({ where: { save: { usuarioId }, itemId: { notIn: ['ether', 'elixir'] } }, orderBy: { itemId: 'asc' } });
     },
