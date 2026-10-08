@@ -1,3 +1,8 @@
+## Pokémon Simulator SQLite v1.3.3
+
+- Desafios regionais agora aceitam apenas Pokémon da região correspondente, com a seleção filtrada e validação no servidor.
+- Evoluções para espécies de uma região bloqueada ficam indisponíveis até o save liberar a região pelos desafios.
+
 ## Pokémon Simulator SQLite v1.3.2
 
 - Corrigido o botão de busca automática desabilitado ao selecionar Pokémon de uma geração ainda não concluída.

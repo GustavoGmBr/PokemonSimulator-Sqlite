@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { getCatalogo } from '../src/services/catalogo.js';
-import { CHAMPION, ELITE, GYMS, JOHTO_CHAMPION, JOHTO_ELITE, JOHTO_GYMS, HOENN_CHAMPION, HOENN_ELITE, HOENN_GYMS, SINNOH_CHAMPION, SINNOH_ELITE, SINNOH_GYMS, UNOVA1_CHAMPION, UNOVA1_ELITE, UNOVA1_GYMS, UNOVA2_CHAMPION, UNOVA2_ELITE, UNOVA2_GYMS, KALOS_GYMS, KALOS_CHAMPION, ALOLA_TRIALS, ALOLA_CHAMPION, GALAR_GYMS, GALAR_CHAMPION, PALDEA_GYMS, PALDEA_CHAMPION, REGIONS, TRAINER_DIFFICULTIES, catchCharmMultiplier, challengesWithStatus, charmMilestones, damage, drainPercentForMove, effectiveness, formFor, healAtTurnEnd, healByDrain, healByMove, healByStrengthSap, legendaryUnlocked, leechSeedTurn, levelMovesFor, recoveryPercent, regionUnlocked, rollShiny, rollTrainer, rollWild, shinyRolls, statsFor, wildLevelCap, wildWeight } from '../src/services/battleRules.js';
+import { CHAMPION, ELITE, GYMS, JOHTO_CHAMPION, JOHTO_ELITE, JOHTO_GYMS, HOENN_CHAMPION, HOENN_ELITE, HOENN_GYMS, SINNOH_CHAMPION, SINNOH_ELITE, SINNOH_GYMS, UNOVA1_CHAMPION, UNOVA1_ELITE, UNOVA1_GYMS, UNOVA2_CHAMPION, UNOVA2_ELITE, UNOVA2_GYMS, KALOS_GYMS, KALOS_CHAMPION, ALOLA_TRIALS, ALOLA_CHAMPION, GALAR_GYMS, GALAR_CHAMPION, PALDEA_GYMS, PALDEA_CHAMPION, REGIONS, TRAINER_DIFFICULTIES, catchCharmMultiplier, challengesWithStatus, charmMilestones, damage, drainPercentForMove, effectiveness, formFor, healAtTurnEnd, healByDrain, healByMove, healByStrengthSap, legendaryUnlocked, leechSeedTurn, levelMovesFor, recoveryPercent, regionUnlocked, speciesInRegion, rollShiny, rollTrainer, rollWild, shinyRolls, statsFor, wildLevelCap, wildWeight } from '../src/services/battleRules.js';
 import { healCombatant } from '../src/services/itemRules.js';
 import { evolutionOptions } from '../src/services/evolutions.js';
 import { TOURNAMENTS, rollTournament } from '../src/services/tournaments.js';
@@ -315,6 +315,26 @@ test('evolucoes por nivel, pedra, cabo e Mega Pedra validam requisitos', () => {
   assert.equal(groudon.find((entry) => entry.alvo === 'groudon-primal').disponivel, true);
   assert.equal(formFor(getCatalogo().pokemon[382], 'groudon-primal').tipos.includes('fire'), true);
   assert.equal(evolutionOptions({ especieId: 382, nivel: 60 }, [{ itemId: 'blue-orb', quantidade: 1 }]).find((entry) => entry.alvo === 'kyogre-primal').disponivel, true);
+});
+
+test('desafios regionais aceitam apenas espécies da própria região', () => {
+  assert.equal(speciesInRegion(1, 'kanto'), true);
+  assert.equal(speciesInRegion(151, 'kanto'), true);
+  assert.equal(speciesInRegion(152, 'kanto'), false);
+  assert.equal(speciesInRegion(152, 'johto'), true);
+  assert.equal(speciesInRegion(251, 'johto'), true);
+  assert.equal(speciesInRegion(252, 'johto'), false);
+});
+
+test('evolução para região bloqueada fica indisponível até liberar a geração', () => {
+  const eevee = { especieId: 133, nivel: 100, amizade: 200 };
+  const inventory = [{ itemId: 'dusk-stone', quantidade: 1 }];
+  const blocked = evolutionOptions(eevee, inventory, [], (speciesId) => speciesId <= 151);
+  const umbreon = blocked.find((entry) => entry.alvo === 197);
+  assert.equal(umbreon.disponivel, false);
+  assert.match(umbreon.motivo, /2ª geração/);
+  const unlocked = evolutionOptions(eevee, inventory, [], (speciesId) => speciesId <= 251);
+  assert.equal(unlocked.find((entry) => entry.alvo === 197).disponivel, true);
 });
 
 test('Eevee usa exclusivamente a pedra definida para cada evolução especial', () => {

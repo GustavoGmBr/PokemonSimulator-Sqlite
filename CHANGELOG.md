@@ -1,5 +1,10 @@
 # Histórico de versões
 
+## v1.3.3 — desafios restritos à região
+
+- Em ginásios, Elite e campeonatos regionais, só podem ser escolhidos Pokémon cuja espécie pertença à Pokédex da região do desafio. A regra é aplicada também no servidor.
+- Evoluções para espécies de regiões ainda bloqueadas ficam indisponíveis até que o progresso do save libere aquela região.
+
 ## v1.3.2 — busca automática em gerações ainda não concluídas
 
 - Corrigida a busca automática que ficava desabilitada ao escolher espécies de uma geração ainda não concluída.

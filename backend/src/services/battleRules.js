@@ -190,6 +190,11 @@ export const ALL_CHALLENGES = REGIONS.flatMap((region) => [
   { ...region.champion, categoria: 'campeão', regiao: region.id },
 ]);
 
+export function speciesInRegion(speciesId, regionId) {
+  const region = REGIONS.find((entry) => entry.id === regionId);
+  return Boolean(region && speciesId >= region.minSpecies && speciesId <= region.maxSpecies);
+}
+
 export function regionUnlocked(regionId, completed) {
   if (regionId === 'kanto') return true;
   if (regionId === 'johto') return GYMS.every((leader) => completed.includes(leader.id));

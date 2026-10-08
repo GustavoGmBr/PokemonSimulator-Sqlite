@@ -2,7 +2,7 @@ import { normalizeIvs } from './ivRules.js';
 import { randomInt } from 'node:crypto';
 import { HttpError } from '../lib/errors.js';
 import { getCatalogo, getEspecie } from './catalogo.js';
-import { REGIONS, GYMS, regionUnlocked, legendaryUnlocked, catchCharmMultiplier, challengesWithStatus, charmMilestones, completedGenerationsAfterFirst, luckyEggMultiplier, amuletCoinMultiplier, damage, drainPercentForMove, effectiveness, formFor, healAtTurnEnd, healByDrain, healByMove, healByStrengthSap, leechSeedTurn, levelMovesFor, makeCombatant, rollShiny, rollWild, rollTrainer, shinyRolls, statsFor, wildLevelCap, wildLevelSettings } from './battleRules.js';
+import { REGIONS, GYMS, speciesInRegion, regionUnlocked, legendaryUnlocked, catchCharmMultiplier, challengesWithStatus, charmMilestones, completedGenerationsAfterFirst, luckyEggMultiplier, amuletCoinMultiplier, damage, drainPercentForMove, effectiveness, formFor, healAtTurnEnd, healByDrain, healByMove, healByStrengthSap, leechSeedTurn, levelMovesFor, makeCombatant, rollShiny, rollWild, rollTrainer, shinyRolls, statsFor, wildLevelCap, wildLevelSettings } from './battleRules.js';
 import { generationForSpecies, HEALING_ITEMS, healCombatant } from './itemRules.js';
 import { equippedMoves, naturalMoves, unlockedMoves } from './moveRules.js';
 import { TOURNAMENTS, rollTournament } from './tournaments.js';
@@ -492,6 +492,12 @@ export function createBattleService(db) {
           if (ids.length > state.totalOponentes || new Set(ids).size !== ids.length) throw new HttpError(400, `Escolha até ${state.totalOponentes} Pokémon diferentes.`);
           const members = await tx.pokemonCapturado.findMany({ where: { id: { in: ids }, saveId: save.id } });
           if (members.length !== ids.length) throw new HttpError(404, 'Pokémon não encontrado na sua coleção.');
+          if (state.tipo === 'desafio') {
+            const region = REGIONS.find((entry) => entry.id === state.regiao);
+            if (region && members.some((member) => !speciesInRegion(member.especieId, region.id))) {
+              throw new HttpError(403, `Neste desafio, use apenas Pokémon da região ${region.nome} (#${region.minSpecies}–#${region.maxSpecies}).`);
+            }
+          }
           const combatants = [];
           for (const id of ids) {
             const member = members.find((entry) => entry.id === id);

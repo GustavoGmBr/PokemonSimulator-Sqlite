@@ -1,7 +1,7 @@
 import { HttpError } from '../lib/errors.js';
 import { getCatalogo, getEspecie } from './catalogo.js';
-import { formFor, statsFor } from './battleRules.js';
-import { EXP_CANDIES, PASSIVE_ITEMS, REWARD_ONLY_ITEMS } from './itemRules.js';
+import { REGIONS, formFor, regionUnlocked, statsFor } from './battleRules.js';
+import { EXP_CANDIES, PASSIVE_ITEMS, REWARD_ONLY_ITEMS, generationForSpecies } from './itemRules.js';
 import { naturalMoves, unlockedMoves } from './moveRules.js';
 import { IV_ITEMS, normalizeIvs } from './ivRules.js';
 
@@ -36,7 +36,7 @@ function optionForCondition(target, condition, level, friendship, quantities, eq
     motivo: available ? null : requiredLevel != null && level < requiredLevel ? `Alcance o nível ${requiredLevel}.` : requiredFriendship != null && friendship < requiredFriendship ? `Aumente a amizade para ${requiredFriendship}.` : knownMove && !equippedMoves.has(knownMove) ? `Equipe ${knownMove} antes de evoluir.` : itemId ? `Você precisa de ${getCatalogo().itens.find((item) => item.nome === itemId)?.nomeExibicao ?? itemId}.` : 'Requisito não atendido.' };
 }
 
-export function evolutionOptions(member, inventory = [], ownedSpeciesIds = []) {
+export function evolutionOptions(member, inventory = [], ownedSpeciesIds = [], isSpeciesUnlocked = () => true) {
   const species = getEspecie(member.especieId);
   const upgradeableFusion = species.id === 800 && ['necrozma-dusk', 'necrozma-dawn'].includes(member.megaForma);
   if (member.gmaxForma || (member.megaForma && !upgradeableFusion)) return [];
@@ -47,7 +47,10 @@ export function evolutionOptions(member, inventory = [], ownedSpeciesIds = []) {
   const options = [];
   for (const target of current?.evolucoes ?? []) {
     if (!getCatalogo().pokemon.some((entry) => entry.id === target.especieId)) continue;
-    const variants = target.condicoes.map((condition) => optionForCondition(target, condition, member.nivel, member.amizade ?? 70, quantities, equippedMoves));
+    const variants = target.condicoes.map((condition) => {
+      const option = optionForCondition(target, condition, member.nivel, member.amizade ?? 70, quantities, equippedMoves);
+      return isSpeciesUnlocked(target.especieId) ? option : { ...option, disponivel: false, motivo: `Conclua os desafios necessários para liberar a ${generationForSpecies(target.especieId)}ª geração.` };
+    });
     options.push(variants.find((option) => option.disponivel) ?? variants[0]);
   }
   for (const form of species.formasMega ?? []) {
@@ -94,6 +97,10 @@ function transferExperience(from, to, level, experience) {
 }
 
 export function createEvolutionService(db) {
+  function speciesUnlocked(speciesId, completed) {
+    const matchingRegions = REGIONS.filter((region) => speciesId >= region.minSpecies && speciesId <= region.maxSpecies);
+    return matchingRegions.some((region) => regionUnlocked(region.id, completed));
+  }
   return {
     async improveIv(usuarioId, pokemonId, itemId) {
       const item = IV_ITEMS.find(entry => entry.nome === itemId);
@@ -132,12 +139,14 @@ export function createEvolutionService(db) {
     async options(usuarioId, pokemonId) {
       const member = await db.pokemonCapturado.findFirst({ where: { id: pokemonId, save: { usuarioId } } });
       if (!member) throw new HttpError(404, 'Pokémon não encontrado na sua coleção.');
-      const [inventory, battle, partners] = await Promise.all([
+      const [inventory, battle, partners, challenges] = await Promise.all([
         db.itemInventario.findMany({ where: { saveId: member.saveId } }),
         db.batalha.findUnique({ where: { saveId: member.saveId }, select: { id: true } }),
         member.especieId === 800 ? db.pokemonCapturado.findMany({ where: { saveId: member.saveId, especieId: { in: [791, 792] } }, select: { especieId: true } }) : [],
+        db.desafioConcluido.findMany({ where: { saveId: member.saveId }, select: { desafioId: true } }),
       ]);
-      const options = evolutionOptions(member, inventory, partners.map((entry) => entry.especieId));
+      const completed = challenges.map((entry) => entry.desafioId);
+      const options = evolutionOptions(member, inventory, partners.map((entry) => entry.especieId), (speciesId) => speciesUnlocked(speciesId, completed));
       return battle ? options.map((option) => ({ ...option, disponivel: false, motivo: 'Termine a batalha atual para evoluir.' })) : options;
     },
     async evolve(usuarioId, pokemonId, alvo) {
@@ -147,7 +156,9 @@ export function createEvolutionService(db) {
         if (await tx.batalha.findUnique({ where: { saveId: member.saveId }, select: { id: true } })) throw new HttpError(409, 'Termine a batalha atual para evoluir.');
         const inventory = await tx.itemInventario.findMany({ where: { saveId: member.saveId } });
         const partners = member.especieId === 800 ? await tx.pokemonCapturado.findMany({ where: { saveId: member.saveId, especieId: { in: [791, 792] } }, select: { especieId: true } }) : [];
-        const option = evolutionOptions(member, inventory, partners.map((entry) => entry.especieId)).find((entry) => String(entry.alvo) === String(alvo));
+        const challenges = await tx.desafioConcluido.findMany({ where: { saveId: member.saveId }, select: { desafioId: true } });
+        const completed = challenges.map((entry) => entry.desafioId);
+        const option = evolutionOptions(member, inventory, partners.map((entry) => entry.especieId), (speciesId) => speciesUnlocked(speciesId, completed)).find((entry) => String(entry.alvo) === String(alvo));
         if (!option) throw new HttpError(400, 'Evolução inválida para este Pokémon.');
         if (!option.disponivel) throw new HttpError(409, option.motivo);
         if (option.itemId) {
